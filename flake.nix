@@ -9,7 +9,10 @@
     self,
     nixpkgs,
   }: {
-    hmModules = import ./modules/module_list.nix;
-    templates.default.path = ./template;
+    homeModules = import ./modules/module_list.nix;
+    templates.default = {
+      description = "Nix Podman Stacks Starter";
+      path = ./template;
+    };
   };
 }

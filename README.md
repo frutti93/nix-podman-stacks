@@ -69,7 +69,7 @@ Most stacks will rely or use some centrally defined variables. These include:
 
 ## Example
 
-If you already have an existing flake setup, add this projects flake as an input and include the flake output `hmModules.all` in your Home Manager modules.
+If you already have an existing flake setup, add this projects flake as an input and include the flake output `homeModules.all` in your Home Manager modules.
 
 ---
 

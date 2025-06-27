@@ -2,6 +2,10 @@
 
 Collection of opinionated Podman stacks managed by [Home Manager](https://github.com/nix-community/home-manager).
 
+[![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
+![Build](https://github.com/tarow/nix-podman-stacks/actions/workflows/ci.yaml/badge.svg)
+[![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com)
+
 ![preview](./screenshots/homepage.png)
 
 The goal is to easily deploy various self-hosted projects, including reverse proxy and monitoring.

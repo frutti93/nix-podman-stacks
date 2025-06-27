@@ -64,7 +64,7 @@ in {
               else "http://${ip4Address}:${getPort port 0}";
           };
           middlewares = mkOption {
-            type = types.listOf (types.enum ["public" "private" "authelia"]);
+            type = types.listOf (types.enum ["public" "private"]);
             default = ["private"];
           };
         };

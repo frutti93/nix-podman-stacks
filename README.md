@@ -1,15 +1,15 @@
 # Nix Podman Stacks
 
-Opinionated collection of rootless Podman stacks managed by [Home Manager](https://github.com/nix-community/home-manager).
+Collection of opinionated Podman stacks managed by [Home Manager](https://github.com/nix-community/home-manager).
 
 ![preview](./screenshots/homepage.png)
 
 The goal is to easily deploy various self-hosted projects, including reverse proxy and monitoring.
-This is an opinionated setup that is primarily with my personal preferences in mind. Nevertheless, all configurations and settings could be overwritten if it doesn't fit your use-case.
+This is an opinionated setup that is primarily build with my personal preferences in mind. Nevertheless, all configurations and settings can be overwritten if it doesn't fit your use-case.
 
 While most stacks can be activated by setting a single flag, some stacks require setting mandatory values, especially for secrets.
 
-For managing secrets with nix, i recommend [sops-nix](https://github.com/Mic92/sops-nix) which allows you to have your entire configuration in a Git repository.
+For managing secrets with nix, i recommend [sops-nix](https://github.com/Mic92/sops-nix) which allows you to store your secrets along with the configuration inside a single Git repository.
 
 ## Structure
 
@@ -65,11 +65,13 @@ Most stacks will rely or use some centrally defined variables. These include:
 ## Prerequisites
 
 - [Nix Installation](https://nixos.org/)
-- `net.ipv4.ip_unprivileged_port_start=0` or any other way of allowing non-root processes to bind to ports < 1024
+- `net.ipv4.ip_unprivileged_port_start=0` or any other way of allowing non-root processes to bind to ports below 1024
 
 ## Example
 
-If you already have an existing flake setup, add `nix-podman-stacks.url = github:Tarow/nix-podman-stacks` as an input and add `nix-podman-stacks.hmModules.all` to your Home Manager modules. Then enable any stacks as shown below.
+If you already have an existing flake setup, add this projects flake as an input and include the flake output `hmModules.all` in your Home Manager modules.
+
+---
 
 If you don't use Nix yet, you can use the projects template to get started:
 

@@ -58,7 +58,7 @@ in {
           PAPERLESS_TIME_ZONE = config.tarow.podman.defaultTz;
           PAPERLESS_OCR_LANGUAGE = "deu";
           PAPERLESS_FILENAME_FORMAT = "{{created_year}}/{{correspondent}}/{{title}}";
-          PAPERLESS_URL = config.tarow.podman.stacks.traefik.serviceDomain;
+          PAPERLESS_URL = config.services.podman.containers.${name}.traefik.serviceDomain;
         };
         environmentFile = [cfg.envFile];
         port = 8000;

@@ -24,6 +24,7 @@ in {
     };
     hostUid = lib.mkOption {
       type = lib.types.int;
+      default = 1000;
     };
     defaultUid = lib.mkOption {
       type = lib.types.int;

@@ -42,14 +42,12 @@ in {
     };
     immichEnvFile = lib.mkOption {
       type = lib.types.path;
-      default = null;
       description = ''
         Path to the env file containing the 'DB_PASSWORD' variable
       '';
     };
     dbEnvFile = lib.mkOption {
       type = lib.types.path;
-      default = null;
       description = ''
         Path to the env file containing the 'POSTGRES_PASSWORD' variable
       '';

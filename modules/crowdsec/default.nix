@@ -40,6 +40,14 @@ in {
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
+    envFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = ''
+        Path to the env file containing the 'BOUNCER_KEY_TRAEFIK' and optionally the
+        'ENROLL_INSTANCE_NAME' and 'ENROLL_KEY' variables
+      '';
+    };
     acquisSettings = lib.mkOption {
       type = yaml.type;
       description = "Acquisitions settings for Crowdsec.";
@@ -98,6 +106,7 @@ in {
         UID = config.tarow.podman.defaultUid;
         GID = config.tarow.podman.defaultGid;
       };
+      environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
 
       homepage = {
         category = "Network & Administration";

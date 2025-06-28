@@ -37,12 +37,39 @@ in {
       type = lib.types.path;
       description = "Path to the environment file for Traefik";
     };
+    geoblock = {
+      enable = lib.mkEnableOption "Geoblock" // {default = true;};
+      allowedCountries = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = ''
+          List of allowed country codes (ISO 3166-1 alpha-2 format)
+        '';
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
     tarow.podman.stacks.${name} = {
       staticConfig = import ./config/traefik.nix cfg.domain cfg.network;
-      dynamicConfig = import ./config/dynamic.nix;
+      dynamicConfig = lib.mkMerge [
+        (
+          import ./config/dynamic.nix
+        )
+        (lib.mkIf cfg.geoblock.enable {
+          http.middlewares = {
+            public-chain.chain.middlewares = lib.mkOrder 1100 ["geoblock"];
+            geoblock.plugin.geoblock = {
+              enabled = true;
+              databaseFilePath = "/plugins/geoblock/IP2LOCATION-LITE-DB1.IPV6.BIN";
+              allowedCountries = cfg.geoblock.allowedCountries;
+              defaultAllow = false;
+              allowPrivate = true;
+              disallowedStatusCode = 403;
+            };
+          };
+        })
+      ];
     };
 
     services.podman.networks.${cfg.network} = {

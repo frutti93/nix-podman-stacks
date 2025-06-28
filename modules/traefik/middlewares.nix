@@ -2,7 +2,6 @@ name: middlewares: let
   mapping = {
     public = "public-chain@file";
     private = "private-chain@file";
-    authelia = "authelia@file";
   };
 
   validMiddlewares = builtins.filter (key: mapping ? ${key}) middlewares;

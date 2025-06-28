@@ -39,8 +39,8 @@
   sortByRank = attrs:
     builtins.sort (
       a: b: let
-        orderA = attrs.${a}.order or 999;
-        orderB = attrs.${b}.order or 999;
+        orderA = attrs.${a}.rank or 999;
+        orderB = attrs.${b}.rank or 999;
       in
         if orderA == orderB
         then (lib.strings.toLower a) < (lib.strings.toLower b)

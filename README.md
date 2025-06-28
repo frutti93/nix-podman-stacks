@@ -71,7 +71,7 @@ Most stacks will rely or use some centrally defined variables. These include:
 - [Nix Installation](https://nixos.org/)
 - `net.ipv4.ip_unprivileged_port_start=0` or any other way of allowing non-root processes to bind to ports below 1024
 
-## Example
+## Setup
 
 If you already have an existing flake setup, add this projects flake as an input and include the flake output `homeModules.all` in your Home Manager modules.
 
@@ -87,3 +87,14 @@ If you don't use Nix yet, you can use the projects template to get started:
 6. Apply your configuration: `nix run home-manager -- switch --experimental-features "nix-command flakes pipe-operators" -b bak --flake .#myhost`
 
 This is just one example. Feel free to use a different tool for secret management or restructure files to your preference.
+
+## Customize Settings
+
+The Podman stacks are mostly opinionated and configured to work out of the box.
+Refer to each module to see which options are exposed on stack level and can be modified.
+An example would be [Traefik](./modules/traefik/default.nix), which requires a domain to be set.
+Also it ships with preconfigured static and dynamic configurations, but allows you to extend or customize those.
+
+If the exposed options are not enough for you, you can always refer to the container definition directly, by using the `tarow.podman.stacks.<stackname>.containers.<containername>` options.
+
+Refer to the [examples](./examples) to see various use cases of setting and overriding options.

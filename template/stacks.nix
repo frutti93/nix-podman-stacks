@@ -50,6 +50,7 @@
         enable = true;
         domain = "mydomain.com";
         envFile = config.sops.secrets."traefik/env".path;
+        geoblock.allowedCountries = ["DE"];
       };
       uptime-kuma.enable = true;
       wg-easy = {

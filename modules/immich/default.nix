@@ -40,13 +40,13 @@ in {
         then (json.generate "config.json" settings)
         else null;
     };
-    immichEnvFile = lib.mkOption {
+    envFile = lib.mkOption {
       type = lib.types.path;
       description = ''
         Path to the env file containing the 'DB_PASSWORD' variable
       '';
     };
-    dbEnvFile = lib.mkOption {
+    db.envFile = lib.mkOption {
       type = lib.types.path;
       description = ''
         Path to the env file containing the 'POSTGRES_PASSWORD' variable
@@ -67,7 +67,7 @@ in {
           ++ lib.optional (cfg.settings != null) "${cfg.settings}:${env.IMMICH_CONFIG_FILE}";
 
         environment = env;
-        environmentFile = [cfg.immichEnvFile];
+        environmentFile = [cfg.envFile];
 
         devices = ["/dev/dri:/dev/dri"];
 
@@ -95,7 +95,7 @@ in {
       ${dbName} = {
         image = "docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0";
         volumes = ["${storage}/pgdata:/var/lib/postgresql/data"];
-        environmentFile = [cfg.dbEnvFile];
+        environmentFile = [cfg.db.envFile];
         environment = {
           POSTGRES_USER = env.DB_USERNAME;
           POSTGRES_DB = env.DB_DATABASE_NAME;

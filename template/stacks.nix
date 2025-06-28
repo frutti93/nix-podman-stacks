@@ -16,7 +16,7 @@
       changedetection.enable = true;
       crowdsec = {
         enable = true;
-        containers.crowdsec.environmentFile = [config.sops.secrets."crowdsec/env".path];
+        envFile = [config.sops.secrets."crowdsec/env".path];
       };
       dozzle.enable = true;
       filebrowser.enable = true;
@@ -27,8 +27,8 @@
       homepage.enable = true;
       immich = {
         enable = true;
-        immichEnvFile = config.sops.secrets."immich/env".path;
-        dbEnvFile = config.sops.secrets."immich/db_env".path;
+        envFile = config.sops.secrets."immich/env".path;
+        db.envFile = config.sops.secrets."immich/db_env".path;
       };
       monitoring.enable = true;
       paperless = {

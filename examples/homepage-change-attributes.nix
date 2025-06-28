@@ -7,7 +7,6 @@ The options are not available on stack level, so we can refer to the container o
 */
 {lib, ...}: {
   tarow.stacks = {
-    # ...
     adguard.containers.adguard.homepage = {
       name = lib.mkForce "New Name";
       category = lib.mkForce "New Category";
@@ -16,6 +15,5 @@ The options are not available on stack level, so we can refer to the container o
         icon = lib.mkForce "si-adblock";
       };
     };
-    # ...
   };
 }

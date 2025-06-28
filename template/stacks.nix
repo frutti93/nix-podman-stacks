@@ -16,7 +16,7 @@
       changedetection.enable = true;
       crowdsec = {
         enable = true;
-        envFile = [config.sops.secrets."crowdsec/env".path];
+        envFile = config.sops.secrets."crowdsec/env".path;
       };
       dozzle.enable = true;
       filebrowser.enable = true;

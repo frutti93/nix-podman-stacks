@@ -1,4 +1,8 @@
-{config, ...}: {
+{
+  config,
+  lib,
+  ...
+}: {
   tarow.podman = {
     hostIP4Address = "192.168.178.2";
     hostUid = 1000;

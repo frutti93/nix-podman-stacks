@@ -41,6 +41,7 @@ Most stacks will rely or use some centrally defined variables. These include:
 - [DockDNS](./modules/dockdns/default.nix)
 - [Dozzle](./modules/dozzle/default.nix)
 - [Filebrowser](./modules/filebrowser/default.nix)
+- [Forgejo](./modules/forgejo/default.nix)
 - [Healthchecks](./modules/healchecks/default.nix)
 - [Homepage](./modules/homepage/default.nix)
 - [Immich](./modules/immich/default.nix)
@@ -69,7 +70,7 @@ Most stacks will rely or use some centrally defined variables. These include:
 
 ## Prerequisites
 
-- [Nix Installation](https://nixos.org/)
+- [Nix Installation](https://nixos.org/download/#nix-install-linux)
 - `net.ipv4.ip_unprivileged_port_start=0` or any other way of allowing non-root processes to bind to ports below 1024
 
 ## Setup

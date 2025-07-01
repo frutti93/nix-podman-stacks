@@ -22,8 +22,13 @@ in {
     };
     network = lib.options.mkOption {
       type = lib.types.str;
-      description = "Network name of the Traefik docker provider";
+      description = "Network name for Podman bridge network. Will be used by the Traefik Docker provider";
       default = "traefik-proxy";
+    };
+    subnet = lib.options.mkOption {
+      type = lib.types.str;
+      description = "Subnet of the Podman bridge network";
+      default = "10.80.0.0/24";
     };
     staticConfig = lib.options.mkOption {
       type = yaml.type;
@@ -74,8 +79,7 @@ in {
 
     services.podman.networks.${cfg.network} = {
       driver = "bridge";
-      extraPodmanArgs = [
-      ];
+      subnet = cfg.subnet;
     };
 
     services.podman.containers.${name} = rec {

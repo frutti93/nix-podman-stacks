@@ -13,6 +13,7 @@ let
     filebrowser = ./filebrowser;
     forgejo = ./forgejo;
     healthchecks = ./healthchecks;
+    homeassistant = ./homeassistant;
     homepage = ./homepage;
     immich = ./immich;
     mealie = ./mealie;

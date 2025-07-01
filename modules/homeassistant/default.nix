@@ -49,7 +49,7 @@ in {
           "/run/dbus:/run/dbus:ro"
         ]
         ++ lib.optional (cfg.settings != null) "${cfg.settings}:/config/configuration.yaml";
-      extraConfig.GroupAdd = "keep-groups";
+      extraConfig.Container.GroupAdd = "keep-groups";
 
       port = 8123;
       traefik.name = name;

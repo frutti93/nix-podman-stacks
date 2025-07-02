@@ -55,9 +55,9 @@ in {
               (
                 lib.mkMerge [
                   {
-                    href = lib.mkIf (config.traefik.name != null) config.traefik.serviceDomain;
-                    server = "local";
-                    container = name;
+                    href = lib.mkDefault (lib.mkIf (config.traefik.name != null) config.traefik.serviceDomain);
+                    server = lib.mkDefault "local";
+                    container = lib.mkDefault name;
                     widget = {
                       enable = lib.mkDefault false;
                       url = lib.mkDefault "http://${name}:${toString config.port}";

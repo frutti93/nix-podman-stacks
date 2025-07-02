@@ -1,0 +1,109 @@
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  name = "beszel";
+  agentName = "${name}-agent";
+
+  storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  cfg = config.tarow.podman.stacks.${name};
+
+  yaml = pkgs.formats.yaml {};
+in {
+  imports = import ../mkAliases.nix lib name [name];
+
+  options.tarow.podman.stacks.${name} = {
+    enable = lib.mkEnableOption name;
+    ed25519PrivateKeyFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = ''
+        Private SSH key that will be used by the hub to authenticate against agent
+      '';
+    };
+    ed25519PublicKeyFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = ''
+        Public SSH key of the hub that will be considered authorized by agent
+      '';
+    };
+
+    settings = lib.mkOption {
+      type = lib.types.nullOr yaml.type;
+      default = null;
+      apply = settings:
+        if (settings != null)
+        then yaml.generate "config.yml" settings
+        else null;
+      description = ''
+        System configuration (optional).
+        If provided, on each restart, systems in the database will be updated to match the systems defined in the settings.
+        To see your current configuration, refer to settings -> YAML Config -> Export configuration
+      '';
+    };
+  };
+  config = lib.mkIf cfg.enable {
+    tarow.podman.stacks.beszel.settings = {
+      systems = [
+        {
+          name = "Local";
+          host = "/beszel_socket/beszel.sock";
+          port = 45876;
+          users = [];
+        }
+      ];
+    };
+
+    services.podman.containers = {
+      ${name} = {
+        image = "ghcr.io/henrygd/beszel/beszel:latest";
+        volumes =
+          [
+            "${storage}/data:/beszel_data"
+            "${storage}/beszel_socket:/beszel_socket"
+          ]
+          ++ lib.optional (cfg.settings != null) "${cfg.settings}:/beszel_data/config.yml"
+          ++ lib.optional (cfg.ed25519PrivateKeyFile != null) "${cfg.ed25519PrivateKeyFile}:/beszel_data/id_ed25519"
+          ++ lib.optional (cfg.ed25519PublicKeyFile != null) "${cfg.ed25519PublicKeyFile}:/beszel_data/id_ed25519.pub";
+
+        environment = {
+          SHARE_ALL_SYSTEMS = true;
+        };
+
+        port = 8090;
+        traefik.name = name;
+        homepage = {
+          category = "Monitoring";
+          name = "Beszel";
+          settings = {
+            description = "Lightweight Monitoring Platform";
+            icon = "beszel";
+          };
+        };
+      };
+
+      ${agentName} = {
+        image = "ghcr.io/henrygd/beszel/beszel-agent:latest";
+        volumes =
+          [
+            "${storage}/beszel_socket:/beszel_socket"
+            "${config.tarow.podman.socketLocation}:/run/podman/podman.sock:ro"
+          ]
+          ++ lib.optional (cfg.ed25519PublicKeyFile != null) "${cfg.ed25519PublicKeyFile}:/data/hub_key";
+        network = ["host"];
+
+        environment =
+          {
+            LISTEN = "/beszel_socket/beszel.sock";
+            DOCKER_HOST = "unix:///run/podman/podman.sock";
+          }
+          // lib.optionalAttrs (cfg.ed25519PublicKeyFile != null) {
+            KEY_FILE = "/data/hub_key";
+          };
+      };
+    };
+  };
+}

@@ -4,6 +4,7 @@ let
     adguard = ./adguard;
     aiostreams = ./aiostreams;
     audiobookshelf = ./audiobookshelf;
+    beszel = ./beszel;
     blocky = ./blocky;
     calibre = ./calibre;
     changedetection = ./changedetection;

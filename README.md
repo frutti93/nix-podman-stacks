@@ -31,6 +31,7 @@ Most stacks will rely or use some centrally defined variables. These include:
 - [Adguard](./modules/adguard/default.nix)
 - [AIOStreams](./modules/aiostreams/default.nix)
 - [Audiobookshelf](./modules/audiobookshelf/default.nix)
+- [Beszel](./modules/beszel/default.nix)
 - [Blocky](./modules/blocky/default.nix)
 - [Calibre-Web](./modules/calibre/default.nix)
   - Calibre-Web Automated

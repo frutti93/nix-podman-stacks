@@ -47,6 +47,7 @@ in {
           settings = {
             description = "Bookmark Everything";
             icon = "karakeep";
+            widget.type = "karakeep";
           };
         };
       };

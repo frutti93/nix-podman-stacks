@@ -55,7 +55,7 @@ in {
               (
                 lib.mkMerge [
                   {
-                    href = lib.mkDefault (lib.mkIf (config.traefik.name != null) config.traefik.serviceDomain);
+                    href = lib.mkIf (config.traefik.name != null) (lib.mkDefault config.traefik.serviceDomain);
                     server = lib.mkDefault "local";
                     container = lib.mkDefault name;
                     widget = {

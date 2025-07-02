@@ -16,6 +16,7 @@ let
     homeassistant = ./homeassistant;
     homepage = ./homepage;
     immich = ./immich;
+    karakeep = ./karakeep;
     mealie = ./mealie;
     monitoring = ./monitoring;
     paperless = ./paperless;

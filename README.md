@@ -46,6 +46,7 @@ Most stacks will rely or use some centrally defined variables. These include:
 - [Home Assistant](./modules/homeassistant/default.nix)
 - [Homepage](./modules/homepage/default.nix)
 - [Immich](./modules/immich/default.nix)
+- [Karakeep](./modules/karakeep/default.nix)
 - [Mealie](./modules/mealie/default.nix)
 - [Monitoring](./modules/monitoring/default.nix)
   - Alloy

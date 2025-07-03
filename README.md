@@ -59,6 +59,7 @@ Most stacks will rely or use some centrally defined variables. These include:
 - [Paperless-ngx](./modules/paperless/default.nix)
   - Paperless-ngx
   - FTP Server
+- [Pocket ID](./modules/pocket-id/default.nix)
 - [Stirling-PDF](./modules/stirling-pdf/default.nix)
 - [Streaming](./modules/streaming/default.nix)
   - Bazarr

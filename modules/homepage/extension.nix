@@ -48,24 +48,18 @@ in {
         settings = options.mkOption {
           type = yaml.type;
           default = {};
-          apply = settings:
-            if settings == {}
-            then {}
-            else
-              (
-                lib.mkMerge [
-                  {
-                    href = lib.mkIf (config.traefik.name != null) (lib.mkDefault config.traefik.serviceDomain);
-                    server = lib.mkDefault "local";
-                    container = lib.mkDefault name;
-                    widget = {
-                      enable = lib.mkDefault false;
-                      url = lib.mkDefault "http://${name}:${toString config.port}";
-                    };
-                  }
-                  settings
-                ]
-              );
+        };
+      };
+
+      config = lib.mkIf (config.homepage.name != null) {
+        homepage.settings = {
+          href = lib.mkIf (config.traefik.name != null) (lib.mkDefault config.traefik.serviceDomain);
+          server = lib.mkDefault "local";
+          container = lib.mkDefault name;
+          widget = {
+            enable = lib.mkDefault false;
+            url = lib.mkDefault "http://${name}:${toString config.port}";
+          };
         };
       };
     }));

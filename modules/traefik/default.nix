@@ -36,7 +36,6 @@ in {
     };
     dynamicConfig = lib.options.mkOption {
       type = yaml.type;
-      apply = yaml.generate "dynamic.yml";
     };
     envFile = lib.options.mkOption {
       type = lib.types.path;
@@ -104,7 +103,7 @@ in {
         "${storage}/letsencrypt:/letsencrypt"
         "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"
         "${cfg.staticConfig}:/etc/traefik/traefik.yml:ro"
-        "${cfg.dynamicConfig}:/dynamic/config.yml"
+        "${yaml.generate "dynamic.yml" cfg.dynamicConfig}:/dynamic/config.yml"
         "${./config/IP2LOCATION-LITE-DB1.IPV6.BIN}:/plugins/geoblock/IP2LOCATION-LITE-DB1.IPV6.BIN"
       ];
       labels = {

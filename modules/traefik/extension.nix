@@ -4,6 +4,7 @@
   ...
 }: let
   stackCfg = config.tarow.podman.stacks.traefik;
+
   ip4Address = config.tarow.podman.hostIP4Address;
 
   getPort = port: index:
@@ -64,7 +65,7 @@ in {
               else "http://${ip4Address}:${getPort port 0}";
           };
           middlewares = mkOption {
-            type = types.listOf (types.enum ["public" "private"]);
+            type = types.listOf (types.enum (lib.attrNames stackCfg.dynamicConfig.http.middlewares));
             default = ["private"];
           };
         };
@@ -84,7 +85,9 @@ in {
           // lib.optionalAttrs (containerPort != null) {
             "traefik.http.services.${name}.loadbalancer.server.port" = containerPort;
           }
-          // (import ./middlewares.nix name traefikCfg.middlewares));
+          // {
+            "traefik.http.routers.${name}.middlewares" = builtins.concatStringsSep "," (map (m: "${m}@file") traefikCfg.middlewares);
+          });
         network = lib.mkIf enableTraefik [stackCfg.network];
         ports = lib.optional (!enableTraefik && (port != null)) "${hostPort}:${containerPort}";
       };

@@ -11,9 +11,9 @@
   };
   http = {
     middlewares = {
-      public-chain.chain.middlewares = ["public-ratelimit" "security-headers"];
+      public.chain.middlewares = ["public-ratelimit" "security-headers"];
 
-      private-chain.chain.middlewares = ["ipwhitelist-internal"];
+      private.chain.middlewares = ["ipwhitelist-internal"];
 
       ipwhitelist-internal.ipAllowList.sourceRange = ["10.0.0.0/8" "172.16.0.0/12" "192.168.0.0/16"];
 

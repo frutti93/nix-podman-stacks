@@ -22,6 +22,7 @@ let
     mealie = ./mealie;
     monitoring = ./monitoring;
     paperless = ./paperless;
+    pocketid = ./pocket-id;
     stirling-pdf = ./stirling-pdf;
     streaming = ./streaming;
     traefik = ./traefik;

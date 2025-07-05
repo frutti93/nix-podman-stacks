@@ -29,19 +29,14 @@
     },
     {
       "matchManagers": ["regex"],
-      "matchDatasources": ["docker"],
       "automerge": false,
       "automergeType": "pr"
-    },
-    {
-      "matchFileNames": ["^modules/(?<dirname>[^/]+)/"],
-      "groupName": "{{{dirname}}}"
     }
   ],
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [".*\\.nix$"],
+      "managerFilePatterns": [".*\\.nix$"],
       "matchStrings": [
         "(?<depName>[a-zA-Z0-9_.-]+)\\s*=\\s*\\{[^}]*moduleName\\s*=\\s*\"(?<moduleName>[^\"]+)\";[^}]*version\\s*=\\s*\"(?<currentValue>v?[0-9][^\"]*)\";"
       ],
@@ -51,7 +46,7 @@
     },
     {
       "customType": "regex",
-      "fileMatch": [".*\\.nix$"],
+      "managerFilePatterns": [".*\\.nix$"],
       "matchStrings": [
         "image\\s*=\\s*\"(?<depName>[^:\"]+):(?<currentValue>[^\"\\s]+)\"\\s*;"
       ],

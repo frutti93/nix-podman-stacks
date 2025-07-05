@@ -28,6 +28,12 @@
       "automergeType": "pr"
     },
     {
+      "matchManagers": ["regex"],
+      "matchDatasources": ["docker"],
+      "automerge": false,
+      "automergeType": "pr"
+    },
+    {
       "matchFileNames": ["^modules/(?<dirname>[^/]+)/"],
       "groupName": "{{{dirname}}}"
     }

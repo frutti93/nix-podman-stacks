@@ -13,7 +13,7 @@ This is an opinionated setup that is primarily build with my personal preference
 
 While most stacks can be activated by setting a single flag, some stacks require setting mandatory values, especially for secrets.
 
-For managing secrets with nix, i recommend [sops-nix](https://github.com/Mic92/sops-nix) which allows you to store your secrets along with the configuration inside a single Git repository.
+For managing secrets, projects such as [sops-nix](https://github.com/Mic92/sops-nix) or [agenix](https://github.com/ryantm/agenix) can be used, which allow you to store your secrets along with the configuration inside a single Git repository.
 
 ## Structure
 

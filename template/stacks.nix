@@ -46,7 +46,10 @@
         db.envFile = config.sops.secrets."immich/db_env".path;
       };
       ittools.enable = true;
-      karakeep.enable = true;
+      karakeep = {
+        enable = true;
+        envFile = config.sops.secrets."karakeep/env".path;
+      };
       monitoring.enable = true;
       paperless = {
         enable = true;

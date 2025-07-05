@@ -12,6 +12,8 @@
       lib.genAttrs
       [
         "aiostreams/env"
+        "beszel/ssh_key"
+        "beszel/ssh_pub_key"
         "crowdsec/env"
         "dockdns/env"
         "healthchecks/env"
@@ -22,6 +24,7 @@
         "paperless/env"
         "paperless/db_env"
         "paperless/ftp_env"
+        "pocketId/traefikEnv"
         "wg-easy/env"
         "traefik/env"
       ] (s: {});

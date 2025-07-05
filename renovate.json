@@ -47,7 +47,7 @@
       "customType": "regex",
       "fileMatch": [".*\\.nix$"],
       "matchStrings": [
-        "(?:image\\s*=\\s*\")?(?<depName>[a-zA-Z0-9./_-]+):(?<currentValue>[a-zA-Z0-9._-]+)\"?"
+        "image\\s*=\\s*\"(?<depName>[^:\"]+):(?<currentValue>[^\"\\s]+)\"\\s*;"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "semver"

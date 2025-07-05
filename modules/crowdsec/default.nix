@@ -60,7 +60,7 @@ in {
     tarow.podman.stacks.traefik = {
       staticConfig.experimental.plugins.bouncer = {
         moduleName = "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin";
-        version = "v1.4.2";
+        version = "v1.4.4";
       };
       dynamicConfig.http.middlewares = {
         public-chain.chain.middlewares = lib.mkAfter ["crowdsec"];

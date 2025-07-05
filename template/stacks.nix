@@ -16,7 +16,16 @@
         envFile = config.sops.secrets."aiostreams/env".path;
       };
       audiobookshelf.enable = true;
-      blocky.enable = false;
+      beszel = {
+        enable = true;
+        ed25519PrivateKeyFile = config.sops.secrets."beszel/ssh_key".path;
+        ed25519PublicKeyFile = config.sops.secrets."beszel/ssh_pub_key".path;
+      };
+      blocky = {
+        enable = false;
+        enableGrafanaDashboard = true;
+        enablePrometheusExport = true;
+      };
       calibre.enable = true;
       changedetection.enable = true;
       crowdsec = {
@@ -29,18 +38,25 @@
         enable = true;
         envFile = config.sops.secrets."healthchecks/env".path;
       };
+      homeassistant.enable = true;
       homepage.enable = true;
       immich = {
         enable = true;
         envFile = config.sops.secrets."immich/env".path;
         db.envFile = config.sops.secrets."immich/db_env".path;
       };
+      ittools.enable = true;
+      karakeep.enable = true;
       monitoring.enable = true;
       paperless = {
         enable = true;
         envFile = config.sops.secrets."paperless/env".path;
         db.envFile = config.sops.secrets."paperless/db_env".path;
         ftp.envFile = config.sops.secrets."paperless/ftp_env".path;
+      };
+      pocketid = {
+        enable = true;
+        traefik.envFile = config.sops.secrets."pocketId/traefikEnv".path;
       };
       stirling-pdf.enable = true;
       streaming = {

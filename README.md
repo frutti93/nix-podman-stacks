@@ -64,6 +64,7 @@ Most stacks will rely or use some centrally defined variables. These include:
 - [Streaming](./modules/streaming/default.nix)
   - Bazarr
   - Flaresolverr
+  - Gluetun
   - Jellyfin
   - Prowlarr
   - qBittorrent

@@ -59,7 +59,7 @@ in {
 
     services.podman.containers = {
       ${name} = {
-        image = "ghcr.io/immich-app/immich-server:release";
+        image = "ghcr.io/immich-app/immich-server:v1.135.2";
         volumes =
           [
             "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"

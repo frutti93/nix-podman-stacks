@@ -36,7 +36,7 @@
         "(?<depName>[a-zA-Z0-9_.-]+)\\s*=\\s*\\{[^}]*moduleName\\s*=\\s*\"(?<moduleName>[^\"]+)\";[^}]*version\\s*=\\s*\"(?<currentValue>v?[0-9][^\"]*)\";"
       ],
       "datasourceTemplate": "go",
-      "depNameTemplate": "{{moduleName}}",
+      "depNameTemplate": "{{{moduleName}}}",
       "versioningTemplate": "semver"
     }
   ]

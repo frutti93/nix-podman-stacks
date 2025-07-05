@@ -59,7 +59,7 @@ in {
 
     services.podman.containers = {
       ${name} = {
-        image = "ghcr.io/immich-app/immich-server:v1.135.2";
+        image = "ghcr.io/immich-app/immich-server:release";
         volumes =
           [
             "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
@@ -105,7 +105,7 @@ in {
       };
 
       ${mlName} = {
-        image = "ghcr.io/immich-app/immich-machine-learning:v1.135.2";
+        image = "ghcr.io/immich-app/immich-machine-learning:release";
         volumes = ["${storage}/model-cache:/cache"];
 
         stack = name;

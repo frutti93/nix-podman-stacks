@@ -18,6 +18,7 @@ in {
 
     # Used with Socket Activation
     websecure = {
+      asDefault = true;
       address = ":443";
       http = {
         tls = {

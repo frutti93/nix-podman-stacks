@@ -77,6 +77,7 @@
         geoblock.allowedCountries = ["DE"];
       };
       uptime-kuma.enable = true;
+      vaultwarden.enable = true;
       wg-easy = {
         enable = true;
         envFile = config.sops.secrets."wg-easy/env".path;

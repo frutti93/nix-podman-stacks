@@ -27,6 +27,7 @@ let
     streaming = ./streaming;
     traefik = ./traefik;
     uptime-kuma = ./uptime-kuma;
+    vaultwarden = ./vaultwarden;
     wg-easy = ./wg-easy;
   };
 in

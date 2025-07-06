@@ -72,6 +72,7 @@ Most stacks will rely or use some centrally defined variables. These include:
   - Sonarr
 - [Traefik](./modules/traefik/default.nix)
 - [Uptime-Kuma](./modules/uptime-kuma/default.nix)
+- [Vaultwarden](./modules/vaultwarden/default.nix)
 - [wg-easy](./modules/wg-easy/default.nix)
 
 ## Prerequisites

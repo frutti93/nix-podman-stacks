@@ -1,16 +1,22 @@
-domain: network: {
-  entryPoints = {
-    web = {
-      address = ":80";
-      http = {
-        redirections = {
-          entryPoint = {
-            to = "websecure";
-            scheme = "https";
-          };
+domain: network: let
+  mkRedirect = to: {
+    address = ":80";
+    http = {
+      redirections = {
+        entryPoint = {
+          to = to;
+          scheme = "https";
         };
       };
     };
+  };
+in {
+  entryPoints = rec {
+    web = mkRedirect "websecure";
+
+    web-internal = mkRedirect "websecure-internal";
+
+    # Used with Socket Activation
     websecure = {
       address = ":443";
       http = {
@@ -25,6 +31,9 @@ domain: network: {
         };
       };
     };
+
+    # Used with podman network internal connections
+    websecure-internal = websecure;
   };
   serversTransport = {insecureSkipVerify = true;};
   api = {dashboard = true;};

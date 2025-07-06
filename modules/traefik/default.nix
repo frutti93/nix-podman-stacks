@@ -94,10 +94,6 @@ in {
           fileDescriptorName = "websecure";
         }
       ];
-      ports = [
-        #"443:443"
-        #"80:80"
-      ];
       environmentFile = [cfg.envFile];
       volumes = [
         "${storage}/letsencrypt:/letsencrypt"
@@ -109,6 +105,14 @@ in {
       labels = {
         "traefik.http.routers.${traefik.name}.service" = "api@internal";
       };
+
+      # For every container that we manage, add a NetworkAlias, so that connections to Traefik are possible
+      # trough the internal podman network (no host-gateway required)
+      extraConfig.Container.NetworkAlias =
+        config.services.podman.containers
+        |> lib.attrValues
+        |> lib.filter (c: c.traefik.name != null)
+        |> lib.map (c: c.traefik.serviceHost);
 
       traefik.name = name;
       alloy.enable = true;

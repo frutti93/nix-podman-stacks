@@ -57,12 +57,12 @@ in {
           };
           serviceDomain = mkOption {
             type = lib.types.str;
-            default = fullHost;
+            default = traefikCfg.serviceHost;
             readOnly = true;
             apply = d:
               if stackCfg.enable
               then "https://${d}"
-              else "http://${ip4Address}:${getPort port 0}";
+              else "http://${d}";
           };
           middlewares = mkOption {
             type = types.listOf (types.enum (lib.attrNames stackCfg.dynamicConfig.http.middlewares));
@@ -78,8 +78,8 @@ in {
       in {
         labels = lib.optionalAttrs enableTraefik ({
             "traefik.enable" = "true";
-            "traefik.http.routers.${name}.rule" = ''Host(\`${fullHost}\`)'';
-            "traefik.http.routers.${name}.entrypoints" = "websecure";
+            "traefik.http.routers.${name}.rule" = ''Host(\`${traefikCfg.serviceHost}\`)'';
+            "traefik.http.routers.${name}.entrypoints" = "websecure,websecure-internal";
             "traefik.http.routers.${name}.service" = lib.mkDefault name;
           }
           // lib.optionalAttrs (containerPort != null) {

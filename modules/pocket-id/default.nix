@@ -36,11 +36,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     tarow.podman.stacks.traefik = lib.mkIf (cfg.traefik.envFile != null) {
-      containers.traefik = {
-        # Add host gateway route for pocket id domain, so that the oidc middleware can connect to it
-        extraConfig.Container.AddHost = "${cfg.containers.${name}.traefik.serviceHost}:host-gateway";
-        environmentFile = [cfg.traefik.envFile];
-      };
+      containers.traefik.environmentFile = [cfg.traefik.envFile];
 
       staticConfig.experimental.plugins.traefik-oidc-auth = {
         moduleName = "github.com/sevensolutions/traefik-oidc-auth";

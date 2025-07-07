@@ -21,6 +21,7 @@ let
     karakeep = ./karakeep;
     mealie = ./mealie;
     monitoring = ./monitoring;
+    ntfy = ./ntfy;
     paperless = ./paperless;
     pocketid = ./pocket-id;
     stirling-pdf = ./stirling-pdf;

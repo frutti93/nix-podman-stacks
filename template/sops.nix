@@ -21,11 +21,12 @@
         "immich/env"
         "immich/db_env"
         "karakeep/env"
-        "qbittorrent/env"
+        "ntfy/env"
         "paperless/env"
         "paperless/db_env"
         "paperless/ftp_env"
         "pocketId/traefikEnv"
+        "qbittorrent/env"
         "wg-easy/env"
         "traefik/env"
       ] (s: {});

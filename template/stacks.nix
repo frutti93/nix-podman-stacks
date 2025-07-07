@@ -51,6 +51,10 @@
         envFile = config.sops.secrets."karakeep/env".path;
       };
       monitoring.enable = true;
+      ntfy = {
+        enable = true;
+        envFile = config.sops.secrets."ntfy/env".path;
+      };
       paperless = {
         enable = true;
         envFile = config.sops.secrets."paperless/env".path;

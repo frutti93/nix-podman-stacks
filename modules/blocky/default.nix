@@ -43,8 +43,6 @@ in {
         {
           job_name = "blocky";
           honor_timestamps = true;
-          scrape_interval = "15s";
-          scrape_timeout = "10s";
           metrics_path = "/metrics";
           scheme = "http";
           static_configs = [{targets = ["${name}:4000"];}];

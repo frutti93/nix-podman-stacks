@@ -12,6 +12,8 @@ in {
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
+    enableGrafanaDashboard = lib.mkEnableOption "Grafana Dashboard";
+    enablePrometheusExport = lib.mkEnableOption "Prometheus Export";
     env = lib.mkOption {
       type = (options.services.podman.containers.type.getSubOptions []).environment.type;
       default = {};
@@ -30,6 +32,17 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    tarow.podman.stacks.monitoring = {
+      grafana.dashboards = lib.optional cfg.enableGrafanaDashboard ./grafana_dashboard.json;
+      prometheus.config.scrape_configs = lib.optional cfg.enablePrometheusExport {
+        job_name = "ntfy";
+        honor_timestamps = true;
+        metrics_path = "/metrics";
+        scheme = "http";
+        static_configs = [{targets = ["${name}:80"];}];
+      };
+    };
+
     services.podman.containers.${name} = {
       image = "docker.io/binwiederhier/ntfy:latest";
       exec = "serve";
@@ -47,6 +60,7 @@ in {
           NTFY_ENABLE_LOGIN = true;
           NTFY_UPSTREAM_BASE_URL = "https://ntfy.sh";
           NTFY_WEB_PUSH_FILE = "/var/lib/ntfy/webpush.db";
+          NTFY_ENABLE_METRICS = cfg.enablePrometheusExport;
         }
         // cfg.env;
       environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;

@@ -51,11 +51,20 @@ in {
         '';
       };
     };
+    enablePrometheusExport = lib.mkEnableOption "Prometheus Export";
+    enableGrafanaMetricsDashboard = lib.mkEnableOption "Grafana Metrics Dashboard";
+    enableGrafanaAccessLogDashboard = lib.mkEnableOption "Grafana Access Log Dashboard";
   };
 
   config = lib.mkIf cfg.enable {
     tarow.podman.stacks.${name} = {
-      staticConfig = import ./config/traefik.nix cfg.domain cfg.network;
+      staticConfig = lib.mkMerge [
+        (import ./config/traefik.nix cfg.domain cfg.network)
+        (lib.mkIf cfg.enablePrometheusExport {
+          entryPoints.metrics.address = ":9100";
+          metrics.prometheus.entryPoint = "metrics";
+        })
+      ];
       dynamicConfig = lib.mkMerge [
         (
           import ./config/dynamic.nix
@@ -74,6 +83,18 @@ in {
           };
         })
       ];
+    };
+    tarow.podman.stacks.monitoring = {
+      grafana.dashboards =
+        (lib.optional cfg.enableGrafanaAccessLogDashboard ./grafana/access_log_dashboard.json)
+        ++ (lib.optional cfg.enableGrafanaMetricsDashboard ./grafana/metrics_dashboard.json);
+      prometheus.config.scrape_configs = lib.optional cfg.enablePrometheusExport {
+        job_name = "traefik";
+        honor_timestamps = true;
+        metrics_path = "/metrics";
+        scheme = "http";
+        static_configs = [{targets = ["${name}:9100"];}];
+      };
     };
 
     services.podman.networks.${cfg.network} = {

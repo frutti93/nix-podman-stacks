@@ -99,9 +99,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     tarow.podman.stacks.${stackName} = {
-      grafana.dashboards =
-        (lib.optional config.tarow.podman.stacks.traefik.enable ./dashboards/traefik.json)
-        ++ (lib.optional cfg.podmanExporter.enable ./dashboards/podman-exporter.json);
+      grafana.dashboards = lib.optional cfg.podmanExporter.enable ./dashboards/podman-exporter.json;
       loki.config = import ./loki_local_config.nix cfg.loki.port;
 
       prometheus.config = lib.mkMerge [

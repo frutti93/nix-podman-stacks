@@ -13,6 +13,7 @@ let
     dozzle = ./dozzle;
     filebrowser = ./filebrowser;
     forgejo = ./forgejo;
+    freshrss = ./freshrss;
     healthchecks = ./healthchecks;
     homeassistant = ./homeassistant;
     homepage = ./homepage;

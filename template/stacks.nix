@@ -34,6 +34,8 @@
       };
       dozzle.enable = true;
       filebrowser.enable = true;
+      forgejo.enable = false;
+      freshrss.enable = false;
       healthchecks = {
         enable = true;
         envFile = config.sops.secrets."healthchecks/env".path;

@@ -1,8 +1,10 @@
 {
   global = {
-    scrape_interval = "1m";
+    # https://www.robustperception.io/what-range-should-i-use-with-rate/
+    # We have some rate[1m] graphs, so default to 15s scrape interval.
+    scrape_interval = "15s";
     scrape_timeout = "10s";
-    evaluation_interval = "1m";
+    evaluation_interval = "15s";
   };
   alerting = {
     alertmanagers = [

@@ -22,6 +22,7 @@ let
     karakeep = ./karakeep;
     mealie = ./mealie;
     monitoring = ./monitoring;
+    n8n = ./n8n;
     ntfy = ./ntfy;
     paperless = ./paperless;
     pocketid = ./pocket-id;

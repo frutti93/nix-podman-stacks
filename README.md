@@ -57,6 +57,7 @@ Most stacks will rely or use some centrally defined variables. These include:
   - Loki
   - Prometheus
   - Podman Metrics Exporter
+- [n8n](./modules/n8n/default.nix)
 - [ntfy](./modules/ntfy/default.nix)
 - [Paperless-ngx](./modules/paperless/default.nix)
   - Paperless-ngx

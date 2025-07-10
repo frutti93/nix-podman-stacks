@@ -53,6 +53,7 @@
         envFile = config.sops.secrets."karakeep/env".path;
       };
       monitoring.enable = true;
+      n8n.enable = false;
       ntfy = {
         enable = true;
         envFile = config.sops.secrets."ntfy/env".path;

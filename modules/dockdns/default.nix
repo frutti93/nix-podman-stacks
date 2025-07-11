@@ -10,7 +10,7 @@
 
   domain = config.tarow.podman.stacks.traefik.domain;
 in {
-  imports = [./extension.nix] ++ import ../mkAliases.nix lib name [name];
+  imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -22,7 +22,7 @@ in {
     envFile = lib.mkOption {
       type = lib.types.path;
       default = null;
-      description = ''            
+      description = ''          
         Path to a file containing environment variables for the API token for the domain.
         E.g. for a domain 'test.example.com', the file should contain 'TEST_EXAMPLE_COM_API_TOKEN=your_api_token'.'';
     };

@@ -8,7 +8,7 @@
   mediaStorage = config.tarow.podman.mediaStorageBaseDir;
   cfg = config.tarow.podman.stacks.${name};
 in {
-  imports = import ../mkAliases.nix lib name [name];
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name}.enable = lib.mkEnableOption name;
 

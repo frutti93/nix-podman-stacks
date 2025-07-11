@@ -27,7 +27,7 @@
     "${name}__AUTH__REQUIRED" = "DisabledForLocalAddresses";
   };
 in {
-  imports = import ../mkAliases.nix lib stackName [gluetunName qbittorrentName jellyfinName sonarrName radarrName bazarrName prowlarrName];
+  imports = import ../mkAliases.nix config lib stackName [gluetunName qbittorrentName jellyfinName sonarrName radarrName bazarrName prowlarrName];
 
   options.tarow.podman.stacks.${stackName} =
     {

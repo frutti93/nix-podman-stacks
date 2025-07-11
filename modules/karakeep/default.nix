@@ -11,7 +11,7 @@
 
   cfg = config.tarow.podman.stacks.${name};
 in {
-  imports = import ../mkAliases.nix lib name [name chromeName meilisearchName];
+  imports = import ../mkAliases.nix config lib name [name chromeName meilisearchName];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;

@@ -12,7 +12,7 @@
   storage = "${config.tarow.podman.storageBaseDir}/${name}";
 in {
   imports =
-    [./extension.nix] ++ import ../mkAliases.nix lib name [name];
+    [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.options.mkEnableOption name;

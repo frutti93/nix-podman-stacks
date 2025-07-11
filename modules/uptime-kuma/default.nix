@@ -7,7 +7,7 @@
   storage = "${config.tarow.podman.storageBaseDir}/${name}";
   cfg = config.tarow.podman.stacks.${name};
 in {
-  imports = import ../mkAliases.nix lib name [name];
+  imports = import ../mkAliases.nix config lib name [name];
   options.tarow.podman.stacks.${name}.enable = lib.mkEnableOption name;
 
   config = lib.mkIf cfg.enable {
@@ -22,6 +22,7 @@ in {
         PUID = config.tarow.podman.defaultUid;
         PGID = config.tarow.podman.defaultGid;
       };
+      labels = {"traefik.http.routers.${name}.entrypoints" = "websecure,websecure-internal";};
 
       port = 3001;
       traefik = {

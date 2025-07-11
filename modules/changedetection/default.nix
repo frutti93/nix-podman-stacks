@@ -7,7 +7,7 @@
   storage = "${config.tarow.podman.storageBaseDir}/${name}";
   cfg = config.tarow.podman.stacks.${name};
 in {
-  imports = import ../mkAliases.nix lib name [name "sockpuppetbrowser"];
+  imports = import ../mkAliases.nix config lib name [name "sockpuppetbrowser"];
 
   options.tarow.podman.stacks.${name}.enable = lib.mkEnableOption name;
 

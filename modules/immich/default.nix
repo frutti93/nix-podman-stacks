@@ -29,7 +29,7 @@
 
   json = pkgs.formats.json {};
 in {
-  imports = import ../mkAliases.nix lib name [name redisName dbName mlName];
+  imports = import ../mkAliases.nix config lib name [name redisName dbName mlName];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;

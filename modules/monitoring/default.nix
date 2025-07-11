@@ -30,7 +30,7 @@
   lokiUrl = "http://${lokiName}:${toString cfg.loki.port}";
   prometheusUrl = "http://${prometheusName}:${toString cfg.prometheus.port}";
 in {
-  imports = [./extension.nix] ++ import ../mkAliases.nix lib stackName [grafanaName lokiName prometheusName alloyName podmanExporterName];
+  imports = [./extension.nix] ++ import ../mkAliases.nix config lib stackName [grafanaName lokiName prometheusName alloyName podmanExporterName];
 
   options.tarow.podman.stacks.${stackName} = {
     enable = lib.mkEnableOption stackName;

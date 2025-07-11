@@ -56,7 +56,7 @@
       }
     ) (sortByRank attrs);
 in {
-  imports = [./extension.nix] ++ import ../mkAliases.nix lib name [name];
+  imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;

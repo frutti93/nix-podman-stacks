@@ -7,8 +7,6 @@
   name = "dockdns";
   cfg = config.tarow.podman.stacks.${name};
   yaml = pkgs.formats.yaml {};
-
-  domain = config.tarow.podman.stacks.traefik.domain;
 in {
   imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
 
@@ -22,7 +20,7 @@ in {
     envFile = lib.mkOption {
       type = lib.types.path;
       default = null;
-      description = ''          
+      description = ''              
         Path to a file containing environment variables for the API token for the domain.
         E.g. for a domain 'test.example.com', the file should contain 'TEST_EXAMPLE_COM_API_TOKEN=your_api_token'.'';
     };
@@ -31,14 +29,14 @@ in {
   config = lib.mkIf cfg.enable {
     tarow.podman.stacks.${name}.settings = lib.mkMerge [
       (import ./config.nix)
-      {
+      (lib.mkIf config.tarow.podman.stacks.traefik.enable {
         zones = [
           {
-            name = domain;
+            name = config.tarow.podman.stacks.traefik.domain;
             provider = "cloudflare";
           }
         ];
-      }
+      })
     ];
 
     services.podman.containers.${name} = {

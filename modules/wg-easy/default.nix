@@ -14,7 +14,10 @@ in {
     host = lib.mkOption {
       type = lib.types.str;
       description = "The external domain or IP address of the Wireguard server.";
-      default = "vpn.${config.tarow.podman.stacks.traefik.domain}";
+      default =
+        if config.tarow.podman.stacks.traefik.enable
+        then "vpn.${config.tarow.podman.stacks.traefik.domain}"
+        else config.tarow.podman.hostIP4Address;
     };
     envFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;

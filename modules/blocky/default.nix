@@ -9,7 +9,6 @@
 
   yaml = pkgs.formats.yaml {};
 
-  domain = config.tarow.podman.stacks.traefik.domain;
   ip = config.tarow.podman.hostIP4Address;
 in {
   imports = import ../mkAliases.nix config lib name [name];
@@ -27,9 +26,9 @@ in {
   config = lib.mkIf cfg.enable {
     tarow.podman.stacks.${name}.settings = lib.mkMerge [
       (import ./settings.nix)
-      {
-        customDNS.mapping.${domain} = ip;
-      }
+      (lib.mkIf config.tarow.podman.stacks.traefik.enable {
+        customDNS.mapping.${config.tarow.podman.stacks.traefik.domain} = ip;
+      })
       (lib.mkIf cfg.enablePrometheusExport {
         prometheus.enable = true;
       })

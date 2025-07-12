@@ -25,6 +25,7 @@ let
     monitoring = ./monitoring;
     n8n = ./n8n;
     ntfy = ./ntfy;
+    omnitools = ./omnitools;
     paperless = ./paperless;
     pocketid = ./pocket-id;
     stirling-pdf = ./stirling-pdf;

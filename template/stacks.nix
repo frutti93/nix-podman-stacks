@@ -62,6 +62,7 @@
         enable = true;
         envFile = config.sops.secrets."ntfy/env".path;
       };
+      omnitools.enable = false;
       paperless = {
         enable = true;
         envFile = config.sops.secrets."paperless/env".path;

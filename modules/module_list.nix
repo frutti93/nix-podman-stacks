@@ -21,6 +21,7 @@ let
     ittools = ./it-tools;
     karakeep = ./karakeep;
     mealie = ./mealie;
+    microbin = ./microbin;
     monitoring = ./monitoring;
     n8n = ./n8n;
     ntfy = ./ntfy;

@@ -21,6 +21,7 @@
         "immich/env"
         "immich/db_env"
         "karakeep/env"
+        "microbin/env"
         "ntfy/env"
         "paperless/env"
         "paperless/db_env"

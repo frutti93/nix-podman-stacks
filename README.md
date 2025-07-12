@@ -51,6 +51,7 @@ Most stacks will rely or use some centrally defined variables. These include:
 - [IT-Tools](./modules/it-tools/default.nix)
 - [Karakeep](./modules/karakeep/default.nix)
 - [Mealie](./modules/mealie/default.nix)
+- [MicroBin](./modules/microbin/default.nix)
 - [Monitoring](./modules/monitoring/default.nix)
   - Alloy
   - Grafana

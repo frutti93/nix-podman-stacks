@@ -52,6 +52,10 @@
         enable = true;
         envFile = config.sops.secrets."karakeep/env".path;
       };
+      microbin = {
+        enable = true;
+        envFile = config.sops.secrets."microbin/env".path;
+      };
       monitoring.enable = true;
       n8n.enable = false;
       ntfy = {

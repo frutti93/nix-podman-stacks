@@ -6,7 +6,9 @@
 }: let
   yaml = pkgs.formats.yaml {};
 
-  homepageContainers = lib.filterAttrs (k: c: c.homepage.settings != {}) config.services.podman.containers;
+  homepageContainers =
+    lib.filterAttrs (k: c: c.homepage.enable && c.homepage.settings != {})
+    config.services.podman.containers;
 
   mergedServices =
     builtins.foldl' (
@@ -37,6 +39,7 @@ in {
       ...
     }: {
       options.homepage = with lib; {
+        enable = options.mkEnableOption "homepage" // {default = true;};
         category = options.mkOption {
           type = types.nullOr types.str;
           default = null;

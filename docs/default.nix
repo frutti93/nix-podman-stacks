@@ -14,11 +14,16 @@
     eval = inputs.home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
       modules = [
-        self.nix-podman-stacks.homeModules.all
+        self.homeModules.all
         {
           home.stateVersion = "25.05";
           home.username = "someuser";
           home.homeDirectory = "/home/someuser";
+          tarow.podman = {
+            hostIP4Address = "10.10.10.10";
+            hostUid = 1000;
+            externalStorageBaseDir = "/mnt/ext";
+          };
         }
       ];
     };
@@ -26,27 +31,15 @@
     pkgs.nixosOptionsDoc {
       inherit (eval) options;
 
-      # Default is currently "appendix".
       documentType = "none";
+      warningsAreErrors = false;
 
-      # Only include our own options.
-      transformOptions = let
-        ourPrefix = "${toString self}/";
-        nixosModules = "nix/nixos-modules.nix";
-        link = {
-          url = "/${nixosModules}";
-          name = nixosModules;
+      transformOptions = option:
+        option
+        // {
+          visible =
+            option.visible
+            && (builtins.elem "tarow" option.loc);
         };
-      in
-        opt:
-          opt
-          // {
-            visible = opt.visible && (lib.any (lib.hasPrefix ourPrefix) opt.declarations);
-            declarations = map (decl:
-              if lib.hasPrefix ourPrefix decl
-              then link
-              else decl)
-            opt.declarations;
-          };
     };
 }

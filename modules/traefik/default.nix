@@ -32,10 +32,12 @@ in {
     };
     staticConfig = lib.options.mkOption {
       type = yaml.type;
+      default = {};
       apply = yaml.generate "traefik.yml";
     };
     dynamicConfig = lib.options.mkOption {
       type = yaml.type;
+      default = {};
     };
     envFile = lib.options.mkOption {
       type = lib.types.path;

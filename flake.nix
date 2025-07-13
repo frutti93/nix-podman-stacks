@@ -27,6 +27,7 @@
       "aarch64-darwin"
       "x86_64-darwin"
     ];
+    lib = nixpkgs.lib;
   in {
     homeModules = import ./modules/module_list.nix;
     templates.default = {
@@ -53,17 +54,16 @@
 
     packages = forAllSystems (system: let
       pkgs = nixpkgs.legacyPackages.${system};
+      docs =
+        (import ./docs/default.nix {
+          inherit self pkgs inputs system lib;
+        }).docs;
     in {
-      docs-json = let
-        opts =
-          import ./docs/default.nix
-          {
-            inherit self pkgs inputs system;
-          }.optionsJSON;
-      in
-        pkgs.runCommand "options.json" {inherit opts;} ''
-          “cp $opts/share/doc/nixos/options.json $out”
-        '';
+      docs-json = pkgs.runCommand "options.json" {opts = docs.optionsJSON;} ''
+        mkdir -p $out
+        cp $opts/share/doc/nixos/options.json $out/
+      '';
+      docs-md = docs.optionsCommonMark;
     });
   };
 }

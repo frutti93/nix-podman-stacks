@@ -22,6 +22,7 @@ in {
     }: let
       traefikCfg = config.traefik;
       port = config.port;
+
       fullHost =
         if (traefikCfg.subDomain == "")
         then stackCfg.domain
@@ -48,12 +49,33 @@ in {
           };
           serviceHost = mkOption {
             type = lib.types.str;
-            default = fullHost;
+            default = let
+              hostPort = getPort port 0;
+              ipHost =
+                if hostPort == null
+                then "${ip4Address}"
+                else "${ip4Address}:${hostPort}";
+
+              fullHost =
+                if (stackCfg.enable)
+                then
+                  (
+                    if (traefikCfg.subDomain == "")
+                    then stackCfg.domain
+                    else "${traefikCfg.subDomain}.${stackCfg.domain}"
+                  )
+                else ipHost;
+            in
+              fullHost;
             readOnly = true;
-            apply = d:
+            apply = d: let
+              hostPort = getPort port 0;
+            in
               if stackCfg.enable
               then d
-              else "${ip4Address}:${getPort port 0}";
+              else if hostPort == null
+              then "${ip4Address}"
+              else "${ip4Address}:${hostPort}";
           };
           serviceDomain = mkOption {
             type = lib.types.str;
@@ -65,7 +87,7 @@ in {
               else "http://${d}";
           };
           middlewares = mkOption {
-            type = types.listOf (types.enum (lib.attrNames stackCfg.dynamicConfig.http.middlewares));
+            type = types.listOf (types.enum (lib.attrNames stackCfg.dynamicConfig.http.middlewares or {}));
             default = ["private"];
           };
         };

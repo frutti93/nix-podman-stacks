@@ -14,6 +14,7 @@ let
     filebrowser = ./filebrowser;
     forgejo = ./forgejo;
     freshrss = ./freshrss;
+    gatus = ./gatus;
     healthchecks = ./healthchecks;
     homeassistant = ./homeassistant;
     homepage = ./homepage;

@@ -36,6 +36,10 @@
       filebrowser.enable = true;
       forgejo.enable = false;
       freshrss.enable = false;
+      gatus = {
+        enable = true;
+        db.type = "postgres";
+      };
       healthchecks = {
         enable = true;
         envFile = config.sops.secrets."healthchecks/env".path;

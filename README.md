@@ -44,6 +44,7 @@ Most stacks will rely or use some centrally defined variables. These include:
 - [Filebrowser](./modules/filebrowser/default.nix)
 - [Forgejo](./modules/forgejo/default.nix)
 - [FreshRSS](./modules/freshrss/default.nix)
+- [Gatus](./modules/gatus/default.nix)
 - [Healthchecks](./modules/healchecks/default.nix)
 - [Home Assistant](./modules/homeassistant/default.nix)
 - [Homepage](./modules/homepage/default.nix)

@@ -38,7 +38,7 @@
       freshrss.enable = false;
       gatus = {
         enable = true;
-        db.type = "postgres";
+        db.type = "sqlite";
       };
       healthchecks = {
         enable = true;

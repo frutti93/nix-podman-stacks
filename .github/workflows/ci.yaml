@@ -52,3 +52,23 @@ jobs:
 
       - name: Check Flake
         run: nix flake check --keep-going
+
+  docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: "experimental-features = nix-command flakes pipe-operators"
+
+      - name: Build docs
+        run: |
+          nix build .#book
+
+      - name: Upload docs
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./result

@@ -35,8 +35,7 @@ in {
       default = [];
       description = ''
         List of additional YAML files to include in the settings.
-        These files will be mounted as is. Can be used to directly provide YAML files containing secrets,
-        e.g. from sops
+        These files will be mounted as is. Can be used to directly provide YAML files containing secrets, e.g. from sops
       '';
     };
     defaultEndpoint = lib.mkOption {

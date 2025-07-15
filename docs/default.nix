@@ -36,7 +36,10 @@
 
   hasLocPrefix = prefix: loc: lib.lists.take (lib.length prefix) loc == prefix;
 
-  mkOptionsDoc = prefix:
+  mkOptionsDoc = {
+    wantPrefix ? [],
+    excludePrefix ? [],
+  }:
     pkgs.nixosOptionsDoc {
       inherit (eval) options;
 
@@ -50,7 +53,8 @@
             option.visible
             && option.loc != ["services" "podman" "containers"]
             && (lib.hasPrefix nixPodmanStacksPath (toString option.declarations))
-            && hasLocPrefix prefix option.loc;
+            && hasLocPrefix wantPrefix option.loc
+            && !(excludePrefix != [] && hasLocPrefix excludePrefix option.loc);
         }
         // {
           declarations =
@@ -73,17 +77,16 @@
         };
     };
 
-  # Partitino into settings and stack options
-
-  opts =
-    mkOptionsDoc ["tarow" "podman"]
-    |> builtins.partition (
-      opt: lib.hasLocPrefix ["services" "podman" "stacks"] opt.loc
-    );
-  settingsOptions = opts.wrong;
-  stackOptions = opts.right;
-
-  containerOptions = mkOptionsDoc ["services" "podman"];
+  settingsOptions = mkOptionsDoc {
+    wantPrefix = ["tarow" "podman"];
+    excludePrefix = ["tarow" "podman" "stacks"];
+  };
+  stackOptions = mkOptionsDoc {
+    wantPrefix = ["tarow" "podman" "stacks"];
+  };
+  containerOptions = mkOptionsDoc {
+    wantPrefix = ["services" "podman"];
+  };
 in {
   book = pkgs.stdenv.mkDerivation {
     pname = "nix-podman-stacks-docs-book";
@@ -102,6 +105,7 @@ in {
       mkdir -p src
 
       cp docs/mdbook/* src/
+      cat ${settingsOptions.optionsCommonMark} >> src/settings-options.md
       cat ${stackOptions.optionsCommonMark} >> src/stack-options.md
       cat ${containerOptions.optionsCommonMark} >> src/container-options.md
       mdbook build

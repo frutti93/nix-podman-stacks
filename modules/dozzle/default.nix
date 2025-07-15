@@ -8,7 +8,15 @@
 in {
   imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name}.enable = lib.mkEnableOption name;
+  options.tarow.podman.stacks.${name}.enable =
+    lib.mkEnableOption name
+    // {
+      description = ''
+        Whether to enable Dozzle.
+        The module contains an extension that will automatically add all containers to Dozzle groups,
+        if they `stack` attribute is set.
+      '';
+    };
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {

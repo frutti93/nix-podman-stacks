@@ -21,6 +21,10 @@ in {
         if (settings != null)
         then ini.generate "app.ini" settings
         else null;
+      description = ''
+        Optional app settings for Forgejo.
+        For a full list of options, refer to the [Forgejo documentation](https://forgejo.org/docs/latest/admin/config-cheat-sheet/).
+      '';
     };
   };
 

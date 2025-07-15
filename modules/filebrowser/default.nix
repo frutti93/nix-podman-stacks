@@ -15,7 +15,16 @@ in {
     mounts = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       apply = lib.mapAttrs (k: v: builtins.replaceStrings ["//"] ["/"] "/srv/${v}");
-      description = "Mount points for the file browser. Format: { 'hostPath' = 'containerPath' }";
+      description = ''
+        Mount points for the file browser.
+        Format: `{ 'hostPath' = 'containerPath' }`
+        By default, the users home directory and the external storage directory (`config.tarow.podman.externalStorageBaseDir`)
+        are configured as mounts.
+      '';
+      example = {
+        "/mnt/ext/data" = "/data";
+        "/home/foo/media" = "/media";
+      };
     };
   };
 

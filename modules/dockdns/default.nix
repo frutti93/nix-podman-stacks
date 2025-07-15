@@ -11,16 +11,29 @@ in {
   imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
-    enable = lib.mkEnableOption name;
+    enable =
+      lib.mkEnableOption name
+      // {
+        description = ''
+          Whether to enable DockDNS. This will run a Cloudflare DNS client that updates DNS records based on Docker labels.
+          The module contains an extension that will automatically create DNS records for services with the 'public' Traefik middleware,
+          so they are accessible from the internet. It will also automatically delete DNS records for services, that are no longer exposed (e.g. 'private' middleware)
+        '';
+      };
     settings = lib.mkOption {
       type = yaml.type;
-      description = "Settings for DockDNS.";
+      description = ''
+        Settings for DockDNS.
+        For details, refer to the [DockDNS documentation](https://github.com/Tarow/dockdns?tab=readme-ov-file#configuration)
+        The module will provide a default configuration, that updates DNS records every 10 minutes.
+        DockDNS labels will be automatically added to services with the 'public' Traefik middleware.
+      '';
       apply = yaml.generate "dockdns_config.yaml";
     };
     envFile = lib.mkOption {
       type = lib.types.path;
       default = null;
-      description = ''              
+      description = ''        
         Path to a file containing environment variables for the API token for the domain.
         E.g. for a domain 'test.example.com', the file should contain 'TEST_EXAMPLE_COM_API_TOKEN=your_api_token'.'';
     };

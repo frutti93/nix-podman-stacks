@@ -12,7 +12,7 @@
 
   yaml = pkgs.formats.yaml {};
 in {
-  imports = import ../mkAliases.nix config lib name [name];
+  imports = import ../mkAliases.nix config lib name [name agentName];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -20,14 +20,17 @@ in {
       type = lib.types.nullOr lib.types.path;
       default = null;
       description = ''
-        Private SSH key that will be used by the hub to authenticate against agent
+        Path to private SSH key that will be used by the hub to authenticate against agent
+        If not provided, the hub will generate a new key pair when starting.
       '';
     };
     ed25519PublicKeyFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
       description = ''
-        Public SSH key of the hub that will be considered authorized by agent
+        Path to public SSH key of the hub that will be considered authorized by agent
+        If not provided, the `KEY` environment variable should be set to the public key of the hub,
+        in order for the connection from hub to agent to work.
       '';
     };
 
@@ -38,11 +41,24 @@ in {
         if (settings != null)
         then yaml.generate "config.yml" settings
         else null;
+
       description = ''
         System configuration (optional).
         If provided, on each restart, systems in the database will be updated to match the systems defined in the settings.
         To see your current configuration, refer to settings -> YAML Config -> Export configuration
+
+        The module will automatically provide a configuration to add the local agent to the hub.
       '';
+      example = {
+        systems = [
+          {
+            name = "Local";
+            host = "/beszel_socket/beszel.sock";
+            port = 45876;
+            users = [];
+          }
+        ];
+      };
     };
   };
   config = lib.mkIf cfg.enable {

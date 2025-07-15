@@ -39,7 +39,15 @@ in {
   imports = import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
-    enable = lib.mkEnableOption name;
+    enable =
+      lib.mkEnableOption name
+      // {
+        description = ''
+           Wheter to enable the Crowdsec stack. If enabled, a middleware will be added to the Traefik
+           'public' chain. This will block requests to exposed services that are detected as malicious by Crowdsec.
+          Make sure that the Traefik container is provided with the `BOUNCER_KEY_TRAEFIK` environment variable for this to work.
+        '';
+      };
     envFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
@@ -50,13 +58,17 @@ in {
     };
     acquisSettings = lib.mkOption {
       type = yaml.type;
-      description = "Acquisitions settings for Crowdsec.";
+      default = {};
+      description = ''
+        Acquisitions settings for Crowdsec.
+        If Traefik is enabled, the module will automatically setup acquisition for Traefik.
+      '';
       apply = yaml.generate "acquis.yaml";
     };
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.${name}.acquisSettings = import ./acquis.nix;
+    tarow.podman.stacks.${name}.acquisSettings = lib.mkIf config.tarow.podman.stacks.traefik.enable (import ./acquis.nix);
     tarow.podman.stacks.traefik = {
       staticConfig.experimental.plugins.bouncer = {
         moduleName = "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin";

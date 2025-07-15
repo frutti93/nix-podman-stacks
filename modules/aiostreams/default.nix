@@ -16,6 +16,7 @@ in {
       default = null;
       description = ''
         Path to the environment file for AIOStreams.
+        Can be used to pass secrets.
       '';
     };
   };

@@ -13,7 +13,15 @@ in {
   imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name dbName];
 
   options.tarow.podman.stacks.${name} = {
-    enable = lib.mkEnableOption name;
+    enable =
+      lib.mkEnableOption name
+      // {
+        description = ''
+          Whether to enable Gatus.
+          The module also provides an extension that will add Gatus options to a container.
+          This allows services to be added to Gatus by settings container options.
+        '';
+      };
     settings = lib.mkOption {
       type = yaml.type;
       description = ''

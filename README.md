@@ -1,18 +1,23 @@
 <p align="center">
-<img src="images/nix-podman-logo.png" alt="logo" width="130"/>
+   <img src="images/nix-podman-logo.png" alt="logo" width="130"/>
 <p>
+<p align="center">
+   <a href="https://builtwithnix.org">
+   <img src="https://img.shields.io/static/v1?logo=nixos&amp;logoColor=white&amp;label=&amp;message=Built%20with%20Nix&amp;color=41439a" alt="built with nix">
+   </a>
+   <img src="https://github.com/tarow/nix-podman-stacks/actions/workflows/ci.yaml/badge.svg" alt="Build">
+   <a href="https://renovatebot.com">
+   <img src="https://img.shields.io/badge/renovate-enabled-brightgreen.svg" alt="Renovate">
+   </a>
+</p>
+
+# Nix Podman Stacks
 
 <p align="center">
-<h1>Nix Podman Stacks</h1>
+<img src="./images/homepage.png" alt="preview">
 </p>
 
 Collection of opinionated Podman stacks managed by [Home Manager](https://github.com/nix-community/home-manager).
-
-[![built with nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
-![Build](https://github.com/tarow/nix-podman-stacks/actions/workflows/ci.yaml/badge.svg)
-[![Renovate](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com)
-
-![preview](./images/homepage.png)
 
 The goal is to easily deploy various self-hosted projects, including a reverse proxy, dashboard and monitoring setup. Under the hood rootless Podman (Quadlets) will be used to run the containers. It works on most Linux distros including Ubuntu, Arch, Mint, Fedora & more and is not limited to NixOS.
 

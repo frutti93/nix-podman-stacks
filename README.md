@@ -23,7 +23,7 @@ Disabling any of those options will of course also remove all associated configu
 While most stacks can be activated by setting a single flag, some stacks require setting mandatory values, especially for secrets.
 For managing secrets, projects such as [sops-nix](https://github.com/Mic92/sops-nix) or [agenix](https://github.com/ryantm/agenix) can be used, which allow you to store your secrets along with the configuration inside a single Git repository.
 
-## Option Documentation
+## 📚 Option Documentation
 
 Refer to the [documentation](https://tarow.github.io/nix-podman-stacks/) for a full list of available options.
 
@@ -36,67 +36,68 @@ Most stacks will rely or use a few centrally defined variables. These include:
 | `storageBaseDir`         | Base storage location used for bind mounts. Used as a base location for bind mounts.      |
 | `externalStorageBaseDir` | Base storage location used for media files, e.g. pictures used by Immich.                 |
 
-## Available Stacks
+## 📦 Available Stacks
 
-- [Adguard](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/adguard/default.nix)
-- [AIOStreams](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/aiostreams/default.nix)
-- [Audiobookshelf](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/audiobookshelf/default.nix)
-- [Beszel](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/beszel/default.nix)
-- [Blocky](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/blocky/default.nix)
-- [Calibre-Web](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/calibre/default.nix)
-  - Calibre-Web Automated
-  - Calibre-Web Automated Book Downloader
-- [Changedetection](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/changedetection/default.nix)
-  - Changedetection
-  - Sock Puppet Browser
-- [DockDNS](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/dockdns/default.nix)
-- [Dozzle](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/dozzle/default.nix)
-- [Filebrowser](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/filebrowser/default.nix)
-- [Forgejo](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/forgejo/default.nix)
-- [FreshRSS](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/freshrss/default.nix)
-- [Gatus](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/gatus/default.nix)
-- [Healthchecks](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/healchecks/default.nix)
-- [Home Assistant](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/homeassistant/default.nix)
-- [Homepage](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/homepage/default.nix)
-- [Immich](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/immich/default.nix)
-- [IT-Tools](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/it-tools/default.nix)
-- [Karakeep](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/karakeep/default.nix)
-- [Mealie](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/mealie/default.nix)
-- [MicroBin](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/microbin/default.nix)
-- [Monitoring](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/monitoring/default.nix)
-  - Alloy
-  - Grafana
-  - Loki
-  - Prometheus
-  - Podman Metrics Exporter
-- [n8n](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/n8n/default.nix)
-- [ntfy](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/ntfy/default.nix)
-- [OmniTools](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/omnitools/default.nix)
-- [Paperless-ngx](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/paperless/default.nix)
-  - Paperless-ngx
-  - FTP Server
-- [Pocket ID](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/pocket-id/default.nix)
-- [Stirling-PDF](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/stirling-pdf/default.nix)
-- [Streaming](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/streaming/default.nix)
-  - Bazarr
-  - Flaresolverr
-  - Gluetun
-  - Jellyfin
-  - Prowlarr
-  - qBittorrent
-  - Radarr
-  - Sonarr
-- [Traefik](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/traefik/default.nix)
-- [Uptime-Kuma](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/uptime-kuma/default.nix)
-- [Vaultwarden](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/vaultwarden/default.nix)
-- [wg-easy](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/wg-easy/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adguard-home.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Adguard](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/adguard/default.nix)
 
-## Prerequisites
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/stremio.svg" style="width:1.3em;height:1.3em;vertical-align:middle;padding-right:3px" /> [AIOStreams](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/aiostreams/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/audiobookshelf.svg" style="height:1.3em;padding-right:3px;vertical-align:middle;" /> [Audiobookshelf](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/audiobookshelf/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/beszel.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Beszel](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/beszel/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/blocky.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Blocky](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/blocky/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/calibre-web.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Calibre-Web](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/calibre/default.nix)
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/calibre-web.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Calibre-Web Automated
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/calibre-web-automated-book-downloader.png" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Calibre-Web Automated Book Downloader
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/changedetection.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Changedetection](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/changedetection/default.nix)
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/changedetection.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Changedetection
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/chrome.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Sock Puppet Browser
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/azure-dns.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [DockDNS](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/dockdns/default.nix).
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/dozzle.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Dozzle](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/dozzle/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/filebrowser.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Filebrowser](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/filebrowser/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/forgejo.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Forgejo](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/forgejo/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/freshrss.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [FreshRSS](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/freshrss/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gatus.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Gatus](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/gatus/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/healthchecks.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Healthchecks](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/healchecks/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Home Assistant](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/homeassistant/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/homepage.png" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Homepage](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/homepage/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Immich](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/immich/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/it-tools.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [IT-Tools](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/it-tools/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/karakeep.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Karakeep](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/karakeep/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mealie.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Mealie](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/mealie/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/microbin.png" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [MicroBin](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/microbin/default.nix)
+- <span style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;">🔍</span> [Monitoring](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/monitoring/default.nix)
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/alloy.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Alloy
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grafana.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Grafana
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/loki.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Loki
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prometheus.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Prometheus
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/podman.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Podman Metrics Exporter
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/n8n.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [n8n](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/n8n/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ntfy.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [ntfy](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/ntfy/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/omni-tools.png" style="width:1.3em;padding-right:3px;vertical-align:middle;" /> [OmniTools](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/omnitools/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/paperless.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Paperless-ngx](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/paperless/default.nix)
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/paperless.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Paperless-ngx
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/paperless.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> FTP Server
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/pocket-id.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Pocket ID](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/pocket-id/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/stirling-pdf.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Stirling-PDF](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/stirling-pdf/default.nix)
+- <span style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;">📺</span> [Streaming](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/streaming/default.nix)
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/bazarr.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Bazarr
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/flaresolverr.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Flaresolverr
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gluetun.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Gluetun
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Jellyfin
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prowlarr.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Prowlarr
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> qBittorrent
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/radarr.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Radarr
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sonarr.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> Sonarr
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/traefik.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Traefik](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/traefik/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/uptime-kuma.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Uptime-Kuma](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/uptime-kuma/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/vaultwarden.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [Vaultwarden](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/vaultwarden/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/wireguard.svg" style="width:1.3em;height:1.3em;padding-right:3px;vertical-align:middle;" /> [wg-easy](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/wg-easy/default.nix)
+
+## ⚙️ Prerequisites
 
 - [Nix Installation](https://nixos.org/download/#nix-install-linux)
 - `net.ipv4.ip_unprivileged_port_start=0` or any other way of allowing non-root processes to bind to ports below 1024
 
-## Setup
+## 🚀 Setup
 
 If you already have an existing flake setup, add this projects flake as an input and include the flake output `homeModules.all` in your Home Manager modules.
 
@@ -114,7 +115,7 @@ If you don't use Nix yet, you can use the projects template to get started:
 
 This is just one example. Feel free to use a different tool for secret management or restructure files to your preference.
 
-## Customize Settings
+## 🔧 Customize Settings
 
 The Podman stacks are mostly opinionated and configured to work out of the box.
 Refer to [option documentation](https://tarow.github.io/nix-podman-stacks/) or the source code of each module to see which options are exposed on stack level and can be modified.

@@ -8,7 +8,8 @@ Collection of opinionated Podman stacks managed by [Home Manager](https://github
 
 ![preview](./screenshots/homepage.png)
 
-The goal is to easily deploy various self-hosted projects, including a reverse proxy, dashboard and monitoring setup.
+The goal is to easily deploy various self-hosted projects, including a reverse proxy, dashboard and monitoring setup. Under the hood rootless Podman (Quadlets) will be used to run the containers. It works on most Linux distros including Ubuntu, Arch, Mint, Fedora & more and is not limited to NixOS.
+
 The projects also contains integrations with Traefik, Homepage, Grafana and more. Some examples include:
 
 - Enabling a stack will add the respective containers to Traefik and Homepage

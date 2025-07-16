@@ -40,7 +40,7 @@ Most stacks will rely or use a few centrally defined variables. These include:
 
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/adguard-home.svg" style="width:1em;height:1em;" /> [Adguard](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/adguard/default.nix)
 
-- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/stremio.svg" style="width:1em;height:1em;vertical-align:middle;padding-right:3px" /> [AIOStreams](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/aiostreams/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/stremio.svg" style="width:1em;height:1em;" /> [AIOStreams](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/aiostreams/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/audiobookshelf.svg" style="height:1em;" /> [Audiobookshelf](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/audiobookshelf/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/beszel.svg" style="width:1em;height:1em;" /> [Beszel](https://github.com/Tarow/nix-podman-stacks/tree/main//modules/beszel/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/blocky.svg" style="width:1em;height:1em;" /> [Blocky](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/blocky/default.nix)

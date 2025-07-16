@@ -102,9 +102,11 @@ in {
 
     buildPhase = ''
       runHook preBuild
-      mkdir -p src
+      mkdir -p src/screenshots
 
       cp docs/mdbook/* src/
+      cp ${self}/README.md src/introduction.md
+      cp ${self}/screenshots/homepage.png src/screenshots/homepage.png
       cat ${settingsOptions.optionsCommonMark} >> src/settings-options.md
       cat ${stackOptions.optionsCommonMark} >> src/stack-options.md
       cat ${containerOptions.optionsCommonMark} >> src/container-options.md

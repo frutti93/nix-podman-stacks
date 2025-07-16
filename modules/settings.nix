@@ -9,11 +9,7 @@ in {
   imports = [./extension.nix];
 
   options.tarow.podman = {
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.podman;
-      description = "The Podman package to use.";
-    };
+    package = lib.mkPackageOption pkgs "podman" {};
     enableSocket = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -27,6 +23,7 @@ in {
     socketLocation = lib.mkOption {
       type = lib.types.path;
       default = "/run/user/${toString cfg.hostUid}/podman/podman.sock";
+      defaultText = lib.literalExpression ''"/run/user/''${toString config.tarow.podman.hostUid}/podman/podman.sock"'';
       readOnly = true;
       description = ''
         The location of the Podman socket for user services.
@@ -68,6 +65,7 @@ in {
     storageBaseDir = lib.mkOption {
       type = lib.types.path;
       default = "${config.home.homeDirectory}/stacks";
+      defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/stacks"'';
       description = ''
         Base directory for Podman storage.
         This is where each stack will create its bind mounts for persistent data.
@@ -84,6 +82,7 @@ in {
     mediaStorageBaseDir = lib.mkOption {
       type = lib.types.path;
       default = "${cfg.externalStorageBaseDir}/media";
+      defaultText = lib.literalExpression ''"''${config.tarow.podman.externalStorageBaseDir}/media"'';
       description = ''
         Base location for larger media files.
         This is where containers like Jellyfin or Immich will store their media files.

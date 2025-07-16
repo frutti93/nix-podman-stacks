@@ -59,26 +59,124 @@ in {
   imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
-    enable = lib.mkEnableOption name;
+    enable =
+      lib.mkEnableOption name
+      // {
+        description = ''
+          Whether to enable the Homepage stack.
+
+          The services of enabled stacks will be automatically added to Homepage.
+          The module will also automatically configure the docker integration for the local host and
+          setup some widgets.
+        '';
+      };
     bookmarks = lib.mkOption {
       inherit (yaml) type;
+      description = ''
+        Homepage bookmarks configuration.
+
+        See <https://gethomepage.dev/configs/bookmarks/>.
+      '';
+      example = [
+        {
+          Developer = [
+            {
+              Github = [
+                {
+                  abbr = "GH";
+                  href = "https://github.com/";
+                }
+              ];
+            }
+          ];
+        }
+        {
+          Entertainment = [
+            {
+              YouTube = [
+                {
+                  abbr = "YT";
+                  href = "https://youtube.com/";
+                }
+              ];
+            }
+          ];
+        }
+      ];
       default = [];
     };
     services = lib.mkOption {
       inherit (yaml) type;
       apply = services: toOrderedList services;
+      description = ''
+        Homepage services configuration.
+
+        See <https://gethomepage.dev/configs/services/>.
+      '';
+      example = [
+        {
+          "My First Group" = [
+            {
+              "My First Service" = {
+                href = "http://localhost/";
+                description = "Homepage is awesome";
+              };
+            }
+          ];
+        }
+        {
+          "My Second Group" = [
+            {
+              "My Second Service" = {
+                href = "http://localhost/";
+                description = "Homepage is the best";
+              };
+            }
+          ];
+        }
+      ];
       default = [];
     };
     widgets = lib.mkOption {
       inherit (yaml) type;
+      description = ''
+        Homepage widgets configuration.
+
+        See <https://gethomepage.dev/widgets/>.
+      '';
+      example = [
+        {
+          resources = {
+            cpu = true;
+            memory = true;
+            disk = "/";
+          };
+        }
+        {
+          search = {
+            provider = "duckduckgo";
+            target = "_blank";
+          };
+        }
+      ];
       default = [];
     };
     docker = lib.mkOption {
       inherit (yaml) type;
+      description = ''
+        Homepage docker configuration.
+
+        See <https://gethomepage.dev/configs/docker/>.
+      '';
       default = {};
     };
     settings = lib.mkOption {
       inherit (yaml) type;
+      description = ''
+        Homepage settings.
+
+        See <https://gethomepage.dev/configs/settings/>.
+      '';
       default = {};
     };
   };

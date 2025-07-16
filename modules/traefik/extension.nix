@@ -22,33 +22,45 @@ in {
     }: let
       traefikCfg = config.traefik;
       port = config.port;
-
-      fullHost =
-        if (traefikCfg.subDomain == "")
-        then stackCfg.domain
-        else "${traefikCfg.subDomain}.${stackCfg.domain}";
     in {
       options = with lib; {
-        # Main port that will be used by traefik. If traefik is disabled, it will be added to the "ports" section
         port = mkOption {
           type = types.nullOr (types.oneOf [types.str types.int]);
           default = null;
+          description = ''
+            Main port that Traefik will forward traffic to.
+            If Traefik is disabled, it will instead be added to the "ports" section
+          '';
         };
         traefik = with lib; {
           name = mkOption {
             type = types.nullOr types.str;
             default = null;
+            description = ''
+              The name of the service as it will be registered in Traefik.
+              Will be used as a default for the subdomain.
+
+              If not set (null), the service will not be registered in Traefik.
+            '';
           };
           subDomain = mkOption {
             type = types.str;
+            description = ''
+              The subdomain of the service as it will be registered in Traefik.
+            '';
             apply = lib.trim;
             default =
               if traefikCfg.name != null
               then traefikCfg.name
               else "";
+            defaultText = "traefikCfg.name";
           };
           serviceHost = mkOption {
             type = lib.types.str;
+            description = ''
+              The host name of the service as it will be registered in Traefik.
+            '';
+            defaultText = lib.literalExpression ''"''${traefikCfg.subDomain}.''${tarow.podman.stacks.traefik.domain}"'';
             default = let
               hostPort = getPort port 0;
               ipHost =
@@ -79,7 +91,12 @@ in {
           };
           serviceDomain = mkOption {
             type = lib.types.str;
+            description = ''
+              The full domain of the service as it will be registered in Traefik.
+              This will be the serviceHost including the "https://" prefix.
+            '';
             default = traefikCfg.serviceHost;
+            defaultText = lib.literalExpression ''"https://''${traefikCfg.serviceHost}"'';
             readOnly = true;
             apply = d:
               if stackCfg.enable
@@ -89,6 +106,10 @@ in {
           middlewares = mkOption {
             type = types.listOf (types.enum (lib.attrNames stackCfg.dynamicConfig.http.middlewares or {}));
             default = ["private"];
+            description = ''
+              A list of middlewares to apply to the service.
+              These will be applied in the order they are listed.
+            '';
           };
         };
       };

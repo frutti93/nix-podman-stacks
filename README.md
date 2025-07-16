@@ -1,7 +1,10 @@
-<center>
+<p align="center">
 <img src="images/nix-podman-logo.png" alt="logo" width="130"/>
+<p>
 
+<p align="center">
 <h1>Nix Podman Stacks</h1>
+</p>
 
 Collection of opinionated Podman stacks managed by [Home Manager](https://github.com/nix-community/home-manager).
 
@@ -11,7 +14,6 @@ Collection of opinionated Podman stacks managed by [Home Manager](https://github
 
 ![preview](./images/homepage.png)
 
-</center>
 The goal is to easily deploy various self-hosted projects, including a reverse proxy, dashboard and monitoring setup. Under the hood rootless Podman (Quadlets) will be used to run the containers. It works on most Linux distros including Ubuntu, Arch, Mint, Fedora & more and is not limited to NixOS.
 
 The projects also contains integrations with Traefik, Homepage, Grafana and more. Some examples include:

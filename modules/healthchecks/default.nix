@@ -12,11 +12,6 @@ in {
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
-    secretKey = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "Secret key for Healthchecks.";
-    };
     envFile = lib.mkOption {
       type = lib.types.path;
       description = ''

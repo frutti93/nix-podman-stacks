@@ -25,7 +25,7 @@ in {
       description = ''
         Settings that will be written to the 'configuration.yaml' file.
         If you want to configure settings through the UI, set this option to null.
-        In that case, no managed configuration.yaml will be provided.
+        In that case, no managed `configuration.yaml` will be provided.
       '';
     };
   };

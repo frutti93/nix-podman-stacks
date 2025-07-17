@@ -35,6 +35,13 @@ in {
     enable = lib.mkEnableOption name;
     settings = lib.mkOption {
       type = lib.types.nullOr json.type;
+      description = ''
+        Settings that will be written to the 'config.json' file.
+        If you want to configure settings through the UI, set this option to null.
+        In that case, no managed `config.json` will be provided.
+
+        For details to the config file see <https://immich.app/docs/install/config-file/>
+      '';
       apply = settings:
         if (settings != null)
         then (json.generate "config.json" settings)

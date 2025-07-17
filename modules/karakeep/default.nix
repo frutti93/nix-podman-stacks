@@ -18,7 +18,7 @@ in {
     envFile = lib.mkOption {
       type = lib.types.path;
       description = ''
-        Path to env file containing atleast the variables 'NEXTAUTH_SECRET' and 'MEILI_MASTER_KEY'
+        Path to env file containing atleast 'NEXTAUTH_SECRET' and 'MEILI_MASTER_KEY'
       '';
     };
   };

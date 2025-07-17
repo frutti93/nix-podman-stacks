@@ -33,7 +33,15 @@ in {
   imports = [./extension.nix] ++ import ../mkAliases.nix config lib stackName [grafanaName lokiName prometheusName alloyName podmanExporterName];
 
   options.tarow.podman.stacks.${stackName} = {
-    enable = lib.mkEnableOption stackName;
+    enable =
+      lib.mkEnableOption stackName
+      // {
+        description = ''
+          Enable the ${stackName} stack.
+          This stack provides monitoring services including Grafana, Loki, Alloy, and Prometheus.
+          Configuration files for each service will be provided automatically to work out of the box.
+        '';
+      };
     grafana = {
       enable = lib.mkEnableOption "Grafana" // {default = true;};
       dashboardProvider = lib.mkOption {
@@ -41,21 +49,35 @@ in {
         default = import ./dashboard_provider.nix dashboardPath;
         apply = yaml.generate "dashboard_provider.yml";
         readOnly = true;
+        description = ''
+          Dashboard provider configuration for Grafana.
+        '';
       };
       dashboards = lib.mkOption {
         type = lib.types.listOf lib.types.path;
         default = [];
+        description = ''
+          List of paths to Grafana dashboard JSON files.
+        '';
       };
       datasources = lib.mkOption {
         type = yaml.type;
         default = import ./grafana_datasources.nix lokiUrl prometheusUrl;
         apply = yaml.generate "grafana_datasources.yml";
         readOnly = true;
+        description = ''
+          Datasource configuration for Grafana.
+        '';
       };
       settings = lib.mkOption {
         type = ini.type;
         default = {};
         apply = ini.generate "grafana.ini";
+        description = ''
+          Settings for Grafana.
+          Will be written to the 'grafana.ini' file.
+          See <https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#configure-grafana>
+        '';
       };
     };
     loki = {
@@ -63,11 +85,18 @@ in {
       port = lib.mkOption {
         type = lib.types.port;
         default = 3100;
+        visible = false;
       };
       config = lib.mkOption {
         type = yaml.type;
         default = {};
         apply = yaml.generate "loki_config.yaml";
+        description = ''
+          Configuration for Loki.
+          A default configuration will be automatically provided by this monitoring module.
+
+          See <https://grafana.com/docs/loki/latest/configuration/>
+        '';
       };
     };
     alloy = {
@@ -75,11 +104,18 @@ in {
       port = lib.mkOption {
         type = lib.types.port;
         default = 12345;
+        visible = false;
       };
       config = lib.mkOption {
         type = lib.types.lines;
         default = import ./alloy_config.nix lokiUrl;
         apply = pkgs.writeText "config.alloy";
+        description = ''
+          Configuration for Alloy.
+          A default configuration will be automatically provided by this monitoring module.
+
+          See <https://grafana.com/docs/alloy/latest/get-started/configuration-syntax/>
+        '';
       };
     };
     prometheus = {
@@ -87,11 +123,18 @@ in {
       port = lib.mkOption {
         type = lib.types.port;
         default = 9090;
+        visible = false;
       };
       config = lib.mkOption {
         type = yaml.type;
         default = {};
         apply = yaml.generate "prometheus_config.yml";
+        description = ''
+          Configuration for Prometheus.
+          A default configuration will be automatically provided by this monitoring module.
+
+          See <https://prometheus.io/docs/prometheus/latest/configuration/configuration/>
+        '';
       };
     };
     podmanExporter.enable = lib.mkEnableOption "Podman Metrics Exporter" // {default = true;};

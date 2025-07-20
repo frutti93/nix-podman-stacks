@@ -48,10 +48,11 @@ in {
         type = yaml.type;
         default = import ./dashboard_provider.nix dashboardPath;
         apply = yaml.generate "dashboard_provider.yml";
-        readOnly = true;
         description = ''
           Dashboard provider configuration for Grafana.
         '';
+        readOnly = true;
+        visible = false;
       };
       dashboards = lib.mkOption {
         type = lib.types.listOf lib.types.path;
@@ -62,11 +63,10 @@ in {
       };
       datasources = lib.mkOption {
         type = yaml.type;
-        default = import ./grafana_datasources.nix lokiUrl prometheusUrl;
         apply = yaml.generate "grafana_datasources.yml";
-        readOnly = true;
         description = ''
           Datasource configuration for Grafana.
+          Loki and Prometheus datasources will be automatically configured.
         '';
       };
       settings = lib.mkOption {
@@ -142,7 +142,11 @@ in {
 
   config = lib.mkIf cfg.enable {
     tarow.podman.stacks.${stackName} = {
-      grafana.dashboards = lib.optional cfg.podmanExporter.enable ./dashboards/podman-exporter.json;
+      grafana = {
+        dashboards = lib.optional cfg.podmanExporter.enable ./dashboards/podman-exporter.json;
+        datasources = import ./grafana_datasources.nix lokiUrl prometheusUrl;
+      };
+
       loki.config = import ./loki_local_config.nix cfg.loki.port;
 
       prometheus.config = lib.mkMerge [

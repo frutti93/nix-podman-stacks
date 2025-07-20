@@ -13,15 +13,23 @@ in {
     enable = lib.mkEnableOption name;
     host = lib.mkOption {
       type = lib.types.str;
-      description = "The external domain or IP address of the Wireguard server.";
+      description = ''
+        The external domain or IP address of the Wireguard server.
+        Will be used as the 'endpoint' when generating client configurations.
+      '';
       default =
         if config.tarow.podman.stacks.traefik.enable
         then "vpn.${config.tarow.podman.stacks.traefik.domain}"
         else config.tarow.podman.hostIP4Address;
+      defaultText = lib.literalExpression ''"vpn.${config.tarow.podman.stacks.traefik.domain}"'';
     };
     envFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
-      description = "Path to the environment file for Wireguard Easy.";
+      description = ''
+        Path to the environment file.
+        Can be used to pass secrets, e.g. 'PASSWORD_HASH'.
+
+      '';
       default = null;
     };
   };

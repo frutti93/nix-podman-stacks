@@ -16,7 +16,8 @@ in {
       default = null;
       description = ''
         Environment file being passed to the container. Can be used to pass additional variables such
-        as 'MAXMIND_LICENSE_KEY'. Refer to https://pocket-id.org/docs/configuration/environment-variables/
+        as 'MAXMIND_LICENSE_KEY'.
+        Refer to <https://pocket-id.org/docs/configuration/environment-variables/>
         for a full list of available variables
       '';
     };
@@ -26,9 +27,12 @@ in {
         default = null;
         description = ''
           Environment file being passed to the Traefik container.
-          If this is set, a 'pocketid' middleware will be registered in Traefik
+          If this is set, a new `pocketid` middleware will be registered in Traefik.
           In order to work, the environment file should contain the secrets
           'POCKET_ID_CLIENT_ID', 'POCKET_ID_CLIENT_SECRET' & 'OIDC_MIDDLEWARE_SECRET'
+
+          'POCKET_ID_CLIENT_ID' and 'POCKET_ID_CLIENT_SECRET' are the credentials generated within PocketID
+          for the Traefik client. 'OIDC_MIDDLEWARE_SECRET' should be a random secret.
         '';
       };
     };

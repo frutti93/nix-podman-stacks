@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   ...
 }: let
   name = "paperless";
@@ -15,6 +16,11 @@ in {
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
+    env = lib.mkOption {
+      type = (options.services.podman.containers.type.getSubOptions []).environment.type;
+      default = {};
+      description = "Additional environment variables passed to the Paperless container";
+    };
     envFile = lib.mkOption {
       type = lib.types.path;
       description = ''
@@ -32,7 +38,8 @@ in {
       envFile = lib.mkOption {
         type = lib.types.path;
         description = ''
-          Path to the env file containing the 'FTP_PASS' variable
+          Path to the env file containing the 'FTP_PASS' variable.
+          Uploads to the FTP will be placed in the 'consume' directory to be ingested by Paperless.
         '';
       };
     };
@@ -49,17 +56,18 @@ in {
           "${storage}/export:/usr/src/paperless/export"
           "${storage}/consume:/usr/src/paperless/consume"
         ];
-        environment = {
-          PAPERLESS_REDIS = "redis://${brokerName}:6379";
-          PAPERLESS_DBHOST = dbName;
-          USERMAP_UID = config.tarow.podman.defaultUid;
-          USERMAP_GID = config.tarow.podman.defaultGid;
-          PAPERLESS_OCR_LANGUAGES = "eng deu";
-          PAPERLESS_TIME_ZONE = config.tarow.podman.defaultTz;
-          PAPERLESS_OCR_LANGUAGE = "deu";
-          PAPERLESS_FILENAME_FORMAT = "{{created_year}}/{{correspondent}}/{{title}}";
-          PAPERLESS_URL = config.services.podman.containers.${name}.traefik.serviceDomain;
-        };
+        environment =
+          {
+            PAPERLESS_REDIS = "redis://${brokerName}:6379";
+            PAPERLESS_DBHOST = dbName;
+            USERMAP_UID = config.tarow.podman.defaultUid;
+            USERMAP_GID = config.tarow.podman.defaultGid;
+            PAPERLESS_TIME_ZONE = config.tarow.podman.defaultTz;
+            PAPERLESS_FILENAME_FORMAT = "{{created_year}}/{{correspondent}}/{{title}}";
+            PAPERLESS_URL = config.services.podman.containers.${name}.traefik.serviceDomain;
+          }
+          // cfg.env;
+
         environmentFile = [cfg.envFile];
         port = 8000;
 

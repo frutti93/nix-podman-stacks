@@ -21,9 +21,8 @@ in {
       type = lib.types.nullOr lib.types.path;
       default = null;
       description = ''
-        Environment file passed to the container. Can be used to pass secrets such as
-        'ADMIN_TOKEN;
-        For a list of all environment variables refer to https://github.com/dani-garcia/vaultwarden/blob/main/.env.template
+        Environment file passed to the container. Can be used to pass secrets such as 'ADMIN_TOKEN;
+        For a list of all environment variables refer to <https://github.com/dani-garcia/vaultwarden/blob/main/.env.template>
       '';
     };
   };

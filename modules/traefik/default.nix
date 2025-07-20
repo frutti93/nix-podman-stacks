@@ -15,7 +15,14 @@ in {
     [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
-    enable = lib.options.mkEnableOption name;
+    enable =
+      lib.options.mkEnableOption name
+      // {
+        description = ''
+          Wheter to enable Traefik.
+          The Traefik stack ships preconfigured with a dynamic and static configuration.
+        '';
+      };
     domain = lib.options.mkOption {
       type = lib.types.str;
       description = "Base domain handled by Traefik";
@@ -32,24 +39,50 @@ in {
     };
     staticConfig = lib.options.mkOption {
       type = yaml.type;
-      default = {};
       apply = yaml.generate "traefik.yml";
+      description = ''
+        Static configuration for Traefik.
+        By default, for the configured domain, a wildcard certificate will be requested from letsencrypt
+        and used for all services that are registered with Traefik.
+        By default Cloudflare with DNS challenge will be used to request the certificate.
+        This requires the 'CF_DNS_API_TOKEN' environment variable to be set in the `envFile` option file.
+
+        The DNS provider as well as any other settings can be overwritten.
+        For an example see <https://github.com/Tarow/nix-podman-stacks/blob/main/examples/traefik-dns-provider.nix>
+      '';
     };
     dynamicConfig = lib.options.mkOption {
       type = yaml.type;
-      default = {};
+      description = ''
+        Dynamic configuration for Traefik.
+        By default, the module will setup two middlewares: private & public.
+        The private middleware (applied by default to all services) will only allow access from internal networks.
+        The public middleware (applied by default to all services) will allow access from the internet. It will be configured
+        with a rate limit, security headers and a geoblock plugin (if enabled).
+      '';
     };
     envFile = lib.options.mkOption {
       type = lib.types.path;
-      description = "Path to the environment file for Traefik";
+      description = "Path to the environment file for Traefik. Can be used to pass secrets, e.g. the API tokens for the DNS provider.";
     };
     geoblock = {
-      enable = lib.mkEnableOption "Geoblock" // {default = true;};
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Enable the geoblock plugin for Traefik.
+          This will block access to the services based on the country code of the request.
+          The plugin uses the IP2Location database to determine the country code.
+          If enabled, the geoblock will be used in the 'public' middleware,
+          allowing only requests from the allowed countries.
+        '';
+      };
       allowedCountries = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
         description = ''
           List of allowed country codes (ISO 3166-1 alpha-2 format)
+          See <https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements>
         '';
       };
     };

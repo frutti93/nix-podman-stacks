@@ -27,7 +27,7 @@ in {
       description = ''
         Settings for the Gatus container.
         Will be converted to YAML and passed to the container.
-        To see all valid settings, refer to the projects documentation: https://github.com/TwiN/gatus
+        To see all valid settings, refer to the projects documentation: <https://github.com/TwiN/gatus>
       '';
     };
     extraSettingsFiles = lib.mkOption {

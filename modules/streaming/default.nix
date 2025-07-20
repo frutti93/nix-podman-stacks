@@ -46,10 +46,10 @@ in {
             and 'WIREGUARD_PRESHARED_KEY'
           '';
         };
-        config = lib.mkOption {
+        settings = lib.mkOption {
           type = toml.type;
           apply = toml.generate "config.toml";
-          description = "Gluetun configuration settings.";
+          description = "Additional Gluetun configuration settings.";
         };
       };
       qbittorrent = {
@@ -76,7 +76,7 @@ in {
       |> lib.listToAttrs);
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.streaming.gluetun.config = import ./gluetun_config.nix;
+    tarow.podman.stacks.streaming.gluetun.settings = import ./gluetun_config.nix;
 
     services.podman.containers = {
       ${gluetunName} = lib.mkIf cfg.gluetun.enable {
@@ -85,7 +85,7 @@ in {
         devices = ["/dev/net/tun:/dev/net/tun"];
         volumes = [
           "${storage}/${gluetunName}:/gluetun"
-          "${cfg.gluetun.config}:/gluetun/auth/config.toml"
+          "${cfg.gluetun.settings}:/gluetun/auth/config.toml"
         ];
         environmentFile = [cfg.gluetun.envFile];
         environment = {

@@ -69,6 +69,10 @@
       omnitools.enable = false;
       paperless = {
         enable = true;
+        env = {
+          PAPERLESS_OCR_LANGUAGES = "eng deu";
+          PAPERLESS_OCR_LANGUAGE = "eng+deu";
+        };
         envFile = config.sops.secrets."paperless/env".path;
         db.envFile = config.sops.secrets."paperless/db_env".path;
         ftp.envFile = config.sops.secrets."paperless/ftp_env".path;

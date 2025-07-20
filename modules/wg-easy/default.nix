@@ -24,7 +24,7 @@ in {
         if config.tarow.podman.stacks.traefik.enable
         then "vpn.${config.tarow.podman.stacks.traefik.domain}"
         else config.tarow.podman.hostIP4Address;
-      defaultText = lib.literalExpression ''"vpn.${config.tarow.podman.stacks.traefik.domain}"'';
+      defaultText = lib.literalExpression ''"vpn.''${config.tarow.podman.stacks.traefik.domain}"'';
     };
     port = lib.mkOption {
       type = lib.types.port;

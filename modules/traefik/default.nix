@@ -53,6 +53,7 @@ in {
     };
     dynamicConfig = lib.options.mkOption {
       type = yaml.type;
+      default = {};
       description = ''
         Dynamic configuration for Traefik.
         By default, the module will setup two middlewares: private & public.

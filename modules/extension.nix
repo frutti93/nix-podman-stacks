@@ -23,12 +23,21 @@ in {
         dependsOn = mkOption {
           type = types.listOf types.str;
           default = [];
+          description = ''
+            List of systemd resources that this container depends on.
+            When specifying a dependency on another container, use the option `dependsOnContainer` instead.
+          '';
         };
 
         dependsOnContainer = mkOption {
           type = types.listOf types.str;
           default = [];
           apply = map (d: "podman-${d}.service");
+          description = ''
+            List of containers that this container depends on.
+            Similar to `dependsOn`, but will automatically apply correct pre- and suffix for
+            the generated systemd services.
+          '';
         };
 
         socketActivation = mkOption {
@@ -36,20 +45,38 @@ in {
             options = {
               port = mkOption {
                 type = types.oneOf [types.str types.port];
+                description = "Port that the socket should listen on";
               };
               fileDescriptorName = mkOption {
                 type = types.nullOr types.str;
                 default = null;
+                description = ''
+                  Name of the file descriptor that the socket should use.
+                '';
               };
             };
           });
           default = [];
+          description = ''
+            List of socket activation configurations for this container.
+            Each entry should specify a port and optionally a file descriptor name.
+            This will create a systemd socket that activates the container when accessed.
+
+            Will be used by containers like Traefik by default. Allows the container to access real-ip
+            without the request being proxied through pasta/slirp4netns.
+
+            For details regarding rootless Podman networking and socket activation,
+            see: <https://github.com/eriksjolund/podman-networking-docs>
+          '';
         };
 
         stack = mkOption {
           type = types.nullOr types.str;
           default = null;
-          description = "Stack that a container is part of";
+          description = ''
+            Stack that a container is part of.
+            For every stack, a Podman networking will be crearted that the respective container will be connected to.
+          '';
         };
       };
 

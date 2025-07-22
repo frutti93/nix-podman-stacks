@@ -79,7 +79,7 @@ in {
       };
       homepage = {
         category = "Network & Administration";
-        name = "Wireguard";
+        name = "wg-easy";
         settings = {
           description = "VPN Server";
           icon = "wireguard";

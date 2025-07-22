@@ -34,7 +34,7 @@ in {
         Only has an effect during initial setup.
         See <https://wg-easy.github.io/wg-easy/v15.1/advanced/config/unattended-setup/>
       '';
-      default = 51825;
+      default = 51820;
     };
     envFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
@@ -68,7 +68,6 @@ in {
         INIT_HOST = cfg.host;
         INIT_USERNAME = "admin";
         INIT_PORT = cfg.port;
-        INIT_DNS = "1.1.1.1,8.8.8.8";
         INIT_IPV4_CIDR = "172.20.0.0/24";
         INIT_IPV6_CIDR = "2001:0DB8::/32";
       };

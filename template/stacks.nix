@@ -102,6 +102,7 @@
         enable = true;
         envFile = config.sops.secrets."wg-easy/env".path;
       };
+      wg-portal.enable = false;
     };
   };
 }

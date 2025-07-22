@@ -35,6 +35,7 @@ let
     uptime-kuma = ./uptime-kuma;
     vaultwarden = ./vaultwarden;
     wg-easy = ./wg-easy;
+    wg-portal = ./wg-portal;
   };
 in
   modules

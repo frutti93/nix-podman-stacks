@@ -33,6 +33,7 @@
         envFile = config.sops.secrets."crowdsec/env".path;
       };
       dozzle.enable = true;
+      docker-socket-proxy.enable = false;
       filebrowser.enable = true;
       forgejo.enable = false;
       freshrss.enable = false;

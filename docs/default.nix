@@ -106,7 +106,7 @@ in {
 
       cp docs/mdbook/* src/
       cp ${self}/README.md src/introduction.md
-      cp ${self}/images/homepage.png src/images/homepage.png
+      cp ${self}/images/* src/images/
       cat ${settingsOptions.optionsCommonMark} >> src/settings-options.md
       cat ${stackOptions.optionsCommonMark} >> src/stack-options.md
       cat ${containerOptions.optionsCommonMark} >> src/container-options.md

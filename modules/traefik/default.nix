@@ -107,7 +107,7 @@ in {
         )
         (lib.mkIf cfg.geoblock.enable {
           http.middlewares = {
-            public-chain.chain.middlewares = lib.mkOrder 1100 ["geoblock"];
+            public.chain.middlewares = lib.mkOrder 1100 ["geoblock"];
             geoblock.plugin.geoblock = {
               enabled = true;
               databaseFilePath = "/plugins/geoblock/IP2LOCATION-LITE-DB1.IPV6.BIN";

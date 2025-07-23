@@ -75,7 +75,7 @@ in {
         version = "v1.4.4";
       };
       dynamicConfig.http.middlewares = {
-        public-chain.chain.middlewares = lib.mkAfter ["crowdsec"];
+        public.chain.middlewares = lib.mkAfter ["crowdsec"];
 
         crowdsec.plugin.bouncer = {
           enabled = true;
@@ -119,6 +119,7 @@ in {
         GID = config.tarow.podman.defaultGid;
       };
       environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
+      network = [config.tarow.podman.stacks.traefik.network];
 
       homepage = {
         category = "Network & Administration";

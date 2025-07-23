@@ -6,7 +6,7 @@
 }: let
   cfg = config.tarow.podman;
 in {
-  imports = [./extension.nix];
+  imports = [./extension.nix (lib.mkAliasOptionModule ["tarow" "containers"] ["services" "podman" "containers"])];
 
   options.tarow.podman = {
     package = lib.mkPackageOption pkgs "podman" {};

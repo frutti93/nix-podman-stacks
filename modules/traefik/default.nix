@@ -87,6 +87,7 @@ in {
         '';
       };
     };
+    useSocketProxy = lib.mkEnableOption "Usage of the Socket Proxy";
     enablePrometheusExport = lib.mkEnableOption "Prometheus Export";
     enableGrafanaMetricsDashboard = lib.mkEnableOption "Grafana Metrics Dashboard";
     enableGrafanaAccessLogDashboard = lib.mkEnableOption "Grafana Access Log Dashboard";
@@ -96,6 +97,14 @@ in {
     tarow.podman.stacks.${name} = {
       staticConfig = lib.mkMerge [
         (import ./config/traefik.nix cfg.domain cfg.network)
+
+        (lib.mkIf cfg.useSocketProxy {
+          providers.docker.endpoint = let
+            internalAddress =
+              config.tarow.containers.docker-socket-proxy.traefik.serviceAddressInternal;
+          in "tcp://${internalAddress}";
+        })
+
         (lib.mkIf cfg.enablePrometheusExport {
           entryPoints.metrics.address = ":9100";
           metrics.prometheus.entryPoint = "metrics";
@@ -105,6 +114,7 @@ in {
         (
           import ./config/dynamic.nix
         )
+
         (lib.mkIf cfg.geoblock.enable {
           http.middlewares = {
             public.chain.middlewares = lib.mkOrder 1100 ["geoblock"];
@@ -152,13 +162,14 @@ in {
         }
       ];
       environmentFile = [cfg.envFile];
-      volumes = [
-        "${storage}/letsencrypt:/letsencrypt"
-        "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"
-        "${cfg.staticConfig}:/etc/traefik/traefik.yml:ro"
-        "${yaml.generate "dynamic.yml" cfg.dynamicConfig}:/dynamic/config.yml"
-        "${./config/IP2LOCATION-LITE-DB1.IPV6.BIN}:/plugins/geoblock/IP2LOCATION-LITE-DB1.IPV6.BIN"
-      ];
+      volumes =
+        [
+          "${storage}/letsencrypt:/letsencrypt"
+          "${cfg.staticConfig}:/etc/traefik/traefik.yml:ro"
+          "${yaml.generate "dynamic.yml" cfg.dynamicConfig}:/dynamic/config.yml"
+          "${./config/IP2LOCATION-LITE-DB1.IPV6.BIN}:/plugins/geoblock/IP2LOCATION-LITE-DB1.IPV6.BIN"
+        ]
+        ++ lib.optional (!cfg.useSocketProxy) "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro";
       labels = {
         "traefik.http.routers.${traefik.name}.service" = "api@internal";
       };
@@ -171,6 +182,8 @@ in {
         |> lib.filter (c: c.traefik.name != null)
         |> lib.map (c: c.traefik.serviceHost);
 
+
+      dependsOnContainer = lib.optional cfg.useSocketProxy "docker-socket-proxy";
       traefik.name = name;
       alloy.enable = true;
       homepage = {

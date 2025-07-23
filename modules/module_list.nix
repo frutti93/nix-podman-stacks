@@ -11,6 +11,7 @@ let
     crowdsec = ./crowdsec;
     dockdns = ./dockdns;
     dozzle = ./dozzle;
+    docker-socket-proxy = ./docker-socket-proxy;
     filebrowser = ./filebrowser;
     forgejo = ./forgejo;
     freshrss = ./freshrss;

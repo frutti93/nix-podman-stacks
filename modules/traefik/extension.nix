@@ -55,6 +55,16 @@ in {
               else "";
             defaultText = "traefikCfg.name";
           };
+          serviceAddressInternal = mkOption {
+            type = lib.types.str;
+            default = "${name}:${getPort port 1}";
+            defaultText = lib.literalExpression ''"''${containerName}''${containerCfg.port}"'';
+            description = ''
+              The internal main address of the service. Can be used for internal communication
+              without going through Traefik, when inside the same Podman network.
+            '';
+            readOnly = true;
+          };
           serviceHost = mkOption {
             type = lib.types.str;
             description = ''

@@ -56,7 +56,12 @@
       }
     ) (sortByRank attrs);
 in {
-  imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
+  imports =
+    [
+      ./extension.nix
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix name name)
+    ]
+    ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
     enable =
@@ -192,7 +197,6 @@ in {
           "${settings}:/app/config/settings.yaml"
           "${widgets}:/app/config/widgets.yaml"
           "${bookmarks}:/app/config/bookmarks.yaml"
-          "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"
         ]
         ++ (lib.attrValues pathEntries |> map (path: "${path}:${path}"));
 
@@ -212,7 +216,13 @@ in {
     };
 
     tarow.podman.stacks.${name} = {
-      docker.local.socket = "/var/run/docker.sock";
+      docker.local =
+        if cfg.useSocketProxy
+        then {
+          host = "docker-socket-proxy";
+          port = config.tarow.podman.stacks.docker-socket-proxy.port;
+        }
+        else {socket = "/var/run/docker.sock";};
       settings.statusStyle = "dot";
       settings.useEqualHeights = true;
 

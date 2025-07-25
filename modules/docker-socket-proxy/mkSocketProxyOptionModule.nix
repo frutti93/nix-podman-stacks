@@ -5,14 +5,16 @@ stack: containers: {
 }: let
   cfg = config.tarow.podman.stacks.${stack};
   socketProxyCfg = config.tarow.podman.stacks.docker-socket-proxy;
-  socketProxyAssertion = !cfg.useSocketProxy || socketProxyCfg.enable;
-  useSocketProxy = cfg.useSocketProxy && socketProxyAssertion;
 in {
   options.tarow.podman.stacks.${stack} = {
     useSocketProxy = lib.mkOption {
       type = lib.types.bool;
-      default = false;
-      description = "Whether to use the Docker Socket Proxy for this stack.";
+      default = config.tarow.podman.stacks.docker-socket-proxy.enable;
+      defaultText = "config.tarow.podman.stacks.docker-socket-proxy.enable";
+      description = ''
+        Whether to use the Socket Proxy for the ${stack} stack.
+        Will be enabled by default if the 'docker-socket-proxy' stack is enabled.
+      '';
     };
   };
 
@@ -24,13 +26,20 @@ in {
       }
     ];
 
-    services.podman.containers =
-      lib.mkIf useSocketProxy
-      ((lib.flatten containers)
-        |> map (name:
-          lib.nameValuePair name {
-            dependsOnContainer = ["docker-socket-proxy"];
-          })
-        |> lib.listToAttrs);
+    services.podman.containers = (
+      lib.flatten containers
+      |> map (name:
+        lib.nameValuePair name {
+          # Socket Proxy option exists, but it not used.
+          # Mount the socket as a volume directly then.
+          volumes = lib.mkIf (!cfg.useSocketProxy) [
+            "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"
+          ];
+
+          # Socket Proxy option is set, add systemd dependency to socket-proxy service
+          dependsOnContainer = lib.mkIf cfg.useSocketProxy ["docker-socket-proxy"];
+        })
+      |> lib.listToAttrs
+    );
   };
 }

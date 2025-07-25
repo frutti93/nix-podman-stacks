@@ -162,14 +162,13 @@ in {
         }
       ];
       environmentFile = [cfg.envFile];
-      volumes =
-        [
-          "${storage}/letsencrypt:/letsencrypt"
-          "${cfg.staticConfig}:/etc/traefik/traefik.yml:ro"
-          "${yaml.generate "dynamic.yml" cfg.dynamicConfig}:/dynamic/config.yml"
-          "${./config/IP2LOCATION-LITE-DB1.IPV6.BIN}:/plugins/geoblock/IP2LOCATION-LITE-DB1.IPV6.BIN"
-        ]
-        ++ lib.optional (!cfg.useSocketProxy) "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro";
+      volumes = [
+        "${storage}/letsencrypt:/letsencrypt"
+        "${cfg.staticConfig}:/etc/traefik/traefik.yml:ro"
+        "${yaml.generate "dynamic.yml" cfg.dynamicConfig}:/dynamic/config.yml"
+        "${./config/IP2LOCATION-LITE-DB1.IPV6.BIN}:/plugins/geoblock/IP2LOCATION-LITE-DB1.IPV6.BIN"
+      ];
+
       labels = {
         "traefik.http.routers.${traefik.name}.service" = "api@internal";
       };

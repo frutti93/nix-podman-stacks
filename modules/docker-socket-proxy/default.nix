@@ -8,7 +8,22 @@
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name}.enable = lib.mkEnableOption name;
+  options.tarow.podman.stacks.${name} = {
+    enable = lib.mkEnableOption name;
+    address = lib.mkOption {
+      type = lib.types.str;
+      default = "tcp://${name}:${toString cfg.port}";
+      description = "The internal address of the Docker Socket Proxy service.";
+      readOnly = true;
+      visible = false;
+    };
+    port = lib.mkOption {
+      type = lib.types.port;
+      internal = true;
+      default = 2375;
+      description = "Port on which the Docker Socket Proxy will listen.";
+    };
+  };
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
@@ -25,7 +40,7 @@ in {
         POST = 0;
       };
 
-      port = 2375;
+      port = cfg.port;
       traefik.name = "dsp";
       homepage = {
         category = "Network & Administration";

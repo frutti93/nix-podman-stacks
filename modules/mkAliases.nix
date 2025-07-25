@@ -9,4 +9,4 @@ map (
     condition = config.tarow.podman.stacks.${stackName}.enable;
   })
 )
-containers
+(lib.flatten containers)

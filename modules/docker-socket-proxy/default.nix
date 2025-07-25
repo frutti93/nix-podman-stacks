@@ -31,7 +31,7 @@ in {
         category = "Network & Administration";
         name = "Docker Socket Proxy";
         settings = {
-          url = null;
+          href = null;
           description = "Security Proxy for the Docker Socket";
           icon = "haproxy";
         };

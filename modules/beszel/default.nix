@@ -11,8 +11,17 @@
   cfg = config.tarow.podman.stacks.${name};
 
   yaml = pkgs.formats.yaml {};
+
+  socketTargetLocation = "/var/run/podman.sock";
 in {
-  imports = import ../mkAliases.nix config lib name [name agentName];
+  imports =
+    [
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {
+        stack = name;
+        targetLocation = socketTargetLocation;
+      })
+    ]
+    ++ import ../mkAliases.nix config lib name [name agentName];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -106,15 +115,23 @@ in {
         volumes =
           [
             "${storage}/beszel_socket:/beszel_socket"
-            "${config.tarow.podman.socketLocation}:/run/podman/podman.sock:ro"
           ]
           ++ lib.optional (cfg.ed25519PublicKeyFile != null) "${cfg.ed25519PublicKeyFile}:/data/hub_key";
-        network = ["host"];
+
+        # No way to connect to socket proxy through host network yet
+        # Check traefik tcp router with socket activation eventually
+        network =
+          if (!cfg.useSocketProxy)
+          then ["host"]
+          else [config.tarow.podman.stacks.traefik.network];
 
         environment =
           {
             LISTEN = "/beszel_socket/beszel.sock";
-            DOCKER_HOST = "unix:///run/podman/podman.sock";
+            DOCKER_HOST =
+              if !cfg.useSocketProxy
+              then "unix://${socketTargetLocation}"
+              else config.tarow.podman.stacks.docker-socket-proxy.address;
           }
           // lib.optionalAttrs (cfg.ed25519PublicKeyFile != null) {
             KEY_FILE = "/data/hub_key";

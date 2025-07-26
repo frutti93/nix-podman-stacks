@@ -14,7 +14,7 @@ in {
   imports =
     [
       ./extension.nix
-      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix name name)
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {stack = name;})
     ]
     ++ import ../mkAliases.nix config lib name name;
 

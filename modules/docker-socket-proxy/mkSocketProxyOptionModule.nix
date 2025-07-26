@@ -16,7 +16,7 @@ in {
       default = config.tarow.podman.stacks.docker-socket-proxy.enable;
       defaultText = lib.literalExpression ''config.tarow.podman.stacks.docker-socket-proxy.enable'';
       description = ''
-        Whether to use the Socket Proxy for the ${stack} stack.
+        Whether to access the Podman socket through the read-only proxy for the ${stack} stack.
         Will be enabled by default if the 'docker-socket-proxy' stack is enabled.
       '';
     };

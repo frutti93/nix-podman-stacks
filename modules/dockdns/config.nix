@@ -13,6 +13,6 @@
     a = true;
     aaaa = false;
     defaultTTL = 300;
-    purgeUnknown = true;
+    purgeUnknown = false;
   };
 }

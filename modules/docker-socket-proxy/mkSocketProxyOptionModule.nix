@@ -35,7 +35,7 @@ in {
       |> map (name:
         lib.nameValuePair name {
           # Socket Proxy option exists, but it not used.
-          # Mount the socket as a volume directly then.
+          # Mount the socket directly then.
           volumes = lib.mkIf (!cfg.useSocketProxy) [
             "${config.tarow.podman.socketLocation}:/${targetLocation}:ro"
           ];

@@ -8,7 +8,12 @@
   cfg = config.tarow.podman.stacks.${name};
   yaml = pkgs.formats.yaml {};
 in {
-  imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
+  imports =
+    [
+      ./extension.nix
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {stack = name;})
+    ]
+    ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
     enable =
@@ -33,7 +38,7 @@ in {
     envFile = lib.mkOption {
       type = lib.types.path;
       default = null;
-      description = ''              
+      description = ''          
         Path to a file containing environment variables for the API token for the domain.
         E.g. for a domain 'test.example.com', the file should contain 'TEST_EXAMPLE_COM_API_TOKEN=your_api_token'.'';
     };
@@ -41,7 +46,10 @@ in {
 
   config = lib.mkIf cfg.enable {
     tarow.podman.stacks.${name}.settings = lib.mkMerge [
-      (import ./config.nix)
+      # Apply all leaf-attributes with default priority.
+      # Allows for easy overriding of leaf-attributes
+      (import ./config.nix |> lib.mapAttrsRecursive (_: lib.mkDefault))
+
       (lib.mkIf config.tarow.podman.stacks.traefik.enable {
         zones = [
           {
@@ -56,9 +64,11 @@ in {
       image = "ghcr.io/tarow/dockdns:latest";
       volumes = [
         "${cfg.settings}:/app/config.yaml"
-        "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"
       ];
 
+      environment = {
+        DOCKER_HOST = lib.mkIf (cfg.useSocketProxy) config.tarow.podman.stacks.docker-socket-proxy.address;
+      };
       environmentFile = [cfg.envFile];
 
       port = 8080;

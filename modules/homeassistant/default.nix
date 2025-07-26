@@ -10,7 +10,7 @@
 
   cfg = config.tarow.podman.stacks.${name};
 
-  traefikSubnet = config.tarow.podman.stacks.traefik.subnet;
+  traefikSubnet = config.tarow.podman.stacks.traefik.network.subnet;
 in {
   imports = import ../mkAliases.nix config lib name [name];
 

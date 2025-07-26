@@ -123,7 +123,7 @@ in {
         network =
           if (!cfg.useSocketProxy)
           then ["host"]
-          else [config.tarow.podman.stacks.traefik.network];
+          else [config.tarow.podman.stacks.traefik.network.name];
 
         environment =
           {

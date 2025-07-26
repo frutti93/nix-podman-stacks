@@ -33,6 +33,8 @@ in {
         "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"
       ];
 
+      dependsOn = ["podman.socket"];
+
       environment = {
         CONTAINERS = 1;
         SERVICES = 1;

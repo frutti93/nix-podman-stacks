@@ -141,7 +141,7 @@ in {
           // {
             "traefik.http.routers.${name}.middlewares" = builtins.concatStringsSep "," (map (m: "${m}@file") traefikCfg.middlewares);
           });
-        network = lib.mkIf enableTraefik [stackCfg.network];
+        network = lib.mkIf enableTraefik [stackCfg.network.name];
         ports = lib.optional (!enableTraefik && (port != null)) "${hostPort}:${containerPort}";
       };
     }));

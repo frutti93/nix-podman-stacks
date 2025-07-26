@@ -97,7 +97,7 @@ in {
           HTTPPROXY = "on";
           HEALTH_VPN_DURATION_INITIAL = "60s";
         };
-        network = [config.tarow.podman.stacks.traefik.network];
+        network = [config.tarow.podman.stacks.traefik.network.name];
 
         stack = stackName;
         port = 8888;

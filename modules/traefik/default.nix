@@ -31,15 +31,40 @@ in {
       type = lib.types.str;
       description = "Base domain handled by Traefik";
     };
-    network = lib.options.mkOption {
+    ip4 = lib.options.mkOption {
       type = lib.types.str;
-      description = "Network name for Podman bridge network. Will be used by the Traefik Docker provider";
-      default = "traefik-proxy";
+      readOnly = true;
+      visible = false;
+      description = "IP address of Traefik container in the Podman bridge network";
+      default = "10.80.0.2";
     };
-    subnet = lib.options.mkOption {
-      type = lib.types.str;
-      description = "Subnet of the Podman bridge network";
-      default = "10.80.0.0/24";
+    network = {
+      name = lib.options.mkOption {
+        type = lib.types.str;
+        description = "Network name for Podman bridge network. Will be used by the Traefik Docker provider";
+        default = "traefik-proxy";
+      };
+      subnet = lib.options.mkOption {
+        type = lib.types.str;
+        readOnly = true;
+        visible = false;
+        description = "Subnet of the Podman bridge network";
+        default = "10.80.0.0/24";
+      };
+      gateway = lib.options.mkOption {
+        type = lib.types.str;
+        readOnly = true;
+        visible = false;
+        description = "Gateway of the Podman bridge network";
+        default = "10.80.0.1";
+      };
+      ipRange = lib.options.mkOption {
+        type = lib.types.str;
+        readOnly = true;
+        visible = false;
+        description = "IP-Range of the Podman bridge network";
+        default = "10.80.0.10-10.80.0.255";
+      };
     };
     staticConfig = lib.options.mkOption {
       type = yaml.type;
@@ -99,7 +124,7 @@ in {
   config = lib.mkIf cfg.enable {
     tarow.podman.stacks.${name} = {
       staticConfig = lib.mkMerge [
-        (import ./config/traefik.nix cfg.domain cfg.network)
+        (import ./config/traefik.nix cfg.domain cfg.network.name)
 
         (lib.mkIf cfg.useSocketProxy {
           providers.docker.endpoint = config.tarow.podman.stacks.docker-socket-proxy.address;
@@ -143,9 +168,13 @@ in {
       };
     };
 
-    services.podman.networks.${cfg.network} = {
+    services.podman.networks.${cfg.network.name} = {
       driver = "bridge";
-      subnet = cfg.subnet;
+      subnet = cfg.network.subnet;
+      gateway = cfg.network.gateway;
+      extraConfig = {
+        Network.IPRange = cfg.network.ipRange;
+      };
     };
 
     services.podman.containers.${name} = rec {
@@ -173,6 +202,7 @@ in {
         "traefik.http.routers.${traefik.name}.service" = "api@internal";
       };
 
+      ip4 = cfg.ip4;
       # For every container that we manage, add a NetworkAlias, so that connections to Traefik are possible
       # trough the internal podman network (no host-gateway required)
       extraConfig.Container.NetworkAlias =

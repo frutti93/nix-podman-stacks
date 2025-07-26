@@ -43,9 +43,9 @@ in {
       lib.mkEnableOption name
       // {
         description = ''
-           Wheter to enable the Crowdsec stack. If enabled, a middleware will be added to the Traefik
-           'public' chain. This will block requests to exposed services that are detected as malicious by Crowdsec.
-          Make sure that the Traefik container is provided with the `BOUNCER_KEY_TRAEFIK` environment variable for this to work.
+          Wheter to enable the Crowdsec stack. If enabled, a middleware will be added to the Traefik
+          'public' chain. This will block requests to exposed services that are detected as malicious by Crowdsec.
+           Make sure that the Traefik container is provided with the `BOUNCER_KEY_TRAEFIK` environment variable for this to work.
         '';
       };
     envFile = lib.mkOption {
@@ -119,7 +119,7 @@ in {
         GID = config.tarow.podman.defaultGid;
       };
       environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
-      network = [config.tarow.podman.stacks.traefik.network];
+      network = [config.tarow.podman.stacks.traefik.network.name];
 
       homepage = {
         category = "Network & Administration";

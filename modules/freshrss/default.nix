@@ -55,7 +55,7 @@ in {
       environment =
         {
           CRON_MIN = "3,33";
-          TRUSTED_PROXY = config.tarow.podman.stacks.traefik.subnet;
+          TRUSTED_PROXY = config.tarow.podman.stacks.traefik.network.subnet;
         }
         // lib.optionalAttrs (cfg.envFile != null) {
           FRESHRSS_INSTALL = "'${lib.concatStringsSep " " [

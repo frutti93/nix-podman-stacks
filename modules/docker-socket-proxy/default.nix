@@ -39,6 +39,7 @@ in {
         CONTAINERS = 1;
         SERVICES = 1;
         TASKS = 1;
+        INFO = 1;
         POST = 0;
       };
 

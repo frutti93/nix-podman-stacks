@@ -32,7 +32,7 @@
         enable = true;
         envFile = config.sops.secrets."crowdsec/env".path;
         traefikIntegration = {
-          bouncerEnvFile = config.sops.secrets."crowdsec/traefikEnv".path;
+          bouncerEnvFile = config.sops.secrets."crowdsec/traefikBouncerEnv".path;
         };
       };
       dozzle.enable = true;

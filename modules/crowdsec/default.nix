@@ -151,7 +151,6 @@ in {
         "${storage}/db:/var/lib/crowdsec/data"
         "${storage}/config:/etc/crowdsec"
         "${cfg.acquisSettings}:/etc/crowdsec/acquis.yaml"
-        "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"
       ];
       environment = {
         COLLECTIONS = "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors";

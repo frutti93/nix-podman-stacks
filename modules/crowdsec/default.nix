@@ -36,24 +36,24 @@
     };
   };
 in {
-  imports = import ../mkAliases.nix config lib name [name];
+  imports =
+    [
+      # Create the `traefikIntegration.useSocketProxy` option
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {
+        stack = name;
+        subPath = "traefikIntegration";
+      })
+    ]
+    ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
-    enable =
-      lib.mkEnableOption name
-      // {
-        description = ''
-          Wheter to enable the Crowdsec stack. If enabled, a middleware will be added to the Traefik
-          'public' chain. This will block requests to exposed services that are detected as malicious by Crowdsec.
-           Make sure that the Traefik container is provided with the `BOUNCER_KEY_TRAEFIK` environment variable for this to work.
-        '';
-      };
+    enable = lib.mkEnableOption name;
     envFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
       description = ''
-        Path to the env file containing the 'BOUNCER_KEY_TRAEFIK' and optionally the
-        'ENROLL_INSTANCE_NAME' and 'ENROLL_KEY' variables
+        Path to the env file containing secrets, e.g. the 'ENROLL_INSTANCE_NAME' and 'ENROLL_KEY' variables.
+        To automatically monitor Traefik logs and add a Traefik middleware, make sure to configure the `traefikIntegration` options
       '';
     };
     acquisSettings = lib.mkOption {
@@ -65,11 +65,51 @@ in {
       '';
       apply = yaml.generate "acquis.yaml";
     };
+    traefikIntegration = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = config.tarow.podman.stacks.traefik.enable;
+        defaultText = lib.literalExpression ''config.tarow.podman.stacks.traefik.enable'';
+        description = ''
+          Wheter to configure aquis settings for Traefik.
+          If enabled, Traefik access logs will be automatically collected.
+
+          To also setup a Traefik middleware that makes use of the CrowdSec decisions to block requests, make sure to configure
+          the `bouncerEnvFile` option.
+        '';
+      };
+      bouncerEnvFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = ''
+          Path to env file containing the `BOUNCER_KEY_TRAEFIK` environment variable.
+          If this is set, a Bouncer will be setup in CrowdSec. Also a new `crowdsec` middleware will be registered in Traefik and added to the 'public' chain.
+          This will block requests to exposed services that are detected as malicious by Crowdsec.
+        '';
+      };
+      # useSocketProxy option is configured by the imported module
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.${name}.acquisSettings = lib.mkIf config.tarow.podman.stacks.traefik.enable (import ./acquis.nix);
-    tarow.podman.stacks.traefik = {
+    assertions = [
+      {
+        assertion = !cfg.traefikIntegration.enable || config.tarow.podman.stacks.traefik.enable;
+        message = "The option 'tarow.podman.stacks.${name}.traefikIntegration.enable' is set to true, but the 'traefik' stack is not enabled.";
+      }
+    ];
+
+    tarow.podman.stacks.${name}.acquisSettings = lib.mkIf cfg.traefikIntegration.enable {
+      source = "docker";
+      container_name = ["traefik"];
+      labels = {
+        type = "traefik";
+      };
+      docker_host = lib.mkIf cfg.traefikIntegration.useSocketProxy config.tarow.podman.stacks.docker-socket-proxy.address;
+    };
+
+    tarow.podman.stacks.traefik = lib.mkIf (cfg.traefikIntegration.enable && cfg.traefikIntegration.bouncerEnvFile != null) {
+      containers.traefik.environmentFile = [cfg.traefikIntegration.bouncerEnvFile];
       staticConfig.experimental.plugins.bouncer = {
         moduleName = "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin";
         version = "v1.4.4";
@@ -118,8 +158,10 @@ in {
         UID = config.tarow.podman.defaultUid;
         GID = config.tarow.podman.defaultGid;
       };
-      environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
-      network = [config.tarow.podman.stacks.traefik.network.name];
+      environmentFile =
+        lib.optional (cfg.envFile != null) cfg.envFile
+        ++ lib.optional (cfg.traefikIntegration.enable && cfg.traefikIntegration.bouncerEnvFile != null) cfg.traefikIntegration.bouncerEnvFile;
+      network = lib.optional (cfg.traefikIntegration.enable) config.tarow.podman.stacks.traefik.network.name;
 
       homepage = {
         category = "Network & Administration";

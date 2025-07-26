@@ -2,15 +2,16 @@
   stack,
   container ? stack,
   targetLocation ? "/var/run/docker.sock",
+  subPath ? [],
 }: {
   config,
   lib,
   ...
 }: let
-  cfg = config.tarow.podman.stacks.${stack};
+  cfg = lib.getAttrFromPath (["tarow" "podman" "stacks" stack] ++ (lib.flatten subPath)) config;
   socketProxyCfg = config.tarow.podman.stacks.docker-socket-proxy;
 in {
-  options.tarow.podman.stacks.${stack} = {
+  options.tarow.podman.stacks = lib.setAttrByPath ([stack] ++ (lib.flatten subPath)) {
     useSocketProxy = lib.mkOption {
       type = lib.types.bool;
       default = config.tarow.podman.stacks.docker-socket-proxy.enable;
@@ -42,6 +43,7 @@ in {
 
           # Socket Proxy option is set, add systemd dependency to socket-proxy service
           dependsOnContainer = lib.mkIf cfg.useSocketProxy ["docker-socket-proxy"];
+          dependsOn = lib.mkIf (!cfg.useSocketProxy) ["podman.socket"];
         })
       |> lib.listToAttrs
     );

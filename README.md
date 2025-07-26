@@ -120,7 +120,7 @@ If you don't use Nix yet, you can use the projects template to get started:
 2. Modify the `stacks.nix` file to enable, disable and modify settings according to your preferences
 3. Generate your age key and create the `.sops.yaml` based on the `.sops.yaml.example`
 4. Create the `secrets.yaml` file containing all secrets used in the stack configurations
-5. Make sure to declare the used secrets in the `stacks.nix` file
+5. Make sure to declare the used secrets in the `sops.nix` file
 6. Modify the `flake.nix` to reflect your system architecture, username and home directory
 7. Apply your configuration: `nix run home-manager -- switch --experimental-features "nix-command flakes pipe-operators" -b bak --flake .#myhost`
 

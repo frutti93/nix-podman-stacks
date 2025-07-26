@@ -21,7 +21,7 @@ in {
         for a full list of available variables
       '';
     };
-    traefik = {
+    traefikIntegration = {
       envFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
         default = null;
@@ -39,8 +39,8 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.traefik = lib.mkIf (cfg.traefik.envFile != null) {
-      containers.traefik.environmentFile = [cfg.traefik.envFile];
+    tarow.podman.stacks.traefik = lib.mkIf (cfg.traefikIntegration.envFile != null) {
+      containers.traefik.environmentFile = [cfg.traefikIntegration.envFile];
 
       staticConfig.experimental.plugins.traefik-oidc-auth = {
         moduleName = "github.com/sevensolutions/traefik-oidc-auth";

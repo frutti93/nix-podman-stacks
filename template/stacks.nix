@@ -31,6 +31,9 @@
       crowdsec = {
         enable = true;
         envFile = config.sops.secrets."crowdsec/env".path;
+        traefikIntegration = {
+          bouncerEnvFile = config.sops.secrets."crowdsec/traefikEnv".path;
+        };
       };
       dozzle.enable = true;
       docker-socket-proxy.enable = false;
@@ -80,7 +83,7 @@
       };
       pocketid = {
         enable = true;
-        traefik.envFile = config.sops.secrets."pocketId/traefikEnv".path;
+        traefikIntegration.envFile = config.sops.secrets."pocketId/traefikEnv".path;
       };
       stirling-pdf.enable = true;
       streaming = {

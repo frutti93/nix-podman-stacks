@@ -15,6 +15,7 @@
         "beszel/ssh_key"
         "beszel/ssh_pub_key"
         "crowdsec/env"
+        "crowdsec/traefikBouncerEnv"
         "dockdns/env"
         "gluetun/env"
         "healthchecks/env"

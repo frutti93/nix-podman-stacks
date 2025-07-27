@@ -202,6 +202,9 @@ in {
         "traefik.http.routers.${traefik.name}.service" = "api@internal";
       };
 
+      # Traefik should only be in a single network and not be added to others by integations (e.g. socket-proxy)
+      # Otherwise we lose the ability to assign static ip (only works with single bridge network)
+      network = lib.mkForce cfg.network.name;
       ip4 = cfg.ip4;
       # For every container that we manage, add a NetworkAlias, so that connections to Traefik are possible
       # trough the internal podman network (no host-gateway required)

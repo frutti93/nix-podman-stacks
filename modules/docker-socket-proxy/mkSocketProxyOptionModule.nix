@@ -24,28 +24,30 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    assertions = [
+    assertions = let
+      optionPath =
+        (["tarow" "podman" "stacks" stack] ++ (lib.flatten subPath))
+        |> lib.concatStringsSep ".";
+    in [
       {
         assertion = !cfg.useSocketProxy || socketProxyCfg.enable;
-        message = "The option 'tarow.podman.stacks.${stack}.useSocketProxy' is set to true, but the 'docker-socket-proxy' stack is not enabled.";
+        message = "The option '${optionPath}' is set to true, but the 'docker-socket-proxy' stack is not enabled.";
       }
     ];
 
-    services.podman.containers = (
-      lib.flatten container
-      |> map (name:
-        lib.nameValuePair name {
-          # Socket Proxy option exists, but it not used.
-          # Mount the socket directly then.
-          volumes = lib.mkIf (!cfg.useSocketProxy) [
-            "${config.tarow.podman.socketLocation}:/${targetLocation}:ro"
-          ];
+    services.podman.containers.${container} = {
+      # Socket Proxy option exists, but it not used.
+      # Mount the socket directly then.
+      volumes = lib.mkIf (!cfg.useSocketProxy) [
+        "${config.tarow.podman.socketLocation}:/${targetLocation}:ro"
+      ];
 
-          # Socket Proxy option is set, add systemd dependency to socket-proxy service
-          dependsOnContainer = lib.mkIf cfg.useSocketProxy ["docker-socket-proxy"];
-          dependsOn = lib.mkIf (!cfg.useSocketProxy) ["podman.socket"];
-        })
-      |> lib.listToAttrs
-    );
+      # If socket-proxy is used, add the container to its bridge network so the proxy can be reached
+      network = lib.optional cfg.useSocketProxy "docker-socket-proxy";
+
+      # Socket Proxy option is set, add systemd dependency to socket-proxy service
+      dependsOnContainer = lib.mkIf cfg.useSocketProxy ["docker-socket-proxy"];
+      dependsOn = lib.mkIf (!cfg.useSocketProxy) ["podman.socket"];
+    };
   };
 }

@@ -40,8 +40,13 @@ in {
         SERVICES = 1;
         TASKS = 1;
         INFO = 1;
+        IMAGES = 1;
+        NETWORKS = 1;
+        CONFIGS = 1;
         POST = 0;
       };
+
+      stack = name;
 
       port = cfg.port;
       traefik.name = "dsp";

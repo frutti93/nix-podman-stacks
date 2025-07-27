@@ -29,8 +29,23 @@
 
   lokiUrl = "http://${lokiName}:${toString cfg.loki.port}";
   prometheusUrl = "http://${prometheusName}:${toString cfg.prometheus.port}";
+
+  dockerHost =
+    if cfg.alloy.useSocketProxy
+    then config.tarow.podman.stacks.docker-socket-proxy.address
+    else "unix:///var/run/docker.sock";
 in {
-  imports = [./extension.nix] ++ import ../mkAliases.nix config lib stackName [grafanaName lokiName prometheusName alloyName podmanExporterName];
+  imports =
+    [
+      ./extension.nix
+      # Create the `alloy.useSocketProxy` option
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {
+        stack = stackName;
+        container = alloyName;
+        subPath = alloyName;
+      })
+    ]
+    ++ import ../mkAliases.nix config lib stackName [grafanaName lokiName prometheusName alloyName podmanExporterName];
 
   options.tarow.podman.stacks.${stackName} = {
     enable =
@@ -108,11 +123,12 @@ in {
       };
       config = lib.mkOption {
         type = lib.types.lines;
-        default = import ./alloy_config.nix lokiUrl;
         apply = pkgs.writeText "config.alloy";
         description = ''
           Configuration for Alloy.
           A default configuration will be automatically provided by this monitoring module.
+          The default configuration will ship logs of all containers that set the `alloy.enable=true` option to Loki.
+          Multiple definitions of this option will be merged together into a single file.
 
           See <https://grafana.com/docs/alloy/latest/get-started/configuration-syntax/>
         '';
@@ -148,6 +164,7 @@ in {
       };
 
       loki.config = import ./loki_local_config.nix cfg.loki.port;
+      alloy.config = import ./alloy_config.nix lokiUrl dockerHost;
 
       prometheus.config = lib.mkMerge [
         (import ./prometheus_config.nix)
@@ -226,7 +243,6 @@ in {
           image = "docker.io/grafana/alloy:latest";
           volumes = [
             "${cfg.alloy.config}:${configDst}"
-            "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"
           ];
           exec = "run --server.http.listen-addr=0.0.0.0:${toString cfg.alloy.port} --storage.path=/var/lib/alloy/data ${configDst}";
 

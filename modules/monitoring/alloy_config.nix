@@ -1,6 +1,6 @@
-lokiUrl: ''
+lokiUrl: dockerHost: ''
   discovery.docker "docker_log_scrape" {
-  	host             = "unix:///var/run/docker.sock"
+  	host             = "${dockerHost}"
   	refresh_interval = "10s"
 
   	filter {
@@ -30,7 +30,7 @@ lokiUrl: ''
   }
 
   loki.source.docker "docker_log_scrape" {
-  	host             = "unix:///var/run/docker.sock"
+  	host             = "${dockerHost}"
   	targets          = discovery.docker.docker_log_scrape.targets
   	forward_to       = [loki.write.default.receiver]
   	relabel_rules    = discovery.relabel.docker_log_scrape.rules

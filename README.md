@@ -137,3 +137,9 @@ Also it ships with preconfigured static and dynamic configurations, but allows y
 If the exposed options are not enough, you can always refer to the container definition directly by using the `tarow.podman.stacks.<stackname>.containers.<containername>` options.
 
 Refer to the [examples](https://github.com/Tarow/nix-podman-stacks/tree/main/examples) to see different use cases of setting and overriding options.
+
+## 💡 Missing a Stack / Option / Integration ?
+
+Is your favorite self-hosted app not included yet? Or would you like to see additional options or integrations?
+I'm always looking to expand the collection!
+Feel free to [open an issue](https://github.com/Tarow/nix-podman-stacks/issues) or contribute directly with a [pull request](https://github.com/Tarow/nix-podman-stacks/pulls).

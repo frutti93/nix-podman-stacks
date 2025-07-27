@@ -7,6 +7,9 @@
    <a href="https://renovatebot.com">
    <img src="https://img.shields.io/badge/renovate-enabled-brightgreen.svg" alt="Renovate">
    </a>
+   <a href="https://tarow.github.io/nix-podman-stacks/">
+   <img src="https://img.shields.io/static/v1?label=&message=📘%20Docs&color=grey" alt="📘 Docs"" alt="📘 Docs">
+   </a>
 </p>
 
 # Nix Podman Stacks

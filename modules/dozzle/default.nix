@@ -6,7 +6,12 @@
   name = "dozzle";
   cfg = config.tarow.podman.stacks.${name};
 in {
-  imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
+  imports =
+    [
+      ./extension.nix
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {stack = name;})
+    ]
+    ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name}.enable =
     lib.mkEnableOption name
@@ -21,9 +26,10 @@ in {
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
       image = "docker.io/amir20/dozzle:latest";
-      volumes = [
-        "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"
-      ];
+      environment = {
+        DOZZLE_REMOTE_HOST = lib.mkIf (cfg.useSocketProxy) config.tarow.podman.stacks.docker-socket-proxy.address;
+      };
+
       port = 8080;
       traefik.name = name;
       homepage = {

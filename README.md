@@ -5,11 +5,9 @@
    <a href="https://builtwithnix.org"><img src="https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a" alt="built with nix"></a>
    <img src="https://github.com/tarow/nix-podman-stacks/actions/workflows/ci.yaml/badge.svg" alt="Build">
    <a href="https://renovatebot.com">
-   <img src="https://img.shields.io/badge/renovate-enabled-brightgreen.svg" alt="Renovate">
-   </a>
+   <img src="https://img.shields.io/badge/renovate-enabled-brightgreen.svg" alt="Renovate"></a>
    <a href="https://tarow.github.io/nix-podman-stacks/">
-   <img src="https://img.shields.io/static/v1?logo=mdbook&label=&message=Docs&color=grey" alt="📘 Docs"" alt="📘 Docs">
-   </a>
+   <img src="https://img.shields.io/static/v1?logo=mdbook&label=&message=Docs&color=grey" alt="📘 Docs"" alt="📘 Docs"></a>
 </p>
 
 # Nix Podman Stacks

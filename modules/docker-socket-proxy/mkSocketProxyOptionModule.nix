@@ -8,7 +8,8 @@
   lib,
   ...
 }: let
-  cfg = lib.getAttrFromPath (["tarow" "podman" "stacks" stack] ++ (lib.flatten subPath)) config;
+  stackCfg = config.tarow.podman.stacks.${stack};
+  cfg = lib.getAttrFromPath (lib.flatten subPath) stackCfg;
   socketProxyCfg = config.tarow.podman.stacks.docker-socket-proxy;
 in {
   options.tarow.podman.stacks = lib.setAttrByPath ([stack] ++ (lib.flatten subPath)) {
@@ -23,7 +24,7 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf stackCfg.enable {
     assertions = let
       optionPath =
         (["tarow" "podman" "stacks" stack] ++ (lib.flatten subPath))

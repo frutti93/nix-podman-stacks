@@ -29,6 +29,8 @@
         "paperless/ftp_env"
         "pocketId/traefikEnv"
         "qbittorrent/env"
+        "romm/env"
+        "romm/db_env"
         "wg-easy/env"
         "traefik/env"
       ] (s: {});

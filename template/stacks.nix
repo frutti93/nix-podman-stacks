@@ -85,6 +85,11 @@
         enable = true;
         traefikIntegration.envFile = config.sops.secrets."pocketId/traefikEnv".path;
       };
+      romm = {
+        enable = true;
+        envFile = config.sops.secrets."romm/env".path;
+        db.envFile = config.sops.secrets."romm/db_env".path;
+      };
       stirling-pdf.enable = true;
       streaming = {
         enable = true;

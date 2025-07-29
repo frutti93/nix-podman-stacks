@@ -30,6 +30,7 @@ let
     omnitools = ./omnitools;
     paperless = ./paperless;
     pocketid = ./pocket-id;
+    romm = ./romm;
     stirling-pdf = ./stirling-pdf;
     streaming = ./streaming;
     traefik = ./traefik;

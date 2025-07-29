@@ -138,6 +138,7 @@ in {
           settings = {
             description = "Rom Manager";
             icon = "romm";
+            widget.type = "romm";
           };
         };
       };

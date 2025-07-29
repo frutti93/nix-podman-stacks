@@ -136,7 +136,7 @@ in {
           category = "General";
           name = "RomM";
           settings = {
-            description = "ROM Manager";
+            description = "Rom Manager";
             icon = "romm";
           };
         };

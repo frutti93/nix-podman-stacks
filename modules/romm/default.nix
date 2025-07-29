@@ -9,6 +9,7 @@
   dbName = "${name}-db";
 
   storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  defaultRomStorage = "${storage}/library";
   cfg = config.tarow.podman.stacks.${name};
 
   yaml = pkgs.formats.yaml {};
@@ -28,6 +29,18 @@ in {
         `ADMIN_PASSWORD` (default 'admin') and `ADMIN_EMAIL` (default 'admin@admin.com').
 
         When disabled, you will be prompted for admin user creation when visiting the RomM UI the first time.
+      '';
+    };
+    romLibraryPath = lib.mkOption {
+      type = lib.types.pathWith {
+        inStore = false;
+        absolute = true;
+      };
+      default = defaultRomStorage;
+      defaultText = lib.literalExpression ''"''${config.tarow.podman.storageBaseDir}/${name}/library"'';
+      example = lib.literalExpression ''"''${config.tarow.podman.externalStorageBaseDir}/${name}/library"'';
+      description = ''
+        Base path on the host where the rom library is stored.
       '';
     };
     settings = lib.mkOption {
@@ -87,7 +100,7 @@ in {
           [
             "${storage}/resources:/romm/resources"
             "${storage}/redis_data:/redis-data"
-            "${storage}/library:/romm/library"
+            "${cfg.romLibraryPath}:/romm/library"
             "${storage}/assets:/romm/assets"
           ]
           ++ [

@@ -24,7 +24,7 @@ in {
         Whether to enable automated admin user provisioning.
         If enabled, an admin user will be created automatically on startup.
 
-        Make sure the env file contains the `envFile` option contains the variables `ADMIN_USERNAME` (default 'admin'),
+        Make sure the file provided in the `envFile` option contains the variables `ADMIN_USERNAME` (default 'admin'),
         `ADMIN_PASSWORD` (default 'admin') and `ADMIN_EMAIL` (default 'admin@admin.com').
 
         When disabled, you will be prompted for admin user creation when visiting the RomM UI the first time.

@@ -6,6 +6,8 @@ on:
       - "**.nix"
       - "flake.lock"
       - ".github/workflows/ci.yaml"
+      - "images/**"
+      - "**.md"
 
 jobs:
   build-config:

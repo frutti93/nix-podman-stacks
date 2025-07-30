@@ -14,6 +14,7 @@
         "aiostreams/env"
         "beszel/ssh_key"
         "beszel/ssh_pub_key"
+        "bytestash/env"
         "crowdsec/env"
         "crowdsec/traefikBouncerEnv"
         "dockdns/env"

@@ -26,6 +26,10 @@
         enableGrafanaDashboard = true;
         enablePrometheusExport = true;
       };
+      bytestash = {
+        enable = true;
+        envFile = config.sops.secrets."bytestash/env".path;
+      };
       calibre.enable = true;
       changedetection.enable = true;
       crowdsec = {

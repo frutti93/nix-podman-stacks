@@ -6,6 +6,7 @@ let
     audiobookshelf = ./audiobookshelf;
     beszel = ./beszel;
     blocky = ./blocky;
+    bytestash = ./bytestash;
     calibre = ./calibre;
     changedetection = ./changedetection;
     crowdsec = ./crowdsec;

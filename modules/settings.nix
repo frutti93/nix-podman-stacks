@@ -95,30 +95,36 @@ in {
       '';
     };
   };
-  config = {
-    services.podman = {
-      enable = true;
-      package = cfg.package;
+  config = let
+    anyStackEnabled =
+      config.tarow.podman.stacks
+      |> lib.attrValues
+      |> lib.any (s: s.enable or false);
+  in
+    lib.mkIf anyStackEnabled {
+      services.podman = {
+        enable = true;
+        package = cfg.package;
 
-      settings.containers.network.dns_bind_port = 1153;
-    };
+        settings.containers.network.dns_bind_port = 1153;
+      };
 
-    systemd.user.sockets.podman = lib.mkIf cfg.enableSocket {
-      Install.WantedBy = ["sockets.target"];
-      Socket = {
-        SocketMode = "0660";
-        ListenStream = cfg.socketLocation;
+      systemd.user.sockets.podman = lib.mkIf cfg.enableSocket {
+        Install.WantedBy = ["sockets.target"];
+        Socket = {
+          SocketMode = "0660";
+          ListenStream = cfg.socketLocation;
+        };
+      };
+      systemd.user.services.podman = lib.mkIf cfg.enableSocket {
+        Install.WantedBy = ["default.target"];
+        Service = {
+          Delegate = true;
+          Type = "exec";
+          KillMode = "process";
+          Environment = ["LOGGING=--log-level=info"];
+          ExecStart = "${lib.getExe cfg.package} $LOGGING system service";
+        };
       };
     };
-    systemd.user.services.podman = lib.mkIf cfg.enableSocket {
-      Install.WantedBy = ["default.target"];
-      Service = {
-        Delegate = true;
-        Type = "exec";
-        KillMode = "process";
-        Environment = ["LOGGING=--log-level=info"];
-        ExecStart = "${lib.getExe cfg.package} $LOGGING system service";
-      };
-    };
-  };
 }

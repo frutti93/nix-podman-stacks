@@ -74,6 +74,7 @@ Most stacks will rely or use a few centrally defined variables. These include:
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/immich.svg" style="width:1em;height:1em;" /> [Immich](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/immich/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/it-tools.svg" style="width:1em;height:1em;" /> [IT-Tools](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/it-tools/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/karakeep.svg" style="width:1em;height:1em;" /> [Karakeep](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/karakeep/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kimai.svg" style="width:1em;height:1em;" /> [Kimai](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/kimai/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mealie.svg" style="width:1em;height:1em;" /> [Mealie](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/mealie/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/microbin.png" style="width:1em;height:1em;" /> [MicroBin](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/microbin/default.nix)
 - 🔍 [Monitoring](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/monitoring/default.nix)

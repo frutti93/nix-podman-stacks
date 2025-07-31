@@ -23,6 +23,7 @@ let
     immich = ./immich;
     ittools = ./it-tools;
     karakeep = ./karakeep;
+    kimai = ./kimai;
     mealie = ./mealie;
     microbin = ./microbin;
     monitoring = ./monitoring;

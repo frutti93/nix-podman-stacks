@@ -31,6 +31,9 @@
       "matchManagers": ["regex"],
       "automerge": false,
       "automergeType": "pr"
+    },
+    {
+      "groupName": null
     }
   ],
   "customManagers": [

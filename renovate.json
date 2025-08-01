@@ -30,9 +30,7 @@
     {
       "matchManagers": ["regex"],
       "automerge": false,
-      "automergeType": "pr"
-    },
-    {
+      "automergeType": "pr",
       "groupName": null
     }
   ],

@@ -57,7 +57,7 @@ in {
     };
 
     services.podman.containers.${name} = {
-      image = "ghcr.io/0xerr0r/blocky:latest";
+      image = "ghcr.io/0xerr0r/blocky:v0.26.2";
       volumes = [
         "${cfg.settings}:/app/config.yml"
       ];

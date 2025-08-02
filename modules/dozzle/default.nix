@@ -25,7 +25,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      image = "docker.io/amir20/dozzle:latest";
+      image = "docker.io/amir20/dozzle:v8.13.8";
       environment = {
         DOZZLE_REMOTE_HOST = lib.mkIf (cfg.useSocketProxy) config.tarow.podman.stacks.docker-socket-proxy.address;
       };

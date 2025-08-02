@@ -27,7 +27,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      image = "ghcr.io/tecnativa/docker-socket-proxy:latest";
+      image = "ghcr.io/tecnativa/docker-socket-proxy:0.3.0";
 
       volumes = [
         "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"

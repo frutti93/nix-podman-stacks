@@ -14,7 +14,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      image = "ghcr.io/advplyr/audiobookshelf";
+      image = "ghcr.io/advplyr/audiobookshelf:2.26.3";
       volumes = [
         "${mediaStorage}/audiobooks:/audiobooks"
         "${storage}/podcasts:/podcasts"

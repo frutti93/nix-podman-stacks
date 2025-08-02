@@ -38,7 +38,7 @@ in {
     envFile = lib.mkOption {
       type = lib.types.path;
       default = null;
-      description = ''          
+      description = ''        
         Path to a file containing environment variables for the API token for the domain.
         E.g. for a domain 'test.example.com', the file should contain 'TEST_EXAMPLE_COM_API_TOKEN=your_api_token'.'';
     };
@@ -61,7 +61,7 @@ in {
     ];
 
     services.podman.containers.${name} = {
-      image = "ghcr.io/tarow/dockdns:latest";
+      image = "ghcr.io/tarow/dockdns:v0.7.0";
       volumes = [
         "${cfg.settings}:/app/config.yaml"
       ];

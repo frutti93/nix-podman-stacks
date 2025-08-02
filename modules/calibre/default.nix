@@ -13,7 +13,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      image = "docker.io/crocodilestick/calibre-web-automated:v3.1.1";
+      image = "docker.io/crocodilestick/calibre-web-automated:V3.1.1";
       volumes = [
         "${storage}/config:/config"
         "${storage}/ingest:/cwa-book-ingest"

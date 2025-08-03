@@ -36,7 +36,7 @@
     {
       "description": "Linuxserver IO Healthchecks",
       "matchPackageNames": ["/^(gh|ls)cr\\.io\\/linuxserver\\/healthchecks/"],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)-ls(?<revision>\\d+)$"
+      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)-ls(?<revision>\\d+)$"
     }
   ],
   "customManagers": [

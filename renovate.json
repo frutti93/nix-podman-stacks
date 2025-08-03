@@ -32,6 +32,11 @@
       "automerge": false,
       "automergeType": "pr",
       "additionalBranchPrefix": "{{parentDir}}-"
+    },
+    {
+      "description": "Linuxserver IO Healthchecks",
+      "matchPackageNames": ["/^(gh|ls)cr\\.io\\/linuxserver\\/healthchecks/"],
+      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<revision>\\d+)$"
     }
   ],
   "customManagers": [

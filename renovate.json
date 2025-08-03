@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "prHourlyLimit": 0,
-  "extends": ["config:recommended"],
+  "extends": ["config:recommended", "docker:enableMajor"],
   "timezone": "Europe/Berlin",
   "reviewers": ["Tarow"],
   "gitIgnoredAuthors": ["195547385+tarow[bot]@users.noreply.github.com"],

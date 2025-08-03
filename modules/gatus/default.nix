@@ -101,7 +101,7 @@ in {
         settings = cfg.settings // {endpoints = lib.map (e: lib.recursiveUpdate cfg.defaultEndpoint e) (cfg.settings.endpoints or []);};
         configDir = "/app/config";
       in {
-        image = "ghcr.io/twin/gatus:latest";
+        image = "ghcr.io/twin/gatus:5.21.0";
         volumes = let
         in
           ["${yaml.generate "config.yml" settings}:${configDir}/config.yml"]

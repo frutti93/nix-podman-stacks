@@ -38,7 +38,8 @@ in {
   config = lib.mkIf cfg.enable {
     services.podman.containers = {
       ${name} = {
-        image = "docker.io/kimai/kimai2:apache";
+        # renovate: versioning=regex:^(?<compatibility>.*)-(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$
+        image = "docker.io/kimai/kimai2:apache-2.36.1";
         volumes = [
           "${storage}/data:/opt/kimai/var/data"
           "${storage}/plugins:/opt/kimai/var/plugins"

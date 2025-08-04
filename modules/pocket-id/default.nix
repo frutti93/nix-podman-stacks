@@ -60,7 +60,7 @@ in {
     };
 
     services.podman.containers.${name} = {
-      image = "ghcr.io/pocket-id/pocket-id:v1";
+      image = "ghcr.io/pocket-id/pocket-id:v1.6.4";
       volumes = [
         "${storage}/data:/app/data"
       ];

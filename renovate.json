@@ -37,6 +37,13 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["ghcr.io/linuxserver/healthchecks"],
       "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)-ls(?<build>.+)$"
+    },
+    {
+      "description": "Immich",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/immich-app/**"],
+      "groupName": "Immich",
+      "automerge": false
     }
   ],
   "customManagers": [

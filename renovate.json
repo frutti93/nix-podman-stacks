@@ -32,6 +32,13 @@
       "automerge": false,
       "automergeType": "pr",
       "additionalBranchPrefix": "{{parentDir}}-"
+    },
+    {
+      "description": "Linuxserver IO Healthchecks",
+
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/linuxserver/healthchecks"],
+      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)-ls(?<build>.+)$"
     }
   ],
   "customManagers": [

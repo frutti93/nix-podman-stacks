@@ -48,7 +48,7 @@ in {
   config = lib.mkIf cfg.enable {
     services.podman.containers = {
       ${name} = {
-        image = "ghcr.io/paperless-ngx/paperless-ngx:latest";
+        image = "ghcr.io/paperless-ngx/paperless-ngx:2.17.1";
         dependsOnContainer = [dbName brokerName];
         volumes = [
           "${storage}/data:/usr/src/paperless/data"
@@ -113,7 +113,7 @@ in {
           then "/${user}"
           else "home/${user}";
       in {
-        image = "docker.io/garethflowers/ftp-server";
+        image = "docker.io/garethflowers/ftp-server:0.9.2";
         volumes = [
           "${storage}/consume:${home}"
         ];

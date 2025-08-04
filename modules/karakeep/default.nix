@@ -26,7 +26,7 @@ in {
   config = lib.mkIf cfg.enable {
     services.podman.containers = {
       ${name} = {
-        image = "ghcr.io/karakeep-app/karakeep:0.25.0";
+        image = "ghcr.io/karakeep-app/karakeep:0.26.0";
         volumes = [
           "${storage}/data:/data"
         ];

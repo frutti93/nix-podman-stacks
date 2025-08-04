@@ -12,7 +12,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      image = "docker.io/iib0011/omni-tools:latest";
+      image = "docker.io/iib0011/omni-tools:0.5.0";
 
       port = 80;
       traefik.name = name;

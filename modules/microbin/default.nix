@@ -25,7 +25,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      image = "docker.io/danielszabo99/microbin:latest";
+      image = "docker.io/danielszabo99/microbin:2.0.4";
       volumes = [
         "${storage}/data:/app/microbin_data"
       ];

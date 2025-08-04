@@ -186,7 +186,7 @@ in {
 
     services.podman.containers = {
       ${grafanaName} = lib.mkIf cfg.grafana.enable {
-        image = "docker.io/grafana/grafana:latest";
+        image = "docker.io/grafana/grafana:12.1.0";
         user = config.tarow.podman.defaultUid;
         volumes = [
           "${storage}/grafana/data:/var/lib/grafana"
@@ -217,7 +217,7 @@ in {
       };
 
       ${lokiName} = lib.mkIf cfg.loki.enable {
-        image = "docker.io/grafana/loki:latest";
+        image = "docker.io/grafana/loki:3.5.3";
         exec = "-config.file=/etc/loki/local-config.yaml";
         user = config.tarow.podman.defaultUid;
         volumes = [
@@ -240,7 +240,7 @@ in {
         configDst = "/etc/alloy/config.alloy";
       in
         lib.mkIf cfg.alloy.enable {
-          image = "docker.io/grafana/alloy:latest";
+          image = "docker.io/grafana/alloy:v1.10.0";
           volumes = [
             "${cfg.alloy.config}:${configDst}"
           ];
@@ -263,7 +263,7 @@ in {
         configDst = "/etc/prometheus/prometheus.yml";
       in
         lib.mkIf cfg.prometheus.enable {
-          image = "docker.io/prom/prometheus:latest";
+          image = "docker.io/prom/prometheus:v3.5.0";
           exec = "--config.file=${configDst}";
           user = config.tarow.podman.defaultUid;
           volumes = [
@@ -286,7 +286,7 @@ in {
         };
 
       ${podmanExporterName} = lib.mkIf cfg.podmanExporter.enable {
-        image = "quay.io/navidys/prometheus-podman-exporter:latest";
+        image = "quay.io/navidys/prometheus-podman-exporter:v1.17.2";
         volumes = [
           "${config.tarow.podman.socketLocation}:/var/run/podman/podman.sock"
         ];

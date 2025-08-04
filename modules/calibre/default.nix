@@ -42,7 +42,7 @@ in {
       ingestDir = "/cwa-book-ingest";
       port = 8084;
     in {
-      image = "ghcr.io/calibrain/calibre-web-automated-book-downloader:latest";
+      image = "ghcr.io/calibrain/calibre-web-automated-book-downloader:20250730";
       environment = {
         FLASK_PORT = port;
         FLASK_DEBUG = false;

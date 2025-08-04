@@ -40,7 +40,7 @@
       "automerge": false
     },
     {
-      "description": "Disable Automerge",
+      "description": "Disable Updates",
       "matchDatasources": ["docker"],
       "matchPackageNames": [
         "/postgres/",
@@ -50,7 +50,7 @@
         "/redis/",
         "/meilisearch/"
       ],
-      "automerge": false
+      "enabled": false
     },
     {
       "matchDatasources": ["docker"],

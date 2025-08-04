@@ -12,7 +12,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      image = "ghcr.io/corentinth/it-tools:latest";
+      image = "ghcr.io/corentinth/it-tools:2024.5.13-a0bc346";
 
       port = 80;
       traefik.name = name;

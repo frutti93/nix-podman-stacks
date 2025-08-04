@@ -24,7 +24,8 @@ in {
   config = lib.mkIf cfg.enable {
     services.podman.containers = {
       ${name} = {
-        image = "ghcr.io/linuxserver/healthchecks:v3.10-ls304";
+        # renovate: versioning=regex:^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<build>.+)$
+        image = "ghcr.io/linuxserver/healthchecks:v3.10-ls303";
         volumes = ["${storage}/config:/config"];
         environment = {
           PUID = config.tarow.podman.defaultUid;

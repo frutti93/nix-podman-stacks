@@ -33,12 +33,6 @@
       "additionalBranchPrefix": "{{parentDir}}-"
     },
     {
-      "description": "Linuxserver IO Healthchecks",
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["ghcr.io/linuxserver/healthchecks"],
-      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)-ls(?<build>.+)$"
-    },
-    {
       "description": "Immich",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["/immich-app/"],
@@ -49,7 +43,6 @@
       "description": "IT-Tools",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["/it-tools/"],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>.+)$",
       "automerge": false
     },
     {

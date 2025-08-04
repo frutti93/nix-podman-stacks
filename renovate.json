@@ -15,8 +15,15 @@
     "enabled": true
   },
   "platformAutomerge": true,
-
+  "automerge": false,
+  "automergeType": "pr",
   "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchCurrentVersion": "!/^v?0\\./",
+      "automerge": true,
+      "automergeType": "branch"
+    },
     {
       "matchManagers": ["regex"],
       "additionalBranchPrefix": "{{parentDir}}-"
@@ -56,12 +63,6 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["/linuxserver/qbittorrent/"],
       "allowedVersions": "<14"
-    },
-    {
-      "matchUpdateTypes": ["minor", "patch", "digest"],
-      "matchCurrentVersion": "!/^v?0\\./",
-      "automerge": true,
-      "automergeType": "branch"
     }
   ],
   "customManagers": [

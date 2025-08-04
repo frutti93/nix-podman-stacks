@@ -51,6 +51,18 @@
       "matchPackageNames": ["/it-tools/"],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>.+)$",
       "automerge": false
+    },
+    {
+      "description": "Disable Automerge",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "/postgres/",
+        "/mysql/",
+        "/mariadb/",
+        "/pgvecto-rs/",
+        "/redis/"
+      ],
+      "automerge": false
     }
   ],
   "customManagers": [

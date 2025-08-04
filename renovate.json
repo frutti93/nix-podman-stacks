@@ -41,8 +41,15 @@
     {
       "description": "Immich",
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["ghcr.io/immich-app/**"],
+      "matchPackageNames": ["/immich-app/"],
       "groupName": "Immich",
+      "automerge": false
+    },
+    {
+      "description": "IT-Tools",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["/it-tools/"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>.+)$",
       "automerge": false
     }
   ],

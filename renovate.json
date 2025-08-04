@@ -56,6 +56,16 @@
         "/redis/"
       ],
       "automerge": false
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["/linuxserver/jellyfin/"],
+      "allowedVersions": "<1000"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["/linuxserver/qbittorrent/"],
+      "allowedVersions": "<20"
     }
   ],
   "customManagers": [

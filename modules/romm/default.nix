@@ -95,7 +95,7 @@ in {
   config = lib.mkIf cfg.enable {
     services.podman.containers = {
       ${name} = {
-        image = "ghcr.io/rommapp/romm:latest";
+        image = "ghcr.io/rommapp/romm:4.0.1";
         volumes =
           [
             "${storage}/resources:/romm/resources"

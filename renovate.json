@@ -18,7 +18,8 @@
   "automergeType": "pr",
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchJsonata": ["isBreaking != true"],
       "automerge": true,
       "automergeType": "branch"
     },
@@ -29,13 +30,10 @@
     },
     {
       "matchManagers": ["regex"],
-      "automerge": false,
-      "automergeType": "pr",
       "additionalBranchPrefix": "{{parentDir}}-"
     },
     {
       "description": "Linuxserver IO Healthchecks",
-
       "matchDatasources": ["docker"],
       "matchPackageNames": ["ghcr.io/linuxserver/healthchecks"],
       "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)-ls(?<build>.+)$"

@@ -8,29 +8,21 @@
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["* 0-3 * * 0"],
-    "automergeType": "branch"
+    "automergeType": "branch",
+    "automerge": true
   },
   "nix": {
     "enabled": true
   },
   "platformAutomerge": true,
-  "automerge": true,
+  "automerge": false,
   "automergeType": "pr",
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "digest"],
-      "matchJsonata": ["isBreaking != true"],
+      "matchCurrentVersion": ">=1.0.0",
       "automerge": true,
       "automergeType": "branch"
-    },
-    {
-      "matchJsonata": ["isBreaking = true"],
-      "automerge": false
-    },
-    {
-      "matchUpdateTypes": ["major"],
-      "automerge": false,
-      "automergeType": "pr"
     },
     {
       "matchManagers": ["regex"],

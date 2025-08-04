@@ -33,10 +33,10 @@
       "additionalBranchPrefix": "{{parentDir}}-"
     },
     {
-      "description": "Immich",
+      "description": "Multi-Container Projects",
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["/immich-app/"],
-      "groupName": "Immich",
+      "matchPackageNames": ["/immich-app/", "/beszel/"],
+      "groupName": "{{parentDir}}",
       "automerge": false
     },
     {

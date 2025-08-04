@@ -48,7 +48,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      image = "ghcr.io/wg-easy/wg-easy:15";
+      image = "ghcr.io/wg-easy/wg-easy:15.1.0";
       volumes = [
         "${storage}/config:/etc/wireguard"
       ];

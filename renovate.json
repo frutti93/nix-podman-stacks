@@ -15,8 +15,6 @@
     "enabled": true
   },
   "platformAutomerge": true,
-  "automerge": false,
-  "automergeType": "pr",
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "digest"],

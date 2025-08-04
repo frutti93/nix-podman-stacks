@@ -12,7 +12,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      # renovate: versioning=regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>.+)$
+      # renovate: versioning=regex:^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-(?<build>.+)$
       image = "ghcr.io/corentinth/it-tools:2024.5.10-33e5294";
 
       port = 80;

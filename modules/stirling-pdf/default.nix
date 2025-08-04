@@ -12,7 +12,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      image = "docker.io/frooodle/s-pdf:latest";
+      image = "docker.io/stirlingtools/stirling-pdf:1.1.1";
       environment = {
         DOCKER_ENABLE_SECURITY = "false";
       };

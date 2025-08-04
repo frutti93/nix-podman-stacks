@@ -80,7 +80,7 @@ in {
 
     services.podman.containers = {
       ${gluetunName} = lib.mkIf cfg.gluetun.enable {
-        image = "docker.io/qmcgaw/gluetun:latest";
+        image = "docker.io/qmcgaw/gluetun:v3.40.0";
         addCapabilities = ["NET_ADMIN"];
         devices = ["/dev/net/tun:/dev/net/tun"];
         volumes = [
@@ -116,7 +116,7 @@ in {
       };
 
       ${qbittorrentName} = lib.mkIf cfg.qbittorrent.enable {
-        image = "docker.io/linuxserver/qbittorrent:latest";
+        image = "docker.io/linuxserver/qbittorrent:5.1.2";
         dependsOnContainer = [gluetunName];
         network = lib.mkIf cfg.gluetun.enable (lib.mkForce ["container:${gluetunName}"]);
         volumes = [
@@ -146,7 +146,7 @@ in {
       };
 
       ${jellyfinName} = lib.mkIf cfg.jellyfin.enable {
-        image = "lscr.io/linuxserver/jellyfin:latest";
+        image = "lscr.io/linuxserver/jellyfin:10.10.7";
         volumes = [
           "${storage}/${jellyfinName}:/config"
           "${mediaStorage}:/media"
@@ -173,7 +173,7 @@ in {
       };
 
       ${sonarrName} = lib.mkIf cfg.sonarr.enable {
-        image = "lscr.io/linuxserver/sonarr:latest";
+        image = "lscr.io/linuxserver/sonarr:4.0.15";
         volumes = [
           "${storage}/${sonarrName}:/config"
           "${mediaStorage}:/media"
@@ -196,7 +196,7 @@ in {
       };
 
       ${radarrName} = lib.mkIf cfg.radarr.enable {
-        image = "lscr.io/linuxserver/radarr:latest";
+        image = "lscr.io/linuxserver/radarr:5.26.2";
         volumes = [
           "${storage}/${radarrName}:/config"
           "${mediaStorage}:/media"
@@ -219,7 +219,7 @@ in {
       };
 
       ${bazarrName} = lib.mkIf cfg.bazarr.enable {
-        image = "lscr.io/linuxserver/bazarr:latest";
+        image = "lscr.io/linuxserver/bazarr:1.5.2";
         volumes = [
           "${storage}/${bazarrName}:/config"
           "${mediaStorage}:/media"
@@ -242,7 +242,7 @@ in {
       };
 
       ${prowlarrName} = lib.mkIf cfg.prowlarr.enable {
-        image = "lscr.io/linuxserver/prowlarr:latest";
+        image = "lscr.io/linuxserver/prowlarr:1.37.0";
         volumes = [
           "${storage}/${prowlarrName}:/config"
         ];
@@ -264,7 +264,7 @@ in {
       };
 
       flaresolverr = lib.mkIf cfg.flaresolverr.enable {
-        image = "ghcr.io/flaresolverr/flaresolverr:latest";
+        image = "ghcr.io/flaresolverr/flaresolverr:v3.3.25";
         volumes = [
           "${storage}/${prowlarrName}:/config"
         ];

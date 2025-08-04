@@ -15,11 +15,11 @@
     "enabled": true
   },
   "platformAutomerge": true,
-  "automergeType": "pr",
+
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "digest"],
-
+      "matchCurrentVersion": "!/^v?0\\./",
       "automerge": true,
       "automergeType": "branch"
     },

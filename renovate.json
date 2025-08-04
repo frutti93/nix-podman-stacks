@@ -83,7 +83,7 @@
         "(?:# renovate: versioning=(?<versioning>[^\\s]+)\\s+)?image\\s*=\\s*\"(?<depName>[^:\"]+):(?<currentValue>[^\"\\s]+)\"\\s*;"
       ],
       "datasourceTemplate": "docker",
-      "versioningTemplate": "docker"
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}docker{{/if}}"
     }
   ]
 }

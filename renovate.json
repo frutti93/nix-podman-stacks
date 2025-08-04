@@ -24,6 +24,10 @@
       "automergeType": "branch"
     },
     {
+      "matchJsonata": ["isBreaking == true"],
+      "automerge": false
+    },
+    {
       "matchUpdateTypes": ["major"],
       "automerge": false,
       "automergeType": "pr"

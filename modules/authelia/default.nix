@@ -29,18 +29,21 @@ in {
       type = lib.types.path;
       description = ''
         Path to the file containing the JWT secret.
+        See <https://www.authelia.com/configuration/identity-validation/reset-password/#jwt_secret>
       '';
     };
     sessionSecretFile = lib.mkOption {
       type = lib.types.path;
       description = ''
         Path to the file containing the session secret.
+        See <https://www.authelia.com/configuration/session/introduction/#secret>
       '';
     };
     storageEncryptionKeyFile = lib.mkOption {
       type = lib.types.path;
       description = ''
         Path to the file containing the storage encryption key.
+        See <https://www.authelia.com/configuration/storage/introduction/#encryption_key>
       '';
     };
     env = lib.mkOption {

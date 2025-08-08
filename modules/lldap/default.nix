@@ -45,7 +45,7 @@ in {
       defaultText = lib.literalExpression ''"CN=''${cfg.adminUsername},OU=people," + cfg.baseDn'';
       description = ''
         The default DN (Distinguished Name) of the entry used to authenticate to the LDAP server.
-        Can be used by other programs such as Authelia or PocketID.
+        Will be used as a default by other programs such as Authelia or PocketID when binding to LLDAP.
       '';
     };
     address = lib.mkOption {

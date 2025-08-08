@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  options,
   ...
 }: let
   name = "pocketid";
@@ -11,6 +12,14 @@ in {
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
+    env = lib.mkOption {
+      type = (options.services.podman.containers.type.getSubOptions []).environment.type;
+      default = {};
+      description = ''
+        Additional environment variables passed to the Pocket ID container
+        See <https://pocket-id.org/docs/configuration/environment-variables>
+      '';
+    };
     envFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
@@ -35,6 +44,18 @@ in {
           for the Traefik client. 'OIDC_MIDDLEWARE_SECRET' should be a random secret.
         '';
       };
+    };
+    enableLdapSynchronisation = lib.mkOption {
+      type = lib.types.bool;
+      default = config.tarow.podman.stacks.lldap.enable;
+      defaultText = lib.literalExpression ''config.tarow.stacks.lldap.enable'';
+      description = ''
+        Whether to sync users and groups from an the LDAP server.
+        Requires the LLDAP stack to be enabled.
+
+        When the LDAP backend is used, the environment variable `LDAP_BIND_PASSWORD` has to be set,
+        e.g. by passing it via the `envFile` option.
+      '';
     };
   };
 
@@ -64,13 +85,33 @@ in {
       volumes = [
         "${storage}/data:/app/data"
       ];
-      environment = {
-        PUID = config.tarow.podman.defaultUid;
-        PGID = config.tarow.podman.defaultGid;
-        TRUST_PROXY = true;
-        APP_URL = cfg.containers.${name}.traefik.serviceDomain;
-        ANALYTICS_DISABLED = true;
-      };
+      environment =
+        {
+          PUID = config.tarow.podman.defaultUid;
+          PGID = config.tarow.podman.defaultGid;
+          TRUST_PROXY = true;
+          APP_URL = cfg.containers.${name}.traefik.serviceDomain;
+          ANALYTICS_DISABLED = true;
+        }
+        // lib.optionalAttrs cfg.enableLdapSynchronisation (let
+          lldap = config.tarow.podman.stacks.lldap;
+        in {
+          UI_CONFIG_DISABLED = true;
+          LDAP_ENABLED = true;
+          LDAP_URL = lldap.address;
+          LDAP_BASE = lldap.baseDn;
+          LDAP_BIND_DN = lldap.bindDn;
+          LDAP_ATTRIBUTE_USER_UNIQUE_IDENTIFIER = "uuid";
+          LDAP_ATTRIBUTE_USER_USERNAME = "uid";
+          LDAP_ATTRIBUTE_USER_EMAIL = "mail";
+          LDAP_ATTRIBUTE_USER_FIRST_NAME = "firstname";
+          LDAP_ATTRIBUTE_USER_LAST_NAME = "lastname";
+          LDAP_ATTRIBUTE_USER_PROFILE_PICTURE = "avatar";
+          LDAP_ATTRIBUTE_GROUP_MEMBER = "member";
+          LDAP_ATTRIBUTE_GROUP_UNIQUE_IDENTIFIER = "uuid";
+          LDAP_ATTRIBUTE_GROUP_NAME = "cn";
+        });
+      environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
 
       port = 1411;
       traefik.name = name;

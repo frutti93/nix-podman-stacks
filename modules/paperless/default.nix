@@ -43,9 +43,47 @@ in {
         '';
       };
     };
+    authelia = {
+      registerClient = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Whether to register a Paperless OIDC client in Authelia.
+          If enabled you need to provide a hashed secret in the `client_secret` option.
+
+          To enable OIDC Login for Paperless, you will have to provide the environment variables `PAPERLESS_APPS` and `PAPERLESS_SOCIALACCOUNT_PROVIDERS`,
+          e.g. in the `envFile` option.
+
+          For details, see:
+          - <https://www.authelia.com/integration/openid-connect/clients/paperless/>
+          - <https://docs.paperless-ngx.com/advanced_usage/#openid-connect-and-social-authentication>
+        '';
+      };
+      clientSecret = lib.mkOption {
+        type = lib.types.str;
+        description = ''
+          The hashed client_secret.
+          For examples on how to generate a client secret, see
+          <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
+        '';
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
+    tarow.podman.stacks.authelia.oidc.clients.paperless = lib.mkIf cfg.authelia.registerClient {
+      client_name = "Paperless";
+      client_secret = cfg.authelia.clientSecret;
+      public = false;
+      authorization_policy = "one_factor";
+      require_pkce = true;
+      pkce_challenge_method = "S256";
+      pre_configured_consent_duration = "1 month";
+      redirect_uris = [
+        "${cfg.containers.${name}.traefik.serviceDomain}/accounts/oidc/authelia/login/callback/"
+      ];
+    };
+
     services.podman.containers = {
       ${name} = {
         image = "ghcr.io/paperless-ngx/paperless-ngx:2.17.1";

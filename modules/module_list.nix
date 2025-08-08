@@ -4,6 +4,7 @@ let
     adguard = ./adguard;
     aiostreams = ./aiostreams;
     audiobookshelf = ./audiobookshelf;
+    authelia = ./authelia;
     beszel = ./beszel;
     blocky = ./blocky;
     bytestash = ./bytestash;
@@ -24,6 +25,7 @@ let
     ittools = ./it-tools;
     karakeep = ./karakeep;
     kimai = ./kimai;
+    lldap = ./lldap;
     mealie = ./mealie;
     microbin = ./microbin;
     monitoring = ./monitoring;

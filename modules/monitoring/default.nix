@@ -19,7 +19,7 @@
 
   dashboardPath = "/var/lib/grafana/dashboards";
 
-  dashboards = pkgs.runCommand "grafana-dashboards-dir" {} ''
+  dashboards = pkgs.runCommandLocal "grafana-dashboards-dir" {} ''
     mkdir -p "$out"
     for f in ${lib.concatStringsSep " " cfg.grafana.dashboards}; do
       baseName=$(basename "$f")

@@ -78,10 +78,11 @@
       "customType": "regex",
       "managerFilePatterns": ["/.*\\.nix$/"],
       "matchStrings": [
-        "(?:# renovate: versioning=(?<versioning>[^\\s]+)\\s+)?image\\s*=\\s*\"(?<depName>[^:\"]+):(?<currentValue>[^\"\\s]+)\"\\s*;"
+        "(?:# renovate: (?:versioning=(?<versioning>[^\\s]+)\\s+)?(?:extractVersion=(?<extractVersion>[^\\s]+)\\s*)?)?image\\s*=\\s*\"(?<depName>[^:\"]+):(?<currentValue>[^\"\\s]+)\"\\s*;"
       ],
       "datasourceTemplate": "docker",
-      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}docker{{/if}}"
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}docker{{/if}}",
+      "extractVersionTemplate": "{{#if extractVersion}}{{{extractVersion}}}{{else}}{{/if}}"
     }
   ]
 }

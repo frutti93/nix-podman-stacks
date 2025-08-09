@@ -12,7 +12,12 @@
   cfg = config.tarow.podman.stacks.${name};
   storage = "${config.tarow.podman.storageBaseDir}/${name}";
 in {
-  imports = import ../mkAliases.nix config lib name [name dbName brokerName ftpName];
+  imports = import ../mkAliases.nix config lib name [
+    name
+    dbName
+    brokerName
+    ftpName
+  ];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -34,7 +39,11 @@ in {
       '';
     };
     ftp = {
-      enable = lib.mkEnableOption "FTP server" // {default = true;};
+      enable =
+        lib.mkEnableOption "FTP server"
+        // {
+          default = true;
+        };
       envFile = lib.mkOption {
         type = lib.types.path;
         description = ''
@@ -64,6 +73,7 @@ in {
         description = ''
           The hashed client_secret.
           For examples on how to generate a client secret, see
+
           <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
         '';
       };
@@ -87,7 +97,10 @@ in {
     services.podman.containers = {
       ${name} = {
         image = "ghcr.io/paperless-ngx/paperless-ngx:2.17.1";
-        dependsOnContainer = [dbName brokerName];
+        dependsOnContainer = [
+          dbName
+          brokerName
+        ];
         volumes = [
           "${storage}/data:/usr/src/paperless/data"
           "${storage}/media:/usr/src/paperless/media"

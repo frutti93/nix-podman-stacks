@@ -181,6 +181,17 @@ in {
         '';
       };
     };
+    enableTraefikMiddleware = lib.mkOption {
+      type = lib.types.bool;
+      default = config.tarow.podman.stacks.traefik.enable;
+      defaultText = lib.literalExpression ''config.tarow.podman.stacks.traefik.enable'';
+      description = ''
+        Wheter to setup an `authelia` middleware for Traefik.
+        The middleware will utilize the ForwardAuth Authz implementation.
+
+        See <https://www.authelia.com/integration/proxies/traefik/#implementation>
+      '';
+    };
   };
 
   config = let
@@ -268,6 +279,18 @@ in {
               name = "authelia_session";
             }
           ];
+        };
+
+        server = lib.mkIf cfg.enableTraefikMiddleware {
+          endpoints.authz.forward-auth.implementation = "ForwardAuth";
+        };
+      };
+
+      tarow.podman.stacks.traefik = lib.mkIf cfg.enableTraefikMiddleware {
+        dynamicConfig.http.middlewares.authelia.forwardAuth = {
+          address = "http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2F${cfg.containers.${name}.traefik.serviceHost}%2F";
+          trustForwardHeader = true;
+          authResponseHeaders = "Remote-User,Remote-Groups,Remote-Email,Remote-Name";
         };
       };
 

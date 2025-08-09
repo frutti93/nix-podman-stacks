@@ -35,7 +35,7 @@ in {
       type = lib.types.str;
       readOnly = true;
       visible = false;
-      description = "IP address of Traefik container in the Podman bridge network";
+      description = "IPv4 address of the Traefik container in the Podman bridge network";
       default = "10.80.0.2";
     };
     network = {

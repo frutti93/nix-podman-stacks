@@ -129,5 +129,4 @@ in {
     title = "Nix Podman Stacks Search";
     baseHref = "/nix-podman-stacks/search/";
   };
-
 }

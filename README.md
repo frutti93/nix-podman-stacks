@@ -6,8 +6,10 @@
    <img src="https://github.com/tarow/nix-podman-stacks/actions/workflows/ci.yaml/badge.svg" alt="Build">
    <a href="https://renovatebot.com">
    <img src="https://img.shields.io/badge/renovate-enabled-brightgreen.svg" alt="Renovate"></a>
+   <a href="https://tarow.github.io/nix-podman-stacks/book">
+   <img src="https://img.shields.io/static/v1?logo=mdbook&label=&message=Docs&color=grey" alt="📘 Docs"></a>
    <a href="https://tarow.github.io/nix-podman-stacks/">
-   <img src="https://img.shields.io/static/v1?logo=mdbook&label=&message=Docs&color=grey" alt="📘 Docs"" alt="📘 Docs"></a>
+   <img src="https://img.shields.io/static/v1?logo=searxng&label=&message=Option%20Search&color=grey" alt="🔍 Option Search"></a>
 </p>
 
 # Nix Podman Stacks
@@ -33,9 +35,10 @@ Disabling any of those options will of course also remove all associated configu
 While most stacks can be activated by setting a single flag, some stacks require setting mandatory values, especially for secrets.
 For managing secrets, projects such as [sops-nix](https://github.com/Mic92/sops-nix) or [agenix](https://github.com/ryantm/agenix) can be used, which allow you to store your secrets along with the configuration inside a single Git repository.
 
-## 📚 Option Documentation
+## 📔 Option Documentation
 
-Refer to the [documentation](https://tarow.github.io/nix-podman-stacks/) for a full list of available options.
+Refer to the [documentation](https://tarow.github.io/nix-podman-stacks/book) for a full list of available options.
+There is also an [Option Search](https://tarow.github.io/nix-podman-stacks/search) to easily explore existing options.
 
 Most stacks will rely or use a few centrally defined variables. These include:
 

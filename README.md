@@ -8,7 +8,7 @@
    <img src="https://img.shields.io/badge/renovate-enabled-brightgreen.svg" alt="Renovate"></a>
    <a href="https://tarow.github.io/nix-podman-stacks/book">
    <img src="https://img.shields.io/static/v1?logo=mdbook&label=&message=Docs&color=grey" alt="📘 Docs"></a>
-   <a href="https://tarow.github.io/nix-podman-stacks/">
+   <a href="https://tarow.github.io/nix-podman-stacks/search">
    <img src="https://img.shields.io/static/v1?logo=searxng&label=&message=Option%20Search&color=grey" alt="🔍 Option Search"></a>
 </p>
 

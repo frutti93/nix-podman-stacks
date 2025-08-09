@@ -61,6 +61,11 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["/linuxserver/qbittorrent/"],
       "allowedVersions": "<14"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["/lldap/lldap/"],
+      "allowedVersions": "/^.+-alpine-rootless$/"
     }
   ],
   "customManagers": [

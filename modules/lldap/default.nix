@@ -45,7 +45,7 @@
 
   userPasswordFiles =
     cfg.bootstrap.users
-    |> map (u: lib.nameValuePair u.id (mkUserPasswordSecret u.id (u.passwordFile or null)))
+    |> map (u: lib.nameValuePair u.id (mkUserPasswordSecret u.id (u.password_file or null)))
     |> lib.listToAttrs
     |> lib.filterAttrs (_: v: v.dstPath != null);
 
@@ -54,7 +54,7 @@
 
   finalUserVolumes =
     cfg.bootstrap.users
-    |> map (u: lib.filterAttrs (_: v: v != null) (u // {passwordFile = userPasswordFiles.${u.id}.dstPath or null;}))
+    |> map (u: lib.filterAttrs (_: v: v != null) (u // {password_file = userPasswordFiles.${u.id}.dstPath or null;}))
     |> map (u: "${json.generate "${u.id}.json" u}:${userConfigsDir}/${u.id}.json");
 
   finalGroupVolumes =
@@ -135,7 +135,7 @@ in {
                 type = lib.types.str;
                 description = "E-Mail of the user";
               };
-              passwordFile = lib.mkOption {
+              password_file = lib.mkOption {
                 type = lib.types.nullOr lib.types.path;
                 default = null;
                 description = "Path to the file containing the user password";
@@ -247,6 +247,7 @@ in {
         ++ lib.optionals (finalUserVolumes != [] || finalUserVolumes != []) [
           "${bootstrapWrapper}:/app/bootstrap_wrapper.sh"
         ];
+
       extraConfig.Service.ExecStartPost =
         lib.mkIf (finalUserVolumes != [] || finalGroupVolumes != [])
         "${lib.getExe pkgs.podman} exec ${name} /app/bootstrap_wrapper.sh";

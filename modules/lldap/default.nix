@@ -234,7 +234,7 @@ in {
       # lldap_config.toml will be attemped which fails
 
       # renovate: versioning=loose
-      image = "ghcr.io/lldap/lldap:2025-07-29-alpine-rootless";
+      image = "ghcr.io/lldap/lldap:2025-08-06-alpine-rootless";
       user = config.tarow.podman.defaultUid;
       volumes =
         [

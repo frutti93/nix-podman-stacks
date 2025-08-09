@@ -9,6 +9,76 @@
   storage = "${config.tarow.podman.storageBaseDir}/${name}";
 
   toml = pkgs.formats.toml {};
+  json = pkgs.formats.json {};
+
+  mkEnvSecret = envName: srcPath: let
+    dstPath = "/run/secrets/env/${builtins.baseNameOf srcPath}";
+  in
+    if srcPath == null
+    then {
+      volume = [];
+      env = {};
+      dstPath = null;
+    }
+    else {
+      volume = ["${srcPath}:${dstPath}"];
+      env.${envName} = dstPath;
+      dstPath = dstPath;
+    };
+
+  mkUserPasswordSecret = userId: srcPath: let
+    dstPath = "/run/secrets/users/${userId}_pw";
+  in
+    if srcPath == null
+    then {
+      volume = [];
+      dstPath = null;
+    }
+    else {
+      volume = ["${srcPath}:${dstPath}"];
+      dstPath = dstPath;
+    };
+
+  jwtSecret = mkEnvSecret "LLDAP_JWT_SECRET_FILE" cfg.jwtSecretFile;
+  keySeedSecret = mkEnvSecret "LLDAP_KEY_SEED_FILE" cfg.keySeedFile;
+  adminPasswordSecret = mkEnvSecret "LLDAP_LDAP_USER_PASS_FILE" cfg.adminPasswordFile;
+
+  userPasswordFiles =
+    cfg.bootstrap.users
+    |> map (u: lib.nameValuePair u.id (mkUserPasswordSecret u.id (u.passwordFile or null)))
+    |> lib.listToAttrs
+    |> lib.filterAttrs (_: v: v.dstPath != null);
+
+  userConfigsDir = "/bootstrap/user-configs";
+  groupConfigsDir = "/bootstrap/group-configs";
+
+  finalUserVolumes =
+    cfg.bootstrap.users
+    |> map (u: lib.filterAttrs (_: v: v != null) (u // {passwordFile = userPasswordFiles.${u.id}.dstPath or null;}))
+    |> map (u: "${json.generate "${u.id}.json" u}:${userConfigsDir}/${u.id}.json");
+
+  finalGroupVolumes =
+    cfg.bootstrap.groups
+    |> map (g: {name = g;})
+    |> map (g: "${json.generate "${g.name}.json" g}:${groupConfigsDir}/${g.name}.json");
+
+  bootstrapWrapper = pkgs.writeTextFile {
+    name = "bootstrap_wrapper.sh";
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      export LLDAP_ADMIN_USERNAME="${cfg.adminUsername}"
+      export LLDAP_ADMIN_PASSWORD="$(cat ${adminPasswordSecret.dstPath})"
+      export USER_CONFIGS_DIR="${userConfigsDir}"
+      export GROUP_CONFIGS_DIR="${groupConfigsDir}"
+      export DO_CLEANUP="${
+        if cfg.bootstrap.cleanUp
+        then "true"
+        else "false"
+      }"
+      exec /app/bootstrap.sh
+    '';
+  };
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
@@ -30,6 +100,95 @@ in {
       description = ''
         Admin username for LDAP as well as the web interface.
       '';
+    };
+    adminPasswordFile = lib.mkOption {
+      type = lib.types.path;
+      description = ''
+        Path to the file containing the admin password.
+      '';
+    };
+    jwtSecretFile = lib.mkOption {
+      type = lib.types.path;
+      description = "Path to the file containing the JWT secret";
+    };
+    keySeedFile = lib.mkOption {
+      type = lib.types.path;
+      description = "Path to the file containing the key seed";
+    };
+    bootstrap = {
+      cleanUp = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Whether to delete groups and users not specified in the config, also remove users from groups that they do not belong to
+        '';
+      };
+      users = lib.mkOption {
+        type = lib.types.listOf (
+          lib.types.submodule {
+            options = {
+              id = lib.mkOption {
+                type = lib.types.str;
+                description = "ID of the user";
+              };
+              email = lib.mkOption {
+                type = lib.types.str;
+                description = "E-Mail of the user";
+              };
+              passwordFile = lib.mkOption {
+                type = lib.types.nullOr lib.types.path;
+                default = null;
+                description = "Path to the file containing the user password";
+              };
+              displayName = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Display name of the user";
+              };
+              firstName = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "First name of the user";
+              };
+              lastName = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Last name of the user";
+              };
+              avatar_url = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Must be a valid URL to jpeg file. (ignored if `gravatar_avatar` specified)";
+              };
+              gravatar_avatar = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = "the script will try to get an avatar from [gravatar](https://gravatar.com/) by previously specified email";
+              };
+              groups = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
+                default = [];
+                description = "An array of groups the user would be a member of (all the groups must be specified in the `group` option)";
+              };
+            };
+          }
+        );
+        default = [];
+        description = ''
+          LLDAP users that will be provisioned at startup.
+
+          See <https://github.com/lldap/lldap/blob/main/example_configs/bootstrap/bootstrap.md#user-config-file-example>
+        '';
+      };
+      groups = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = ''
+          Names of the groups that will be created.
+
+          See <https://github.com/lldap/lldap/blob/main/example_configs/bootstrap/bootstrap.md#group-config-file-example>
+        '';
+      };
     };
     baseDn = lib.mkOption {
       type = lib.types.str;
@@ -55,13 +214,10 @@ in {
       visible = false;
     };
     envFile = lib.mkOption {
-      type = lib.types.path;
+      type = lib.types.nullOr lib.types.path;
+      default = null;
       description = ''
-        Path to the environment file for LLDAP.
-        The file should contain the following environment variables:
-        - `LLDAP_JWT_SECRET`
-        - `LLDAP_KEY_SEED`
-        - `LLDAP_LDAP_USER_PASS`
+        Path to the environment file for LLDAP. Can be used to pass additional variables or secrets.
       '';
     };
   };
@@ -80,11 +236,23 @@ in {
       # renovate: versioning=regex:^(?<major>[\d-]+)-(?<compatibility>.+)$
       image = "ghcr.io/lldap/lldap:2025-07-29-alpine-rootless";
       user = config.tarow.podman.defaultUid;
-      volumes = [
-        "${storage}/db:/db"
-        "${cfg.settings}:/data/lldap_config.toml"
-      ];
-      environmentFile = [cfg.envFile];
+      volumes =
+        [
+          "${storage}/db:/db"
+          "${cfg.settings}:/data/lldap_config.toml"
+        ]
+        ++ (builtins.concatLists (map (s: s.volume) ((lib.attrValues userPasswordFiles) ++ [jwtSecret keySeedSecret adminPasswordSecret])))
+        ++ finalUserVolumes
+        ++ finalGroupVolumes
+        ++ lib.optionals (finalUserVolumes != [] || finalUserVolumes != []) [
+          "${bootstrapWrapper}:/app/bootstrap_wrapper.sh"
+        ];
+      extraConfig.Service.ExecStartPost =
+        lib.mkIf (finalUserVolumes != [] || finalGroupVolumes != [])
+        "${lib.getExe pkgs.podman} exec ${name} /app/bootstrap_wrapper.sh";
+
+      environment = {LLDAP_KEY_FILE = "";} // jwtSecret.env // keySeedSecret.env // adminPasswordSecret.env;
+      environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
 
       port = 17170;
       traefik.name = name;

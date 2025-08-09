@@ -127,7 +127,7 @@ in {
     optionsJSON = "${allOptions.optionsJSON}/share/doc/nixos/options.json";
     urlPrefix = "https://github.com/Tarow/nix-podman-stacks/blob/main/";
     title = "Nix Podman Stacks Search";
-    baseHref = "/search/";
+    baseHref = "/nix-podman-stacks/search/";
   };
 
 }

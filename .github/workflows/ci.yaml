@@ -68,7 +68,11 @@ jobs:
 
       - name: Build docs
         run: |
-          nix build .#book
+          nix build .#book -o result/book
+
+      - name: Build search
+        run: |
+          nix build .#search -o result/search
 
       - name: Upload docs
         uses: actions/upload-pages-artifact@v3

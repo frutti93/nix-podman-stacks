@@ -3,6 +3,7 @@
   pkgs,
   inputs,
   lib,
+  system,
   ...
 }: let
   # Use a full HM system rather than (say) the result of
@@ -87,6 +88,7 @@
   containerOptions = mkOptionsDoc {
     wantPrefix = ["services" "podman"];
   };
+  allOptions = mkOptionsDoc {};
 in {
   book = pkgs.stdenv.mkDerivation {
     pname = "nix-podman-stacks-docs-book";
@@ -120,4 +122,12 @@ in {
       runHook postInstall
     '';
   };
+
+  search = inputs.search.packages.${system}.mkSearch {
+    optionsJSON = "${allOptions.optionsJSON}/share/doc/nixos/options.json";
+    urlPrefix = "https://github.com/Tarow/nix-podman-stacks/blob/main/";
+    title = "Nix Podman Stacks Search";
+    baseHref = "/search/";
+  };
+
 }

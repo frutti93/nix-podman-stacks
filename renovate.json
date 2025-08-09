@@ -8,7 +8,7 @@
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["* 0-3 * * 0"],
-    "automergeType": "branch",
+    "automergeType": "pr",
     "automerge": true
   },
   "nix": {
@@ -20,7 +20,7 @@
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "matchCurrentVersion": "!/^v?0\\./",
       "automerge": true,
-      "automergeType": "branch"
+      "automergeType": "pr"
     },
     {
       "matchManagers": ["regex"],
@@ -65,7 +65,8 @@
     {
       "matchDatasources": ["docker"],
       "matchPackageNames": ["/lldap/lldap/"],
-      "allowedVersions": "/^.+-alpine-rootless$/"
+      "allowedVersions": "/^.+-alpine-rootless$/",
+      "automerge": false
     }
   ],
   "customManagers": [
@@ -87,7 +88,7 @@
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}docker{{/if}}",
-      "extractVersionTemplate": "{{#if extractVersion}}{{{extractVersion}}}{{else}}{{/if}}"
+      "extractVersionTemplate": "{{#if extractVersion}}{{{extractVersion}}}{{/if}}"
     }
   ]
 }

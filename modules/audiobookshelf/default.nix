@@ -2,13 +2,15 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   name = "audiobookshelf";
   storage = "${config.tarow.podman.storageBaseDir}/${name}";
   mediaStorage = config.tarow.podman.mediaStorageBaseDir;
   cfg = config.tarow.podman.stacks.${name};
-in {
-  imports = import ../mkAliases.nix config lib name [name];
+in
+{
+  imports = import ../mkAliases.nix config lib name [ name ];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -27,7 +29,7 @@ in {
           - <https://www.audiobookshelf.org/guides/oidc_authentication/#configuring-audiobookshelf-for-sso>
         '';
       };
-      clientSecret = lib.mkOption {
+      clientSecretHash = lib.mkOption {
         type = lib.types.str;
         description = ''
           The hashed client_secret.
@@ -42,7 +44,7 @@ in {
   config = lib.mkIf cfg.enable {
     tarow.podman.stacks.authelia.oidc.clients.audiobookshelf = lib.mkIf cfg.authelia.registerClient {
       client_name = "Audiobookshelf";
-      client_secret = cfg.authelia.clientSecret;
+      client_secret = cfg.authelia.clientSecretHash;
       public = false;
       authorization_policy = "one_factor";
       require_pkce = true;

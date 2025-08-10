@@ -4,7 +4,8 @@
   options,
   pkgs,
   ...
-}: let
+}:
+let
   name = "romm";
   dbName = "${name}-db";
 
@@ -12,9 +13,13 @@
   defaultRomStorage = "${storage}/library";
   cfg = config.tarow.podman.stacks.${name};
 
-  yaml = pkgs.formats.yaml {};
-in {
-  imports = import ../mkAliases.nix config lib name [name dbName];
+  yaml = pkgs.formats.yaml { };
+in
+{
+  imports = import ../mkAliases.nix config lib name [
+    name
+    dbName
+  ];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -46,10 +51,7 @@ in {
     settings = lib.mkOption {
       type = lib.types.nullOr yaml.type;
       default = null;
-      apply = settings:
-        if settings != null
-        then yaml.generate "config.yml" settings
-        else null;
+      apply = settings: if settings != null then yaml.generate "config.yml" settings else null;
       example = {
         platforms = {
           gc = "ngc";
@@ -64,8 +66,8 @@ in {
       '';
     };
     env = lib.mkOption {
-      type = (options.services.podman.containers.type.getSubOptions []).environment.type;
-      default = {};
+      type = (options.services.podman.containers.type.getSubOptions [ ]).environment.type;
+      default = { };
       description = ''
         Additional environment variables passed to the RomM container
 
@@ -84,6 +86,35 @@ in {
         See <https://docs.romm.app/latest/Getting-Started/Environment-Variables/>
       '';
     };
+    authelia = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Whether to enable OIDC login with Authelia. This will register an OIDC client in Authelia
+          and setup the necessary environment variables in RomM.
+
+          For details, see:
+          - <https://www.authelia.com/integration/openid-connect/clients/romm/>
+          - <https://docs.romm.app/latest/OIDC-Guides/OIDC-Setup-With-Authelia/>
+        '';
+      };
+      clientSecretFile = lib.mkOption {
+        type = lib.types.path;
+        description = ''
+          Path to the file containing that client secret that will be used by RomM to authenticate against Authelia.
+        '';
+      };
+      clientSecretHash = lib.mkOption {
+        type = lib.types.str;
+        description = ''
+          The hashed client_secret. Will be set in the Authelia client config.
+          For examples on how to generate a client secret, see
+
+          <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
+        '';
+      };
+    };
     db.envFile = lib.mkOption {
       type = lib.types.path;
       description = ''
@@ -93,33 +124,74 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    tarow.podman.stacks.authelia = {
+      oidc.clients.${name} = lib.mkIf cfg.authelia.enable {
+        client_name = "Rom Manager";
+        client_secret = cfg.authelia.clientSecretHash;
+        public = false;
+        authorization_policy = "one_factor";
+        require_pkce = false;
+        pkce_challenge_method = "";
+        pre_configured_consent_duration = "1 month";
+        redirect_uris = [
+          "${cfg.containers.${name}.traefik.serviceDomain}/api/oauth/openid"
+        ];
+        claims_policy = "romm";
+      };
+
+      # See <https://www.authelia.com/integration/openid-connect/clients/romm/#configuration-escape-hatch>
+      settings.identity_providers.oidc.claims_policies.romm.id_token = [
+        "email"
+        "email_verified"
+        "alt_emails"
+        "preferred_username"
+        "name"
+      ];
+    };
+
     services.podman.containers = {
       ${name} = {
         image = "ghcr.io/rommapp/romm:4.0.1";
-        volumes =
-          [
-            "${storage}/resources:/romm/resources"
-            "${storage}/redis_data:/redis-data"
-            "${cfg.romLibraryPath}:/romm/library"
-            "${storage}/assets:/romm/assets"
-          ]
-          ++ [
-            (
-              if (cfg.settings == null)
-              then "${storage}/config:/romm/config"
-              else "${cfg.settings}:/romm/config/config.yml"
-            )
-          ];
+        volumes = [
+          "${storage}/resources:/romm/resources"
+          "${storage}/redis_data:/redis-data"
+          "${cfg.romLibraryPath}:/romm/library"
+          "${storage}/assets:/romm/assets"
+        ]
+        ++ [
+          (
+            if (cfg.settings == null) then
+              "${storage}/config:/romm/config"
+            else
+              "${cfg.settings}:/romm/config/config.yml"
+          )
+        ]
+        ++ lib.optional (cfg.authelia.enable) "${cfg.authelia.clientSecretFile}:/secrets/oidc/client_secret";
 
-        environmentFile = [cfg.envFile];
-        environment = let
-          db = cfg.containers.${dbName}.environment;
-        in
+        environmentFile = [ cfg.envFile ];
+        environment =
+          let
+            db = cfg.containers.${dbName}.environment;
+          in
           {
             DB_HOST = dbName;
             DB_NAME = db.MARIADB_DATABASE;
             DB_USER = db.MARIADB_USER;
           }
+          // lib.optionalAttrs (cfg.authelia.enable) (
+            let
+              authelia = config.tarow.podman.stacks.authelia;
+              oidcClient = authelia.oidc.clients.${name};
+            in
+            {
+              OIDC_ENABLED = true;
+              OIDC_PROVIDER = "authelia";
+              OIDC_CLIENT_ID = oidcClient.client_id;
+              OIDC_CLIENT_SECRET_FILE = "/secrets/oidc/client_secret";
+              OIDC_REDIRECT_URI = lib.elemAt oidcClient.redirect_uris 0;
+              OIDC_SERVER_APPLICATION_URL = authelia.containers.authelia.traefik.serviceDomain;
+            }
+          )
           // cfg.env;
 
         extraConfig = {
@@ -132,15 +204,17 @@ in {
             HealthStartPeriod = "5s";
           };
           Service = {
-            ExecStartPost = lib.mkIf cfg.setupAdminUser (lib.getExe (
-              pkgs.writeShellScriptBin "user_provision" ''
-                ${lib.getExe pkgs.podman} exec ${name} bash -c "$(${pkgs.coreutils}/bin/cat ${./create_admin_user.sh})"
-              ''
-            ));
+            ExecStartPost = lib.mkIf cfg.setupAdminUser (
+              lib.getExe (
+                pkgs.writeShellScriptBin "user_provision" ''
+                  ${lib.getExe pkgs.podman} exec ${name} bash -c "$(${pkgs.coreutils}/bin/cat ${./create_admin_user.sh})"
+                ''
+              )
+            );
           };
         };
 
-        dependsOnContainer = [dbName];
+        dependsOnContainer = [ dbName ];
         stack = name;
 
         port = 8080;
@@ -157,12 +231,12 @@ in {
       };
       ${dbName} = {
         image = "docker.io/mariadb:11";
-        volumes = ["${storage}/db:/var/lib/mysql"];
+        volumes = [ "${storage}/db:/var/lib/mysql" ];
         environment = {
           MARIADB_DATABASE = "romm";
           MARIADB_USER = "romm-user";
         };
-        environmentFile = [cfg.db.envFile];
+        environmentFile = [ cfg.db.envFile ];
 
         extraConfig.Container = {
           Notify = "healthy";

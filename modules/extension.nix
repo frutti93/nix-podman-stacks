@@ -70,8 +70,8 @@ in
                   value
                 else
                   {
-                    srcPath = value;
-                    dstPath = "/run/secrets/${name}";
+                    sourcePath = value;
+                    destPath = "/run/secrets/${name}";
                   }
 
               );

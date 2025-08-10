@@ -95,6 +95,7 @@ in
           and setup the necessary environment variables in RomM.
 
           For details, see:
+
           - <https://www.authelia.com/integration/openid-connect/clients/romm/>
           - <https://docs.romm.app/latest/OIDC-Guides/OIDC-Setup-With-Authelia/>
         '';
@@ -124,8 +125,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.authelia = {
-      oidc.clients.${name} = lib.mkIf cfg.authelia.enable {
+    tarow.podman.stacks.authelia = lib.mkIf cfg.authelia.enable {
+      oidc.clients.${name} = {
         client_name = "Rom Manager";
         client_secret = cfg.authelia.clientSecretHash;
         public = false;

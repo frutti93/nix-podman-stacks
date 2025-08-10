@@ -3,27 +3,28 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "dockdns";
   cfg = config.tarow.podman.stacks.${name};
-  yaml = pkgs.formats.yaml { };
-in
-{
-  imports = [
-    ./extension.nix
-    (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix { stack = name; })
-  ]
-  ++ import ../mkAliases.nix config lib name [ name ];
+  yaml = pkgs.formats.yaml {};
+in {
+  imports =
+    [
+      ./extension.nix
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {stack = name;})
+    ]
+    ++ import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
-    enable = lib.mkEnableOption name // {
-      description = ''
-        Whether to enable DockDNS. This will run a Cloudflare DNS client that updates DNS records based on Docker labels.
-        The module contains an extension that will automatically create DNS records for services with the 'public' Traefik middleware,
-        so they are accessible from the internet. It will also automatically delete DNS records for services, that are no longer exposed (e.g. 'private' middleware)
-      '';
-    };
+    enable =
+      lib.mkEnableOption name
+      // {
+        description = ''
+          Whether to enable DockDNS. This will run a Cloudflare DNS client that updates DNS records based on Docker labels.
+          The module contains an extension that will automatically create DNS records for services with the 'public' Traefik middleware,
+          so they are accessible from the internet. It will also automatically delete DNS records for services, that are no longer exposed (e.g. 'private' middleware)
+        '';
+      };
     settings = lib.mkOption {
       type = yaml.type;
       description = ''
@@ -68,7 +69,7 @@ in
       environment = {
         DOCKER_HOST = lib.mkIf (cfg.useSocketProxy) config.tarow.podman.stacks.docker-socket-proxy.address;
       };
-      environmentFile = [ cfg.envFile ];
+      environmentFile = [cfg.envFile];
 
       port = 8080;
       traefik.name = name;

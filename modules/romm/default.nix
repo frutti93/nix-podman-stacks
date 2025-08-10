@@ -4,7 +4,8 @@
   options,
   pkgs,
   ...
-}: let
+}:
+let
   name = "romm";
   dbName = "${name}-db";
 
@@ -12,8 +13,9 @@
   defaultRomStorage = "${storage}/library";
   cfg = config.tarow.podman.stacks.${name};
 
-  yaml = pkgs.formats.yaml {};
-in {
+  yaml = pkgs.formats.yaml { };
+in
+{
   imports = import ../mkAliases.nix config lib name [
     name
     dbName
@@ -49,10 +51,7 @@ in {
     settings = lib.mkOption {
       type = lib.types.nullOr yaml.type;
       default = null;
-      apply = settings:
-        if settings != null
-        then yaml.generate "config.yml" settings
-        else null;
+      apply = settings: if settings != null then yaml.generate "config.yml" settings else null;
       example = {
         platforms = {
           gc = "ngc";
@@ -67,8 +66,8 @@ in {
       '';
     };
     env = lib.mkOption {
-      type = (options.services.podman.containers.type.getSubOptions []).environment.type;
-      default = {};
+      type = (options.services.podman.containers.type.getSubOptions [ ]).environment.type;
+      default = { };
       description = ''
         Additional environment variables passed to the RomM container
 
@@ -153,25 +152,26 @@ in {
     services.podman.containers = {
       ${name} = {
         image = "ghcr.io/rommapp/romm:4.0.1";
-        volumes =
-          [
-            "${storage}/resources:/romm/resources"
-            "${storage}/redis_data:/redis-data"
-            "${cfg.romLibraryPath}:/romm/library"
-            "${storage}/assets:/romm/assets"
-          ]
-          ++ [
-            (
-              if (cfg.settings == null)
-              then "${storage}/config:/romm/config"
-              else "${cfg.settings}:/romm/config/config.yml"
-            )
-          ];
+        volumes = [
+          "${storage}/resources:/romm/resources"
+          "${storage}/redis_data:/redis-data"
+          "${cfg.romLibraryPath}:/romm/library"
+          "${storage}/assets:/romm/assets"
+        ]
+        ++ [
+          (
+            if (cfg.settings == null) then
+              "${storage}/config:/romm/config"
+            else
+              "${cfg.settings}:/romm/config/config.yml"
+          )
+        ];
 
-        environmentFile = [cfg.envFile];
-        environment = let
-          db = cfg.containers.${dbName}.environment;
-        in
+        environmentFile = [ cfg.envFile ];
+        environment =
+          let
+            db = cfg.containers.${dbName}.environment;
+          in
           {
             DB_HOST = dbName;
             DB_NAME = db.MARIADB_DATABASE;
@@ -181,7 +181,8 @@ in {
             let
               authelia = config.tarow.podman.stacks.authelia;
               oidcClient = authelia.oidc.clients.${name};
-            in {
+            in
+            {
               OIDC_ENABLED = true;
               OIDC_PROVIDER = "authelia";
               OIDC_CLIENT_ID = oidcClient.client_id;
@@ -190,7 +191,7 @@ in {
             }
           )
           // cfg.env;
-        fileEnvMount.OIDC_CLIENT_SECRET_FILE.sourcePath = cfg.authelia.clientSecretFile;
+        fileEnvMount.OIDC_CLIENT_SECRET_FILE = lib.mkIf cfg.authelia.enable cfg.authelia.clientSecretFile;
 
         extraConfig = {
           Container = {
@@ -212,7 +213,7 @@ in {
           };
         };
 
-        dependsOnContainer = [dbName];
+        dependsOnContainer = [ dbName ];
         stack = name;
 
         port = 8080;
@@ -229,12 +230,12 @@ in {
       };
       ${dbName} = {
         image = "docker.io/mariadb:11";
-        volumes = ["${storage}/db:/var/lib/mysql"];
+        volumes = [ "${storage}/db:/var/lib/mysql" ];
         environment = {
           MARIADB_DATABASE = "romm";
           MARIADB_USER = "romm-user";
         };
-        environmentFile = [cfg.db.envFile];
+        environmentFile = [ cfg.db.envFile ];
 
         extraConfig.Container = {
           Notify = "healthy";

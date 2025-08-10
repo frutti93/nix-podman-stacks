@@ -10,7 +10,14 @@
   storage = "${config.tarow.podman.storageBaseDir}/${name}";
   yaml = pkgs.formats.yaml {};
 in {
-  imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name dbName];
+  imports =
+    [
+      ./extension.nix
+    ]
+    ++ import ../mkAliases.nix config lib name [
+      name
+      dbName
+    ];
 
   options.tarow.podman.stacks.${name} = {
     enable =
@@ -67,7 +74,10 @@ in {
     };
     db = {
       type = lib.mkOption {
-        type = lib.types.enum ["sqlite" "postgres"];
+        type = lib.types.enum [
+          "sqlite"
+          "postgres"
+        ];
         description = ''
           Type of the database to use.
           Can be set to "sqlite" or "postgres".
@@ -92,25 +102,34 @@ in {
         path =
           if (cfg.db.type == "sqlite")
           then "/data/data.db"
-          else "postgres://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@${dbName}:5432/${cfg.containers.${dbName}.environment.POSTGRES_DB}?sslmode=disable";
+          else "postgres://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@${dbName}:5432/${
+            cfg.containers.${dbName}.environment.POSTGRES_DB
+          }?sslmode=disable";
       };
     };
 
     services.podman.containers = {
       ${name} = let
-        settings = cfg.settings // {endpoints = lib.map (e: lib.recursiveUpdate cfg.defaultEndpoint e) (cfg.settings.endpoints or []);};
+        settings =
+          cfg.settings
+          // {
+            endpoints = lib.map (e: lib.recursiveUpdate cfg.defaultEndpoint e) (cfg.settings.endpoints or []);
+          };
         configDir = "/app/config";
       in {
         image = "ghcr.io/twin/gatus:v5.21.0";
-        volumes = let
-        in
-          ["${yaml.generate "config.yml" settings}:${configDir}/config.yml"]
+        volumes =
+          [
+            "${yaml.generate "config.yml" settings}:${configDir}/config.yml"
+          ]
           ++ (lib.map (f: "${f}:${configDir}/${builtins.baseNameOf f}") cfg.extraSettingsFiles)
           ++ lib.optional (cfg.db.type == "sqlite") "${storage}/sqlite:/data";
         environment = {
           GATUS_CONFIG_PATH = configDir;
         };
-        environmentFile = (lib.optional (cfg.envFile != null) cfg.envFile) ++ (lib.optional (cfg.db.type == "postgres") cfg.db.envFile);
+        environmentFile =
+          (lib.optional (cfg.envFile != null) cfg.envFile)
+          ++ (lib.optional (cfg.db.type == "postgres") cfg.db.envFile);
 
         stack = name;
         port = 8080;

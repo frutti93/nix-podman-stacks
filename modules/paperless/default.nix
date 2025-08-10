@@ -3,8 +3,7 @@
   lib,
   options,
   ...
-}:
-let
+}: let
   name = "paperless";
   dbName = "${name}-db";
   brokerName = "${name}-broker";
@@ -12,8 +11,7 @@ let
 
   cfg = config.tarow.podman.stacks.${name};
   storage = "${config.tarow.podman.storageBaseDir}/${name}";
-in
-{
+in {
   imports = import ../mkAliases.nix config lib name [
     name
     dbName
@@ -24,8 +22,8 @@ in
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
     env = lib.mkOption {
-      type = (options.services.podman.containers.type.getSubOptions [ ]).environment.type;
-      default = { };
+      type = (options.services.podman.containers.type.getSubOptions []).environment.type;
+      default = {};
       description = "Additional environment variables passed to the Paperless container";
     };
     envFile = lib.mkOption {
@@ -41,9 +39,11 @@ in
       '';
     };
     ftp = {
-      enable = lib.mkEnableOption "FTP server" // {
-        default = true;
-      };
+      enable =
+        lib.mkEnableOption "FTP server"
+        // {
+          default = true;
+        };
       envFile = lib.mkOption {
         type = lib.types.path;
         description = ''
@@ -107,18 +107,19 @@ in
           "${storage}/export:/usr/src/paperless/export"
           "${storage}/consume:/usr/src/paperless/consume"
         ];
-        environment = {
-          PAPERLESS_REDIS = "redis://${brokerName}:6379";
-          PAPERLESS_DBHOST = dbName;
-          USERMAP_UID = config.tarow.podman.defaultUid;
-          USERMAP_GID = config.tarow.podman.defaultGid;
-          PAPERLESS_TIME_ZONE = config.tarow.podman.defaultTz;
-          PAPERLESS_FILENAME_FORMAT = "{{created_year}}/{{correspondent}}/{{title}}";
-          PAPERLESS_URL = config.services.podman.containers.${name}.traefik.serviceDomain;
-        }
-        // cfg.env;
+        environment =
+          {
+            PAPERLESS_REDIS = "redis://${brokerName}:6379";
+            PAPERLESS_DBHOST = dbName;
+            USERMAP_UID = config.tarow.podman.defaultUid;
+            USERMAP_GID = config.tarow.podman.defaultGid;
+            PAPERLESS_TIME_ZONE = config.tarow.podman.defaultTz;
+            PAPERLESS_FILENAME_FORMAT = "{{created_year}}/{{correspondent}}/{{title}}";
+            PAPERLESS_URL = config.services.podman.containers.${name}.traefik.serviceDomain;
+          }
+          // cfg.env;
 
-        environmentFile = [ cfg.envFile ];
+        environmentFile = [cfg.envFile];
         port = 8000;
 
         stack = name;
@@ -141,40 +142,44 @@ in
 
       ${dbName} = {
         image = "docker.io/postgres:16";
-        volumes = [ "${storage}/db:/var/lib/postgresql/data" ];
+        volumes = ["${storage}/db:/var/lib/postgresql/data"];
         environment = {
           POSTGRES_DB = "paperless";
         };
-        environmentFile = [ cfg.db.envFile ];
+        environmentFile = [cfg.db.envFile];
 
         stack = name;
       };
 
-      ${ftpName} =
-        let
-          uid = config.tarow.podman.defaultUid;
-          gid = config.tarow.podman.defaultGid;
+      ${ftpName} = let
+        uid = config.tarow.podman.defaultUid;
+        gid = config.tarow.podman.defaultGid;
 
-          user = if uid == 0 then "root" else "paperless";
-          home = if uid == 0 then "/${user}" else "home/${user}";
-        in
-        {
-          image = "docker.io/garethflowers/ftp-server:0.9.2";
-          volumes = [
-            "${storage}/consume:${home}"
-          ];
-          environment = {
-            PUBLIC_IP = config.tarow.podman.hostIP4Address;
-            FTP_USER = user;
-            UID = uid;
-            GID = gid;
-          };
-          environmentFile = [ cfg.ftp.envFile ];
-          ports = [
-            "21:21"
-            "40000-40009:40000-40009"
-          ];
+        user =
+          if uid == 0
+          then "root"
+          else "paperless";
+        home =
+          if uid == 0
+          then "/${user}"
+          else "home/${user}";
+      in {
+        image = "docker.io/garethflowers/ftp-server:0.9.2";
+        volumes = [
+          "${storage}/consume:${home}"
+        ];
+        environment = {
+          PUBLIC_IP = config.tarow.podman.hostIP4Address;
+          FTP_USER = user;
+          UID = uid;
+          GID = gid;
         };
+        environmentFile = [cfg.ftp.envFile];
+        ports = [
+          "21:21"
+          "40000-40009:40000-40009"
+        ];
+      };
     };
   };
 }

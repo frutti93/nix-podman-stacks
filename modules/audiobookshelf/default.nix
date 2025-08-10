@@ -2,15 +2,13 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   name = "audiobookshelf";
   storage = "${config.tarow.podman.storageBaseDir}/${name}";
   mediaStorage = config.tarow.podman.mediaStorageBaseDir;
   cfg = config.tarow.podman.stacks.${name};
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;

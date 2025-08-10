@@ -56,8 +56,6 @@ in
         System configuration (optional).
         If provided, on each restart, systems in the database will be updated to match the systems defined in the settings.
         To see your current configuration, refer to settings -> YAML Config -> Export configuration
-
-        The module will automatically provide a configuration to add the local agent to the hub.
       '';
       example = {
         systems = [
@@ -65,7 +63,7 @@ in
             name = "Local";
             host = "/beszel_socket/beszel.sock";
             port = 45876;
-            users = [ ];
+            users = [ "admin@example.com" ];
           }
         ];
       };
@@ -110,17 +108,6 @@ in
       ];
     };
 
-    tarow.podman.stacks.beszel.settings = {
-      systems = [
-        {
-          name = "Local";
-          host = "/beszel_socket/beszel.sock";
-          port = 45876;
-          users = [ ];
-        }
-      ];
-    };
-
     services.podman.containers = {
       ${name} = {
         image = "ghcr.io/henrygd/beszel/beszel:0.12.3";
@@ -128,7 +115,7 @@ in
           "${storage}/data:/beszel_data"
           "${storage}/beszel_socket:/beszel_socket"
         ]
-        ++ lib.optional (cfg.settings != null) "${cfg.settings}:/beszel_data/config.yml"
+        #++ lib.optional (cfg.settings != null) "${cfg.settings}:/beszel_data/config.yml"
         ++ lib.optional (
           cfg.ed25519PrivateKeyFile != null
         ) "${cfg.ed25519PrivateKeyFile}:/beszel_data/id_ed25519"

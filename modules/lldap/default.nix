@@ -45,6 +45,7 @@
 
   userPasswordFiles =
     cfg.bootstrap.users
+    |> lib.attrValues
     |> map (u: lib.nameValuePair u.id (mkUserPasswordSecret u.id (u.password_file or null)))
     |> lib.listToAttrs
     |> lib.filterAttrs (_: v: v.dstPath != null);
@@ -54,12 +55,20 @@
 
   finalUserVolumes =
     cfg.bootstrap.users
-    |> map (u: lib.filterAttrs (_: v: v != null) (u // {password_file = userPasswordFiles.${u.id}.dstPath or null;}))
+    |> lib.attrValues
+    |> map (
+      u:
+        lib.filterAttrs (_: v: v != null) (
+          u // {password_file = userPasswordFiles.${u.id}.dstPath or null;}
+        )
+    )
     |> map (u: "${json.generate "${u.id}.json" u}:${userConfigsDir}/${u.id}.json");
 
   finalGroupVolumes =
     cfg.bootstrap.groups
-    |> map (g: {name = g;})
+    |> map (g: {
+      name = g;
+    })
     |> map (g: "${json.generate "${g.name}.json" g}:${groupConfigsDir}/${g.name}.json");
 
   bootstrapWrapper = pkgs.writeTextFile {
@@ -124,54 +133,58 @@ in {
         '';
       };
       users = lib.mkOption {
-        type = lib.types.listOf (
-          lib.types.submodule {
-            options = {
-              id = lib.mkOption {
-                type = lib.types.str;
-                description = "ID of the user";
+        type = lib.types.attrsOf (
+          lib.types.submodule (
+            {name, ...}: {
+              options = {
+                id = lib.mkOption {
+                  type = lib.types.str;
+                  description = "ID of the user. Defaults to the name of the attribute.";
+                  default = name;
+                  defaultText = lib.literalExpression ''<name>'';
+                };
+                email = lib.mkOption {
+                  type = lib.types.str;
+                  description = "E-Mail of the user";
+                };
+                password_file = lib.mkOption {
+                  type = lib.types.nullOr lib.types.path;
+                  default = null;
+                  description = "Path to the file containing the user password";
+                };
+                displayName = lib.mkOption {
+                  type = lib.types.nullOr lib.types.str;
+                  default = null;
+                  description = "Display name of the user";
+                };
+                firstName = lib.mkOption {
+                  type = lib.types.nullOr lib.types.str;
+                  default = null;
+                  description = "First name of the user";
+                };
+                lastName = lib.mkOption {
+                  type = lib.types.nullOr lib.types.str;
+                  default = null;
+                  description = "Last name of the user";
+                };
+                avatar_url = lib.mkOption {
+                  type = lib.types.nullOr lib.types.str;
+                  default = null;
+                  description = "Must be a valid URL to jpeg file. (ignored if `gravatar_avatar` specified)";
+                };
+                gravatar_avatar = lib.mkOption {
+                  type = lib.types.bool;
+                  default = false;
+                  description = "the script will try to get an avatar from [gravatar](https://gravatar.com/) by previously specified email";
+                };
+                groups = lib.mkOption {
+                  type = lib.types.listOf lib.types.str;
+                  default = [];
+                  description = "An array of groups the user would be a member of (all the groups must be specified in the `group` option)";
+                };
               };
-              email = lib.mkOption {
-                type = lib.types.str;
-                description = "E-Mail of the user";
-              };
-              password_file = lib.mkOption {
-                type = lib.types.nullOr lib.types.path;
-                default = null;
-                description = "Path to the file containing the user password";
-              };
-              displayName = lib.mkOption {
-                type = lib.types.nullOr lib.types.str;
-                default = null;
-                description = "Display name of the user";
-              };
-              firstName = lib.mkOption {
-                type = lib.types.nullOr lib.types.str;
-                default = null;
-                description = "First name of the user";
-              };
-              lastName = lib.mkOption {
-                type = lib.types.nullOr lib.types.str;
-                default = null;
-                description = "Last name of the user";
-              };
-              avatar_url = lib.mkOption {
-                type = lib.types.nullOr lib.types.str;
-                default = null;
-                description = "Must be a valid URL to jpeg file. (ignored if `gravatar_avatar` specified)";
-              };
-              gravatar_avatar = lib.mkOption {
-                type = lib.types.bool;
-                default = false;
-                description = "the script will try to get an avatar from [gravatar](https://gravatar.com/) by previously specified email";
-              };
-              groups = lib.mkOption {
-                type = lib.types.listOf lib.types.str;
-                default = [];
-                description = "An array of groups the user would be a member of (all the groups must be specified in the `group` option)";
-              };
-            };
-          }
+            }
+          )
         );
         default = [];
         description = ''
@@ -197,15 +210,6 @@ in {
         The starting point in the LDAP directory tree from which searches begin.
       '';
       example = "DC=mydomain,DC=net";
-    };
-    bindDn = lib.mkOption {
-      type = lib.types.str;
-      default = "CN=${cfg.adminUsername},OU=people," + cfg.baseDn;
-      defaultText = lib.literalExpression ''"CN=''${cfg.adminUsername},OU=people," + cfg.baseDn'';
-      description = ''
-        The default DN (Distinguished Name) of the entry used to authenticate to the LDAP server.
-        Will be used as a default by other programs such as Authelia or PocketID when binding to LLDAP.
-      '';
     };
     address = lib.mkOption {
       type = lib.types.str;
@@ -241,18 +245,33 @@ in {
           "${storage}/db:/db"
           "${cfg.settings}:/data/lldap_config.toml"
         ]
-        ++ (builtins.concatLists (map (s: s.volume) ((lib.attrValues userPasswordFiles) ++ [jwtSecret keySeedSecret adminPasswordSecret])))
+        ++ (builtins.concatLists (
+          map (s: s.volume) (
+            (lib.attrValues userPasswordFiles)
+            ++ [
+              jwtSecret
+              keySeedSecret
+              adminPasswordSecret
+            ]
+          )
+        ))
         ++ finalUserVolumes
         ++ finalGroupVolumes
         ++ lib.optionals (finalUserVolumes != [] || finalUserVolumes != []) [
           "${bootstrapWrapper}:/app/bootstrap_wrapper.sh"
         ];
 
-      extraConfig.Service.ExecStartPost =
-        lib.mkIf (finalUserVolumes != [] || finalGroupVolumes != [])
-        "${lib.getExe pkgs.podman} exec ${name} /app/bootstrap_wrapper.sh";
+      extraConfig.Service.ExecStartPost = lib.mkIf (
+        finalUserVolumes != [] || finalGroupVolumes != []
+      ) "${lib.getExe pkgs.podman} exec ${name} /app/bootstrap_wrapper.sh";
 
-      environment = {LLDAP_KEY_FILE = "";} // jwtSecret.env // keySeedSecret.env // adminPasswordSecret.env;
+      environment =
+        {
+          LLDAP_KEY_FILE = "";
+        }
+        // jwtSecret.env
+        // keySeedSecret.env
+        // adminPasswordSecret.env;
       environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
 
       port = 17170;

@@ -45,17 +45,32 @@ in {
         '';
       };
     };
-    enableLdapSynchronisation = lib.mkOption {
-      type = lib.types.bool;
-      default = config.tarow.podman.stacks.lldap.enable;
-      defaultText = lib.literalExpression ''config.tarow.stacks.lldap.enable'';
-      description = ''
-        Whether to sync users and groups from an the LDAP server.
-        Requires the LLDAP stack to be enabled.
-
-        When the LDAP backend is used, the environment variable `LDAP_BIND_PASSWORD` has to be set,
-        e.g. by passing it via the `envFile` option.
-      '';
+    ldap = {
+      enableSynchronisation = lib.mkOption {
+        type = lib.types.bool;
+        default = config.tarow.podman.stacks.lldap.enable;
+        defaultText = lib.literalExpression ''config.tarow.stacks.lldap.enable'';
+        description = ''
+          Whether to sync users and groups from an the LDAP server.
+          Requires the LLDAP stack to be enabled.
+        '';
+      };
+      user = lib.mkOption {
+        type = lib.types.str;
+        default = config.tarow.podman.stacks.lldap.adminUsername;
+        defaultText = lib.literalExpression ''config.tarow.podman.stacks.lldap.adminUsername'';
+        description = ''
+          The username that will be used when binding to the LDAP backend.
+        '';
+      };
+      passwordFile = lib.mkOption {
+        type = lib.types.path;
+        default = config.tarow.podman.stacks.lldap.adminPasswordFile;
+        defaultText = lib.literalExpression ''config.tarow.podman.stacks.lldap.adminPasswordFile'';
+        description = ''
+          The password for the LDAP user that is used when connecting to the LDAP backend.
+        '';
+      };
     };
   };
 
@@ -75,16 +90,23 @@ in {
             ClientId = ''{{env "POCKET_ID_CLIENT_ID"}}'';
             ClientSecret = ''{{env "POCKET_ID_CLIENT_SECRET"}}'';
           };
-          Scopes = ["openid" "profile" "email"];
+          Scopes = [
+            "openid"
+            "profile"
+            "email"
+          ];
         };
       };
     };
 
     services.podman.containers.${name} = {
       image = "ghcr.io/pocket-id/pocket-id:v1.6.4";
-      volumes = [
-        "${storage}/data:/app/data"
-      ];
+      volumes =
+        [
+          "${storage}/data:/app/data"
+        ]
+        ++ lib.optional cfg.ldap.enableSynchronisation "${cfg.ldap.passwordFile}:/secrets/ldap_password";
+
       environment =
         {
           PUID = config.tarow.podman.defaultUid;
@@ -93,24 +115,27 @@ in {
           APP_URL = cfg.containers.${name}.traefik.serviceDomain;
           ANALYTICS_DISABLED = true;
         }
-        // lib.optionalAttrs cfg.enableLdapSynchronisation (let
-          lldap = config.tarow.podman.stacks.lldap;
-        in {
-          UI_CONFIG_DISABLED = true;
-          LDAP_ENABLED = true;
-          LDAP_URL = lldap.address;
-          LDAP_BASE = lldap.baseDn;
-          LDAP_BIND_DN = lldap.bindDn;
-          LDAP_ATTRIBUTE_USER_UNIQUE_IDENTIFIER = "uuid";
-          LDAP_ATTRIBUTE_USER_USERNAME = "uid";
-          LDAP_ATTRIBUTE_USER_EMAIL = "mail";
-          LDAP_ATTRIBUTE_USER_FIRST_NAME = "firstname";
-          LDAP_ATTRIBUTE_USER_LAST_NAME = "lastname";
-          LDAP_ATTRIBUTE_USER_PROFILE_PICTURE = "avatar";
-          LDAP_ATTRIBUTE_GROUP_MEMBER = "member";
-          LDAP_ATTRIBUTE_GROUP_UNIQUE_IDENTIFIER = "uuid";
-          LDAP_ATTRIBUTE_GROUP_NAME = "cn";
-        });
+        // lib.optionalAttrs cfg.ldap.enableSynchronisation (
+          let
+            lldap = config.tarow.podman.stacks.lldap;
+          in {
+            UI_CONFIG_DISABLED = true;
+            LDAP_ENABLED = true;
+            LDAP_URL = lldap.address;
+            LDAP_BASE = lldap.baseDn;
+            LDAP_BIND_DN = "CN=${cfg.ldap.user},OU=people," + lldap.baseDn;
+            LDAP_ATTRIBUTE_USER_UNIQUE_IDENTIFIER = "uuid";
+            LDAP_ATTRIBUTE_USER_USERNAME = "uid";
+            LDAP_ATTRIBUTE_USER_EMAIL = "mail";
+            LDAP_ATTRIBUTE_USER_FIRST_NAME = "firstname";
+            LDAP_ATTRIBUTE_USER_LAST_NAME = "lastname";
+            LDAP_ATTRIBUTE_USER_PROFILE_PICTURE = "avatar";
+            LDAP_ATTRIBUTE_GROUP_MEMBER = "member";
+            LDAP_ATTRIBUTE_GROUP_UNIQUE_IDENTIFIER = "uuid";
+            LDAP_ATTRIBUTE_GROUP_NAME = "cn";
+            LDAP_BIND_PASSWORD_FILE = "/secrets/ldap_password";
+          }
+        );
       environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
 
       port = 1411;

@@ -87,15 +87,19 @@ in {
           See <https://www.authelia.com/configuration/identity-providers/openid-connect/clients/>
         '';
         default = [];
-        type = lib.types.attrsOf (lib.types.submodule ({name, ...}: {
-          freeformType = yaml.type;
-          options = {
-            client_id = lib.mkOption {
-              type = lib.types.str;
-              default = name;
-            };
-          };
-        }));
+        type = lib.types.attrsOf (
+          lib.types.submodule (
+            {name, ...}: {
+              freeformType = yaml.type;
+              options = {
+                client_id = lib.mkOption {
+                  type = lib.types.str;
+                  default = name;
+                };
+              };
+            }
+          )
+        );
       };
     };
     settings = lib.mkOption {
@@ -107,7 +111,10 @@ in {
     };
     authenticationBackend = {
       type = lib.mkOption {
-        type = lib.types.enum ["file" "ldap"];
+        type = lib.types.enum [
+          "file"
+          "ldap"
+        ];
         default =
           if config.tarow.podman.stacks.lldap.enable
           then "ldap"
@@ -119,43 +126,59 @@ in {
           If set to `file` either the `users` or the `usersFile` option has to be set.
         '';
       };
-      ldapPasswordFile = lib.mkOption {
-        type = lib.types.path;
-        description = ''
-          Path to the file containing the LDAP password for the user defined in `config.tarow.podman.stacks.lldap.bindDn`.
-        '';
+      ldap = {
+        user = lib.mkOption {
+          type = lib.types.str;
+          default = config.tarow.podman.stacks.lldap.adminUsername;
+          defaultText = lib.literalExpression ''config.tarow.podman.stacks.lldap.adminUsername'';
+          description = ''
+            The username that will be used when binding to the LDAP backend.
+          '';
+        };
+        passwordFile = lib.mkOption {
+          type = lib.types.path;
+          default = config.tarow.podman.stacks.lldap.adminPasswordFile;
+          defaultText = lib.literalExpression ''config.tarow.podman.stacks.lldap.adminPasswordFile'';
+          description = ''
+            The password for the LDAP user that is used when connecting to the LDAP backend.
+          '';
+        };
       };
       users = lib.mkOption {
-        type = lib.types.attrsOf (lib.types.submodule ({name, ...}: {
-          freeformType = yaml.type;
-          options = {
-            disabled = lib.mkOption {
-              type = lib.types.bool;
-              default = false;
-              description = "The disabled status for the user";
-            };
-            displayname = lib.mkOption {
-              type = lib.types.str;
-              default = name;
-              defaultText = "key of the attribute set";
-              description = "The display name for the user";
-            };
-            password = lib.mkOption {
-              type = lib.types.str;
-              description = "The hashed password for the user";
-            };
-            email = lib.mkOption {
-              type = lib.types.str;
-              default = "";
-              description = "The email for the user";
-            };
-            groups = lib.mkOption {
-              type = lib.types.listOf lib.types.str;
-              default = [];
-              description = "The groups list for the user";
-            };
-          };
-        }));
+        type = lib.types.attrsOf (
+          lib.types.submodule (
+            {name, ...}: {
+              freeformType = yaml.type;
+              options = {
+                disabled = lib.mkOption {
+                  type = lib.types.bool;
+                  default = false;
+                  description = "The disabled status for the user";
+                };
+                displayname = lib.mkOption {
+                  type = lib.types.str;
+                  default = name;
+                  defaultText = "key of the attribute set";
+                  description = "The display name for the user";
+                };
+                password = lib.mkOption {
+                  type = lib.types.str;
+                  description = "The hashed password for the user";
+                };
+                email = lib.mkOption {
+                  type = lib.types.str;
+                  default = "";
+                  description = "The email for the user";
+                };
+                groups = lib.mkOption {
+                  type = lib.types.listOf lib.types.str;
+                  default = [];
+                  description = "The groups list for the user";
+                };
+              };
+            }
+          )
+        );
         default = {};
         description = ''
           User configuration. Besides the defined options, any value can be defined here.
@@ -168,10 +191,12 @@ in {
         '';
       };
       usersFile = lib.mkOption {
-        type = lib.types.nullOr (lib.types.pathWith {
-          inStore = false;
-          absolute = true;
-        });
+        type = lib.types.nullOr (
+          lib.types.pathWith {
+            inStore = false;
+            absolute = true;
+          }
+        );
         default = null;
         description = ''
           Path to a file containing the user configuration.
@@ -249,7 +274,7 @@ in {
             address = lldap.address;
             implementation = "lldap";
             base_dn = lldap.baseDn;
-            user = lldap.bindDn;
+            user = "CN=${cfg.authenticationBackend.ldap.user},OU=people," + lldap.baseDn;
           };
           file = lib.mkIf (!useLdap) {
             path = "/config/users.yml";
@@ -288,7 +313,9 @@ in {
 
       tarow.podman.stacks.traefik = lib.mkIf cfg.enableTraefikMiddleware {
         dynamicConfig.http.middlewares.authelia.forwardAuth = {
-          address = "http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2F${cfg.containers.${name}.traefik.serviceHost}%2F";
+          address = "http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2F${
+            cfg.containers.${name}.traefik.serviceHost
+          }%2F";
           trustForwardHeader = true;
           authResponseHeaders = "Remote-User,Remote-Groups,Remote-Email,Remote-Name";
         };
@@ -328,7 +355,7 @@ in {
             "${cfg.oidc.jwksRsaKeyFile}:/secrets/oidc/jwks/rsa.key"
             "${writeOidcJwksConfigFile "/secrets/oidc/jwks/rsa.key"}:/config/jwks_key_config.yml"
           ]
-          ++ lib.optional useLdap "${cfg.authenticationBackend.ldapPasswordFile}:/secrets/ldap/PASSWORD"
+          ++ lib.optional useLdap "${cfg.authenticationBackend.ldap.passwordFile}:/secrets/ldap/PASSWORD"
           ++ lib.optional (!useLdap) "${finalUsersFile}:/config/users.yml";
 
         port = 9091;

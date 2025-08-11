@@ -3,45 +3,30 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   name = "lldap";
   cfg = config.nps.stacks.${name};
   storage = "${config.nps.storageBaseDir}/${name}";
 
-  toml = pkgs.formats.toml {};
-  json = pkgs.formats.json {};
+  toml = pkgs.formats.toml { };
+  json = pkgs.formats.json { };
 
-  mkEnvSecret = envName: srcPath: let
-    dstPath = "/run/secrets/env/${builtins.baseNameOf srcPath}";
-  in
-    if srcPath == null
-    then {
-      volume = [];
-      env = {};
-      dstPath = null;
-    }
-    else {
-      volume = ["${srcPath}:${dstPath}"];
-      env.${envName} = dstPath;
-      dstPath = dstPath;
-    };
-
-  mkUserPasswordSecret = userId: srcPath: let
-    dstPath = "/run/secrets/users/${userId}_pw";
-  in
-    if srcPath == null
-    then {
-      volume = [];
-      dstPath = null;
-    }
-    else {
-      volume = ["${srcPath}:${dstPath}"];
-      dstPath = dstPath;
-    };
-
-  jwtSecret = mkEnvSecret "LLDAP_JWT_SECRET_FILE" cfg.jwtSecretFile;
-  keySeedSecret = mkEnvSecret "LLDAP_KEY_SEED_FILE" cfg.keySeedFile;
-  adminPasswordSecret = mkEnvSecret "LLDAP_LDAP_USER_PASS_FILE" cfg.adminPasswordFile;
+  mkUserPasswordSecret =
+    userId: srcPath:
+    let
+      dstPath = "/run/secrets/users/${userId}_pw";
+    in
+    if srcPath == null then
+      {
+        volume = [ ];
+        dstPath = null;
+      }
+    else
+      {
+        volume = [ "${srcPath}:${dstPath}" ];
+        dstPath = dstPath;
+      };
 
   userPasswordFiles =
     cfg.bootstrap.users
@@ -58,9 +43,9 @@
     |> lib.attrValues
     |> map (
       u:
-        lib.filterAttrs (_: v: v != null) (
-          u // {password_file = userPasswordFiles.${u.id}.dstPath or null;}
-        )
+      lib.filterAttrs (_: v: v != null) (
+        u // { password_file = userPasswordFiles.${u.id}.dstPath or null; }
+      )
     )
     |> map (u: "${json.generate "${u.id}.json" u}:${userConfigsDir}/${u.id}.json");
 
@@ -77,19 +62,18 @@
     text = ''
       #!/usr/bin/env bash
       export LLDAP_ADMIN_USERNAME="${cfg.adminUsername}"
-      export LLDAP_ADMIN_PASSWORD="$(cat ${adminPasswordSecret.dstPath})"
+      export LLDAP_ADMIN_PASSWORD="$(cat ${
+        cfg.containers.${name}.fileEnvMount.LLDAP_LDAP_USER_PASS_FILE.destPath
+      })"
       export USER_CONFIGS_DIR="${userConfigsDir}"
       export GROUP_CONFIGS_DIR="${groupConfigsDir}"
-      export DO_CLEANUP="${
-        if cfg.bootstrap.cleanUp
-        then "true"
-        else "false"
-      }"
+      export DO_CLEANUP="${if cfg.bootstrap.cleanUp then "true" else "false"}"
       exec /app/bootstrap.sh
     '';
   };
-in {
-  imports = import ../mkAliases.nix config lib name [name];
+in
+{
+  imports = import ../mkAliases.nix config lib name [ name ];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -135,7 +119,8 @@ in {
       users = lib.mkOption {
         type = lib.types.attrsOf (
           lib.types.submodule (
-            {name, ...}: {
+            { name, ... }:
+            {
               options = {
                 id = lib.mkOption {
                   type = lib.types.str;
@@ -179,14 +164,14 @@ in {
                 };
                 groups = lib.mkOption {
                   type = lib.types.listOf lib.types.str;
-                  default = [];
+                  default = [ ];
                   description = "An array of groups the user would be a member of (all the groups must be specified in the `group` option)";
                 };
               };
             }
           )
         );
-        default = [];
+        default = [ ];
         description = ''
           LLDAP users that will be provisioned at startup.
 
@@ -195,7 +180,7 @@ in {
       };
       groups = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [];
+        default = [ ];
         description = ''
           Names of the groups that will be created.
 
@@ -240,38 +225,30 @@ in {
       # renovate: versioning=loose
       image = "ghcr.io/lldap/lldap:2025-08-06-alpine-rootless";
       user = config.nps.defaultUid;
-      volumes =
-        [
-          "${storage}/db:/db"
-          "${cfg.settings}:/data/lldap_config.toml"
-        ]
-        ++ (builtins.concatLists (
-          map (s: s.volume) (
-            (lib.attrValues userPasswordFiles)
-            ++ [
-              jwtSecret
-              keySeedSecret
-              adminPasswordSecret
-            ]
-          )
-        ))
-        ++ finalUserVolumes
-        ++ finalGroupVolumes
-        ++ lib.optionals (finalUserVolumes != [] || finalUserVolumes != []) [
-          "${bootstrapWrapper}:/app/bootstrap_wrapper.sh"
-        ];
+      volumes = [
+        "${storage}/db:/db"
+        "${cfg.settings}:/data/lldap_config.toml"
+      ]
+      ++ (builtins.concatLists (map (s: s.volume) ((lib.attrValues userPasswordFiles))))
+      ++ finalUserVolumes
+      ++ finalGroupVolumes
+      ++ lib.optionals (finalUserVolumes != [ ] || finalUserVolumes != [ ]) [
+        "${bootstrapWrapper}:/app/bootstrap_wrapper.sh"
+      ];
 
       extraConfig.Service.ExecStartPost = lib.mkIf (
-        finalUserVolumes != [] || finalGroupVolumes != []
+        finalUserVolumes != [ ] || finalGroupVolumes != [ ]
       ) "${lib.getExe pkgs.podman} exec ${name} /app/bootstrap_wrapper.sh";
 
-      environment =
-        {
-          LLDAP_KEY_FILE = "";
-        }
-        // jwtSecret.env
-        // keySeedSecret.env
-        // adminPasswordSecret.env;
+      environment = {
+        LLDAP_KEY_FILE = "";
+      };
+      fileEnvMount = {
+        LLDAP_JWT_SECRET_FILE = cfg.jwtSecretFile;
+        LLDAP_KEY_SEED_FILE = cfg.keySeedFile;
+        LLDAP_LDAP_USER_PASS_FILE = cfg.adminPasswordFile;
+      };
+
       environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
 
       port = 17170;

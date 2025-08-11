@@ -5,8 +5,8 @@
   ...
 }: let
   name = "homepage";
-  externalStorage = config.tarow.podman.externalStorageBaseDir;
-  cfg = config.tarow.podman.stacks.${name};
+  externalStorage = config.nps.externalStorageBaseDir;
+  cfg = config.nps.stacks.${name};
   yaml = pkgs.formats.yaml {};
 
   utils = import ./utils.nix lib;
@@ -63,7 +63,7 @@ in {
     ]
     ++ import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable =
       lib.mkEnableOption name
       // {
@@ -202,8 +202,8 @@ in {
 
       environment =
         {
-          PUID = config.tarow.podman.defaultUid;
-          PGID = config.tarow.podman.defaultGid;
+          PUID = config.nps.defaultUid;
+          PGID = config.nps.defaultGid;
           HOMEPAGE_ALLOWED_HOSTS = config.services.podman.containers.${name}.traefik.serviceHost;
         }
         // pathEntries;
@@ -215,12 +215,12 @@ in {
       };
     };
 
-    tarow.podman.stacks.${name} = {
+    nps.stacks.${name} = {
       docker.local =
         if cfg.useSocketProxy
         then {
           host = "docker-socket-proxy";
-          port = config.tarow.podman.stacks.docker-socket-proxy.port;
+          port = config.nps.stacks.docker-socket-proxy.port;
         }
         else {socket = "/var/run/docker.sock";};
       settings.statusStyle = "dot";

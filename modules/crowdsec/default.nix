@@ -5,8 +5,8 @@
   ...
 }: let
   name = "crowdsec";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 
   yaml = pkgs.formats.yaml {};
 
@@ -46,7 +46,7 @@ in {
     ]
     ++ import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     envFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
@@ -68,8 +68,8 @@ in {
     traefikIntegration = {
       enable = lib.mkOption {
         type = lib.types.bool;
-        default = config.tarow.podman.stacks.traefik.enable;
-        defaultText = lib.literalExpression ''config.tarow.podman.stacks.traefik.enable'';
+        default = config.nps.stacks.traefik.enable;
+        defaultText = lib.literalExpression ''config.nps.stacks.traefik.enable'';
         description = ''
           Wheter to configure aquis settings for Traefik.
           If enabled, Traefik access logs will be automatically collected.
@@ -94,21 +94,21 @@ in {
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = !cfg.traefikIntegration.enable || config.tarow.podman.stacks.traefik.enable;
-        message = "The option 'tarow.podman.stacks.${name}.traefikIntegration.enable' is set to true, but the 'traefik' stack is not enabled.";
+        assertion = !cfg.traefikIntegration.enable || config.nps.stacks.traefik.enable;
+        message = "The option 'nps.stacks.${name}.traefikIntegration.enable' is set to true, but the 'traefik' stack is not enabled.";
       }
     ];
 
-    tarow.podman.stacks.${name}.acquisSettings = lib.mkIf cfg.traefikIntegration.enable {
+    nps.stacks.${name}.acquisSettings = lib.mkIf cfg.traefikIntegration.enable {
       source = "docker";
       container_name = ["traefik"];
       labels = {
         type = "traefik";
       };
-      docker_host = lib.mkIf cfg.traefikIntegration.useSocketProxy config.tarow.podman.stacks.docker-socket-proxy.address;
+      docker_host = lib.mkIf cfg.traefikIntegration.useSocketProxy config.nps.stacks.docker-socket-proxy.address;
     };
 
-    tarow.podman.stacks.traefik = lib.mkIf (cfg.traefikIntegration.enable && cfg.traefikIntegration.bouncerEnvFile != null) {
+    nps.stacks.traefik = lib.mkIf (cfg.traefikIntegration.enable && cfg.traefikIntegration.bouncerEnvFile != null) {
       containers.traefik.environmentFile = [cfg.traefikIntegration.bouncerEnvFile];
       staticConfig.experimental.plugins.bouncer = {
         moduleName = "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin";
@@ -154,13 +154,13 @@ in {
       ];
       environment = {
         COLLECTIONS = "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors";
-        UID = config.tarow.podman.defaultUid;
-        GID = config.tarow.podman.defaultGid;
+        UID = config.nps.defaultUid;
+        GID = config.nps.defaultGid;
       };
       environmentFile =
         lib.optional (cfg.envFile != null) cfg.envFile
         ++ lib.optional (cfg.traefikIntegration.enable && cfg.traefikIntegration.bouncerEnvFile != null) cfg.traefikIntegration.bouncerEnvFile;
-      network = lib.optional (cfg.traefikIntegration.enable) config.tarow.podman.stacks.traefik.network.name;
+      network = lib.optional (cfg.traefikIntegration.enable) config.nps.stacks.traefik.network.name;
 
       homepage = {
         category = "Network & Administration";

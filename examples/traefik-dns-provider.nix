@@ -5,7 +5,7 @@ Keep in mind, that depending on the used provider, you have to provide the neces
 Refer to https://doc.traefik.io/traefik/https/acme/#providers for details
 */
 {lib, ...}: {
-  tarow.podman.stacks = {
+  nps.stacks = {
     traefik.staticConfig.certificatesResolvers.letsencrypt.acme.dnsChallenge.provider = lib.mkForce "porkbun";
   };
 }

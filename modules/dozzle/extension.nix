@@ -3,7 +3,7 @@
   config,
   ...
 }: let
-  dozzleEnabled = config.tarow.podman.stacks.dozzle.enable;
+  dozzleEnabled = config.nps.stacks.dozzle.enable;
 in {
   # If a container is part of a stack, add some labels so dozzle recognizes it as a stack
   options.services.podman.containers = lib.mkOption {

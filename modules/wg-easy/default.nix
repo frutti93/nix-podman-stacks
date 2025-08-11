@@ -4,12 +4,12 @@
   ...
 }: let
   name = "wg-easy";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     host = lib.mkOption {
       type = lib.types.str;
@@ -21,10 +21,10 @@ in {
         See <https://wg-easy.github.io/wg-easy/v15.1/advanced/config/unattended-setup/>
       '';
       default =
-        if config.tarow.podman.stacks.traefik.enable
-        then "vpn.${config.tarow.podman.stacks.traefik.domain}"
-        else config.tarow.podman.hostIP4Address;
-      defaultText = lib.literalExpression ''"vpn.''${config.tarow.podman.stacks.traefik.domain}"'';
+        if config.nps.stacks.traefik.enable
+        then "vpn.${config.nps.stacks.traefik.domain}"
+        else config.nps.hostIP4Address;
+      defaultText = lib.literalExpression ''"vpn.''${config.nps.stacks.traefik.domain}"'';
     };
     port = lib.mkOption {
       type = lib.types.port;

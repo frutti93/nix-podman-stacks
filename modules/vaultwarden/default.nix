@@ -5,12 +5,12 @@
   ...
 }: let
   name = "vaultwarden";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     env = lib.mkOption {
       type = (options.services.podman.containers.type.getSubOptions []).environment.type;

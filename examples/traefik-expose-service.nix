@@ -10,7 +10,7 @@ If you use the 'dockdns' stack, a DNS entry pointing to your public IP will be c
 When changing a service from public to private, the DNS entry can be automatically removed.
 */
 {
-  tarow.stacks = {
+  nps.stacks = {
     streaming.containers.jellyfin.traefik.middlewares = ["public"];
   };
 }

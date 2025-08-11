@@ -4,13 +4,13 @@
   ...
 }: let
   name = "audiobookshelf";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  mediaStorage = config.tarow.podman.mediaStorageBaseDir;
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  mediaStorage = config.nps.mediaStorageBaseDir;
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     authelia = {
       registerClient = lib.mkOption {
@@ -40,7 +40,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.authelia.oidc.clients.audiobookshelf = lib.mkIf cfg.authelia.registerClient {
+    nps.stacks.authelia.oidc.clients.audiobookshelf = lib.mkIf cfg.authelia.registerClient {
       client_name = "Audiobookshelf";
       client_secret = cfg.authelia.clientSecretHash;
       public = false;

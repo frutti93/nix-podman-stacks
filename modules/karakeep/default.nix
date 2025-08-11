@@ -7,13 +7,13 @@
   chromeName = "${name}-chrome";
   meilisearchName = "${name}-meilisearch";
 
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  storage = "${config.nps.storageBaseDir}/${name}";
 
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name chromeName meilisearchName];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     envFile = lib.mkOption {
       type = lib.types.path;

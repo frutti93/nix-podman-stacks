@@ -4,11 +4,11 @@
   ...
 }: let
   name = "docker-socket-proxy";
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     address = lib.mkOption {
       type = lib.types.str;
@@ -30,7 +30,7 @@ in {
       image = "ghcr.io/tecnativa/docker-socket-proxy:0.3.0";
 
       volumes = [
-        "${config.tarow.podman.socketLocation}:/var/run/docker.sock:ro"
+        "${config.nps.socketLocation}:/var/run/docker.sock:ro"
       ];
 
       dependsOn = ["podman.socket"];

@@ -5,12 +5,12 @@
   ...
 }: let
   name = "pocketid";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     env = lib.mkOption {
       type = (options.services.podman.containers.type.getSubOptions []).environment.type;
@@ -48,8 +48,8 @@ in {
     ldap = {
       enableSynchronisation = lib.mkOption {
         type = lib.types.bool;
-        default = config.tarow.podman.stacks.lldap.enable;
-        defaultText = lib.literalExpression ''config.tarow.stacks.lldap.enable'';
+        default = config.nps.stacks.lldap.enable;
+        defaultText = lib.literalExpression ''config.nps.stacks.lldap.enable'';
         description = ''
           Whether to sync users and groups from an the LDAP server.
           Requires the LLDAP stack to be enabled.
@@ -57,16 +57,16 @@ in {
       };
       user = lib.mkOption {
         type = lib.types.str;
-        default = config.tarow.podman.stacks.lldap.adminUsername;
-        defaultText = lib.literalExpression ''config.tarow.podman.stacks.lldap.adminUsername'';
+        default = config.nps.stacks.lldap.adminUsername;
+        defaultText = lib.literalExpression ''config.nps.stacks.lldap.adminUsername'';
         description = ''
           The username that will be used when binding to the LDAP backend.
         '';
       };
       passwordFile = lib.mkOption {
         type = lib.types.path;
-        default = config.tarow.podman.stacks.lldap.adminPasswordFile;
-        defaultText = lib.literalExpression ''config.tarow.podman.stacks.lldap.adminPasswordFile'';
+        default = config.nps.stacks.lldap.adminPasswordFile;
+        defaultText = lib.literalExpression ''config.nps.stacks.lldap.adminPasswordFile'';
         description = ''
           The password for the LDAP user that is used when connecting to the LDAP backend.
         '';
@@ -75,7 +75,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.traefik = lib.mkIf (cfg.traefikIntegration.envFile != null) {
+    nps.stacks.traefik = lib.mkIf (cfg.traefikIntegration.envFile != null) {
       containers.traefik.environmentFile = [cfg.traefikIntegration.envFile];
 
       staticConfig.experimental.plugins.traefik-oidc-auth = {
@@ -109,15 +109,15 @@ in {
 
       environment =
         {
-          PUID = config.tarow.podman.defaultUid;
-          PGID = config.tarow.podman.defaultGid;
+          PUID = config.nps.defaultUid;
+          PGID = config.nps.defaultGid;
           TRUST_PROXY = true;
           APP_URL = cfg.containers.${name}.traefik.serviceDomain;
           ANALYTICS_DISABLED = true;
         }
         // lib.optionalAttrs cfg.ldap.enableSynchronisation (
           let
-            lldap = config.tarow.podman.stacks.lldap;
+            lldap = config.nps.stacks.lldap;
           in {
             UI_CONFIG_DISABLED = true;
             LDAP_ENABLED = true;

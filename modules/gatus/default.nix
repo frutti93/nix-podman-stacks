@@ -7,8 +7,8 @@
 let
   name = "gatus";
   dbName = "${name}-db";
-  cfg = config.tarow.podman.stacks.${name};
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
   yaml = pkgs.formats.yaml { };
 in
 {
@@ -20,7 +20,7 @@ in
     dbName
   ];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name // {
       description = ''
         Whether to enable Gatus.
@@ -138,7 +138,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.authelia = lib.mkIf cfg.authelia.enable {
+    nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
       oidc.clients.${name} = {
         client_name = "Gatus";
         client_secret = cfg.authelia.clientSecretHash;
@@ -153,7 +153,7 @@ in
       };
     };
 
-    tarow.podman.stacks.${name}.settings = {
+    nps.stacks.${name}.settings = {
       storage = {
         type = cfg.db.type;
         path =
@@ -167,7 +167,7 @@ in
       security = lib.mkIf cfg.authelia.enable {
         oidc =
           let
-            authelia = config.tarow.podman.stacks.authelia;
+            authelia = config.nps.stacks.authelia;
             oidcClient = authelia.oidc.clients.${name};
           in
           {

@@ -27,7 +27,7 @@
     (lib.attrsToList homepageContainers);
 in {
   config = {
-    tarow.podman.stacks.homepage.services = mergedServices;
+    nps.stacks.homepage.services = mergedServices;
   };
 
   options.services.podman.containers = lib.mkOption {

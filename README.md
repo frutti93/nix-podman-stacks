@@ -42,7 +42,7 @@ There is also an [Option Search](https://tarow.github.io/nix-podman-stacks/searc
 
 Most stacks will rely or use a few centrally defined variables. These include:
 
-| `tarow.podman` Option    | Description                                                                               |
+| `nps` Option             | Description                                                                               |
 | ------------------------ | ----------------------------------------------------------------------------------------- |
 | `hostIP4Address`         | The IPv4 address of the host. Will be used for example in case of explicit port bindings. |
 | `hostUid`                | The UID of the host user running the podman stacks.                                       |
@@ -142,7 +142,7 @@ Refer to [option documentation](https://tarow.github.io/nix-podman-stacks/) or t
 An example would be [Traefik](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/traefik/default.nix), which requires a domain to be set.
 Also it ships with preconfigured static and dynamic configurations, but allows you to extend or customize those.
 
-If the exposed options are not enough, you can always refer to the container definition directly by using the `tarow.podman.stacks.<stackname>.containers.<containername>` options.
+If the exposed options are not enough, you can always refer to the container definition directly by using the `nps.stacks.<stackname>.containers.<containername>` options.
 
 Refer to the [examples](https://github.com/Tarow/nix-podman-stacks/tree/main/examples) to see different use cases of setting and overriding options.
 

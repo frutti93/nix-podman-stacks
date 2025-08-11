@@ -5,13 +5,13 @@
   ...
 }: let
   name = "wg-portal";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
   yaml = pkgs.formats.yaml {};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     settings = lib.mkOption {
       type = yaml.type;
@@ -41,7 +41,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.${name}.settings = {
+    nps.stacks.${name}.settings = {
       web.external_url = cfg.containers.${name}.traefik.serviceDomain;
       advanced.start_listen_port = cfg.port;
     };

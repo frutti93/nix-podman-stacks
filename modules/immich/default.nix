@@ -11,11 +11,11 @@ let
   redisName = "${name}-redis";
   mlName = "${name}-machine-learning";
 
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  mediaStorage = "${config.tarow.podman.mediaStorageBaseDir}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  mediaStorage = "${config.nps.mediaStorageBaseDir}";
+  cfg = config.nps.stacks.${name};
 
-  patchedConfigLocation = "/run/user/${toString config.tarow.podman.hostUid}/immmich/config_patched.json";
+  patchedConfigLocation = "/run/user/${toString config.nps.hostUid}/immmich/config_patched.json";
   configSource = if cfg.authelia.enable then patchedConfigLocation else cfg.settings;
 
   env = {
@@ -40,7 +40,7 @@ in
     mlName
   ];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     settings = lib.mkOption {
       type = lib.types.nullOr json.type;
@@ -98,7 +98,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.authelia = lib.mkIf cfg.authelia.enable {
+    nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
       oidc.clients.${name} = {
         client_name = "Immich";
         client_secret = cfg.authelia.clientSecretHash;
@@ -116,7 +116,7 @@ in
       };
     };
 
-    tarow.podman.stacks.${name}.settings =
+    nps.stacks.${name}.settings =
       import ./config.nix
       // (lib.optionalAttrs cfg.authelia.enable {
         oauth = {
@@ -127,7 +127,7 @@ in
           clientId = name;
           clientSecret = "";
           defaultStorageQuota = 0;
-          issuerUrl = config.tarow.podman.stacks.authelia.containers.authelia.traefik.serviceDomain;
+          issuerUrl = config.nps.stacks.authelia.containers.authelia.traefik.serviceDomain;
           mobileOverrideEnabled = false;
           mobileRedirectUri = "";
 

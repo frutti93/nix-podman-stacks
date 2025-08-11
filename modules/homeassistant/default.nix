@@ -5,16 +5,16 @@
   ...
 }: let
   name = "homeassistant";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  storage = "${config.nps.storageBaseDir}/${name}";
   yaml = pkgs.formats.yaml {};
 
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
 
-  traefikSubnet = config.tarow.podman.stacks.traefik.network.subnet;
+  traefikSubnet = config.nps.stacks.traefik.network.subnet;
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     settings = lib.mkOption {
       type = lib.types.nullOr yaml.type;
@@ -31,7 +31,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.homeassistant.settings = {
+    nps.stacks.homeassistant.settings = {
       default_config = {};
 
       http = {

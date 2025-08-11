@@ -5,8 +5,8 @@
   ...
 }: let
   stackName = "monitoring";
-  cfg = config.tarow.podman.stacks.${stackName};
-  storage = "${config.tarow.podman.storageBaseDir}/${stackName}";
+  cfg = config.nps.stacks.${stackName};
+  storage = "${config.nps.storageBaseDir}/${stackName}";
 
   yaml = pkgs.formats.yaml {};
   ini = pkgs.formats.ini {};
@@ -32,7 +32,7 @@
 
   dockerHost =
     if cfg.alloy.useSocketProxy
-    then config.tarow.podman.stacks.docker-socket-proxy.address
+    then config.nps.stacks.docker-socket-proxy.address
     else "unix:///var/run/docker.sock";
 in {
   imports =
@@ -47,7 +47,7 @@ in {
     ]
     ++ import ../mkAliases.nix config lib stackName [grafanaName lokiName prometheusName alloyName podmanExporterName];
 
-  options.tarow.podman.stacks.${stackName} = {
+  options.nps.stacks.${stackName} = {
     enable =
       lib.mkEnableOption stackName
       // {
@@ -157,7 +157,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.${stackName} = {
+    nps.stacks.${stackName} = {
       grafana = {
         dashboards = lib.optional cfg.podmanExporter.enable ./dashboards/podman-exporter.json;
         datasources = import ./grafana_datasources.nix lokiUrl prometheusUrl;
@@ -187,7 +187,7 @@ in {
     services.podman.containers = {
       ${grafanaName} = lib.mkIf cfg.grafana.enable {
         image = "docker.io/grafana/grafana:12.1.0";
-        user = config.tarow.podman.defaultUid;
+        user = config.nps.defaultUid;
         volumes = [
           "${storage}/grafana/data:/var/lib/grafana"
           "${cfg.grafana.settings}:/etc/grafana/grafana.ini"
@@ -219,7 +219,7 @@ in {
       ${lokiName} = lib.mkIf cfg.loki.enable {
         image = "docker.io/grafana/loki:3.5.3";
         exec = "-config.file=/etc/loki/local-config.yaml";
-        user = config.tarow.podman.defaultUid;
+        user = config.nps.defaultUid;
         volumes = [
           "${storage}/loki/data:/loki"
           "${cfg.loki.config}:/etc/loki/local-config.yaml"
@@ -265,7 +265,7 @@ in {
         lib.mkIf cfg.prometheus.enable {
           image = "docker.io/prom/prometheus:v3.5.0";
           exec = "--config.file=${configDst}";
-          user = config.tarow.podman.defaultUid;
+          user = config.nps.defaultUid;
           volumes = [
             "${storage}/prometheus/data:/prometheus"
             "${cfg.prometheus.config}:${configDst}"
@@ -288,10 +288,10 @@ in {
       ${podmanExporterName} = lib.mkIf cfg.podmanExporter.enable {
         image = "quay.io/navidys/prometheus-podman-exporter:v1.17.2";
         volumes = [
-          "${config.tarow.podman.socketLocation}:/var/run/podman/podman.sock"
+          "${config.nps.socketLocation}:/var/run/podman/podman.sock"
         ];
         environment.CONTAINER_HOST = "unix:///var/run/podman/podman.sock";
-        user = config.tarow.podman.defaultUid;
+        user = config.nps.defaultUid;
         extraPodmanArgs = ["--security-opt=label=disable"];
 
         stack = stackName;

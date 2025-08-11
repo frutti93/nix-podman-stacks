@@ -6,7 +6,7 @@ The options can be set directly on `services.podman.container` level, or through
 For example, the following two configurations are equivalent:
 
 ```nix
-tarow.stacks = {
+nps.stacks = {
     streaming.containers.jellyfin.traefik.middlewares = ["public"];
 };
 ```

@@ -12,7 +12,7 @@
   endpointSettings = lib.mapAttrs (name: c: c.gatus.settings) gatusContainers |> lib.attrValues;
 in {
   config = lib.mkIf (gatusContainers != {}) {
-    tarow.podman.stacks.gatus.settings.endpoints = endpointSettings;
+    nps.stacks.gatus.settings.endpoints = endpointSettings;
   };
 
   options.services.podman.containers = lib.mkOption {

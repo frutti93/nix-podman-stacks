@@ -5,12 +5,12 @@
 }: let
   name = "healthchecks";
 
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     envFile = lib.mkOption {
       type = lib.types.path;
@@ -28,8 +28,8 @@ in {
         image = "ghcr.io/linuxserver/healthchecks:v3.10-ls305";
         volumes = ["${storage}/config:/config"];
         environment = {
-          PUID = config.tarow.podman.defaultUid;
-          PGID = config.tarow.podman.defaultGid;
+          PUID = config.nps.defaultUid;
+          PGID = config.nps.defaultGid;
           SITE_ROOT = config.services.podman.containers.${name}.traefik.serviceDomain;
           SITE_NAME = "Healthchecks";
           REGISTRATION_OPEN = "False";

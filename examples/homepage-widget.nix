@@ -6,7 +6,7 @@ The 'url' and 'type' attributes are already preconfigured for every widget.
 To enable a widget, we need to set the enable flag and add missing information
 */
 {
-  tarow.stacks = {
+  nps.stacks = {
     streaming.containers.sonarr.homepage.settings.widget = {
       enable = true;
 

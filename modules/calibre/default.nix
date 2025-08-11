@@ -4,12 +4,12 @@
   ...
 }: let
   name = "calibre";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name "${name}-downloader"];
 
-  options.tarow.podman.stacks.${name}.enable = lib.mkEnableOption name;
+  options.nps.stacks.${name}.enable = lib.mkEnableOption name;
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
@@ -20,8 +20,8 @@ in {
         "${storage}/library:/calibre-library"
       ];
       environment = {
-        PUID = config.tarow.podman.defaultUid;
-        PGID = config.tarow.podman.defaultGid;
+        PUID = config.nps.defaultUid;
+        PGID = config.nps.defaultGid;
       };
       port = 8083;
 
@@ -49,8 +49,8 @@ in {
         INGEST_DIR = ingestDir;
         APP_ENV = "prod";
         BOOK_LANGUAGE = "en,de";
-        UID = config.tarow.podman.defaultUid;
-        GID = config.tarow.podman.defaultGid;
+        UID = config.nps.defaultUid;
+        GID = config.nps.defaultGid;
       };
       volumes = [
         "${storage}/ingest:${ingestDir}"

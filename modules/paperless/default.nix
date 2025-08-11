@@ -9,8 +9,8 @@
   brokerName = "${name}-broker";
   ftpName = "${name}-ftp";
 
-  cfg = config.tarow.podman.stacks.${name};
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
 in {
   imports = import ../mkAliases.nix config lib name [
     name
@@ -19,7 +19,7 @@ in {
     ftpName
   ];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     env = lib.mkOption {
       type = (options.services.podman.containers.type.getSubOptions []).environment.type;
@@ -81,7 +81,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.authelia.oidc.clients.${name} = lib.mkIf cfg.authelia.registerClient {
+    nps.stacks.authelia.oidc.clients.${name} = lib.mkIf cfg.authelia.registerClient {
       client_name = "Paperless";
       client_secret = cfg.authelia.clientSecretHash;
       public = false;
@@ -111,9 +111,9 @@ in {
           {
             PAPERLESS_REDIS = "redis://${brokerName}:6379";
             PAPERLESS_DBHOST = dbName;
-            USERMAP_UID = config.tarow.podman.defaultUid;
-            USERMAP_GID = config.tarow.podman.defaultGid;
-            PAPERLESS_TIME_ZONE = config.tarow.podman.defaultTz;
+            USERMAP_UID = config.nps.defaultUid;
+            USERMAP_GID = config.nps.defaultGid;
+            PAPERLESS_TIME_ZONE = config.nps.defaultTz;
             PAPERLESS_FILENAME_FORMAT = "{{created_year}}/{{correspondent}}/{{title}}";
             PAPERLESS_URL = config.services.podman.containers.${name}.traefik.serviceDomain;
           }
@@ -152,8 +152,8 @@ in {
       };
 
       ${ftpName} = let
-        uid = config.tarow.podman.defaultUid;
-        gid = config.tarow.podman.defaultGid;
+        uid = config.nps.defaultUid;
+        gid = config.nps.defaultGid;
 
         user =
           if uid == 0
@@ -169,7 +169,7 @@ in {
           "${storage}/consume:${home}"
         ];
         environment = {
-          PUBLIC_IP = config.tarow.podman.hostIP4Address;
+          PUBLIC_IP = config.nps.hostIP4Address;
           FTP_USER = user;
           UID = uid;
           GID = gid;

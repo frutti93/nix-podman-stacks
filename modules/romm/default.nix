@@ -9,9 +9,9 @@ let
   name = "romm";
   dbName = "${name}-db";
 
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  storage = "${config.nps.storageBaseDir}/${name}";
   defaultRomStorage = "${storage}/library";
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
 
   yaml = pkgs.formats.yaml { };
 in
@@ -21,7 +21,7 @@ in
     dbName
   ];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     setupAdminUser = lib.mkOption {
       type = lib.types.bool;
@@ -42,8 +42,8 @@ in
         absolute = true;
       };
       default = defaultRomStorage;
-      defaultText = lib.literalExpression ''"''${config.tarow.podman.storageBaseDir}/${name}/library"'';
-      example = lib.literalExpression ''"''${config.tarow.podman.externalStorageBaseDir}/${name}/library"'';
+      defaultText = lib.literalExpression ''"''${config.nps.storageBaseDir}/${name}/library"'';
+      example = lib.literalExpression ''"''${config.nps.externalStorageBaseDir}/${name}/library"'';
       description = ''
         Base path on the host where the rom library is stored.
       '';
@@ -125,7 +125,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.authelia = lib.mkIf cfg.authelia.enable {
+    nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
       oidc.clients.${name} = {
         client_name = "Rom Manager";
         client_secret = cfg.authelia.clientSecretHash;
@@ -180,7 +180,7 @@ in
           }
           // lib.optionalAttrs (cfg.authelia.enable) (
             let
-              authelia = config.tarow.podman.stacks.authelia;
+              authelia = config.nps.stacks.authelia;
               oidcClient = authelia.oidc.clients.${name};
             in
             {

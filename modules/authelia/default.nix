@@ -6,9 +6,9 @@
   ...
 }: let
   name = "authelia";
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
 
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  storage = "${config.nps.storageBaseDir}/${name}";
 
   yaml = pkgs.formats.yaml {};
 
@@ -23,7 +23,7 @@
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     jwtSecretFile = lib.mkOption {
       type = lib.types.path;
@@ -116,10 +116,10 @@ in {
           "ldap"
         ];
         default =
-          if config.tarow.podman.stacks.lldap.enable
+          if config.nps.stacks.lldap.enable
           then "ldap"
           else "file";
-        defaultText = lib.literalExpression ''if config.tarow.podman.stacks.lldap.enable then "ldap" else "file"'';
+        defaultText = lib.literalExpression ''if config.nps.stacks.lldap.enable then "ldap" else "file"'';
         description = ''
           The authentication backend that will be used.
           If set to `ldap` the option `ldapPasswordFile` has to be set.
@@ -129,16 +129,16 @@ in {
       ldap = {
         user = lib.mkOption {
           type = lib.types.str;
-          default = config.tarow.podman.stacks.lldap.adminUsername;
-          defaultText = lib.literalExpression ''config.tarow.podman.stacks.lldap.adminUsername'';
+          default = config.nps.stacks.lldap.adminUsername;
+          defaultText = lib.literalExpression ''config.nps.stacks.lldap.adminUsername'';
           description = ''
             The username that will be used when binding to the LDAP backend.
           '';
         };
         passwordFile = lib.mkOption {
           type = lib.types.path;
-          default = config.tarow.podman.stacks.lldap.adminPasswordFile;
-          defaultText = lib.literalExpression ''config.tarow.podman.stacks.lldap.adminPasswordFile'';
+          default = config.nps.stacks.lldap.adminPasswordFile;
+          defaultText = lib.literalExpression ''config.nps.stacks.lldap.adminPasswordFile'';
           description = ''
             The password for the LDAP user that is used when connecting to the LDAP backend.
           '';
@@ -208,8 +208,8 @@ in {
     };
     enableTraefikMiddleware = lib.mkOption {
       type = lib.types.bool;
-      default = config.tarow.podman.stacks.traefik.enable;
-      defaultText = lib.literalExpression ''config.tarow.podman.stacks.traefik.enable'';
+      default = config.nps.stacks.traefik.enable;
+      defaultText = lib.literalExpression ''config.nps.stacks.traefik.enable'';
       description = ''
         Wheter to setup an `authelia` middleware for Traefik.
         The middleware will utilize the ForwardAuth Authz implementation.
@@ -222,7 +222,7 @@ in {
   config = let
     oidcEnabled = cfg.oidc.enable && (lib.length (lib.attrValues cfg.oidc.clients) > 0);
     container = cfg.containers.${name};
-    lldap = config.tarow.podman.stacks.lldap;
+    lldap = config.nps.stacks.lldap;
 
     finalUsersFile =
       if cfg.authenticationBackend.users != {}
@@ -235,8 +235,8 @@ in {
     lib.mkIf cfg.enable {
       assertions = [
         {
-          assertion = cfg.authenticationBackend.type != "ldap" || config.tarow.podman.stacks.lldap.enable;
-          message = "The option 'tarow.podman.stacks.${name}.authenticationBackend.type' is set to `ldap`, but the 'lldap' stack is not enabled.";
+          assertion = cfg.authenticationBackend.type != "ldap" || config.nps.stacks.lldap.enable;
+          message = "The option 'nps.stacks.${name}.authenticationBackend.type' is set to `ldap`, but the 'lldap' stack is not enabled.";
         }
         {
           assertion =
@@ -249,7 +249,7 @@ in {
         }
       ];
 
-      tarow.podman.stacks.${name}.settings = {
+      nps.stacks.${name}.settings = {
         identity_providers = lib.mkIf oidcEnabled {
           oidc = {
             jwks = [
@@ -299,7 +299,7 @@ in {
           remember_me = "1M";
           cookies = [
             {
-              domain = config.tarow.podman.stacks.traefik.domain;
+              domain = config.nps.stacks.traefik.domain;
               authelia_url = container.traefik.serviceDomain;
               name = "authelia_session";
             }
@@ -311,7 +311,7 @@ in {
         };
       };
 
-      tarow.podman.stacks.traefik = lib.mkIf cfg.enableTraefikMiddleware {
+      nps.stacks.traefik = lib.mkIf cfg.enableTraefikMiddleware {
         dynamicConfig.http.middlewares.authelia.forwardAuth = {
           address = "http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2F${
             cfg.containers.${name}.traefik.serviceHost

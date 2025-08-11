@@ -4,12 +4,12 @@
   ...
 }: let
   name = "adguard";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name}.enable = lib.mkEnableOption name;
+  options.nps.stacks.${name}.enable = lib.mkEnableOption name;
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
@@ -19,7 +19,7 @@ in {
         "${storage}/conf:/opt/adguardhome/conf"
       ];
       ports = let
-        ip = config.tarow.podman.hostIP4Address;
+        ip = config.nps.hostIP4Address;
       in [
         "${ip}:53:53/tcp"
         "${ip}:53:53/udp"

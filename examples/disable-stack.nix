@@ -4,5 +4,5 @@ E.g. in order to disable the Streaming stack, you can use the following configur
 You can also remove the declaration entirely, since stacks are disabled by default
 */
 {
-  tarow.stacks.streaming.enable = false;
+  nps.stacks.streaming.enable = false;
 }

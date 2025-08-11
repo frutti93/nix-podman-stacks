@@ -19,7 +19,7 @@
         home.stateVersion = "25.05";
         home.username = "someuser";
         home.homeDirectory = "/home/someuser";
-        tarow.podman = {
+        nps = {
           hostIP4Address = "10.10.10.10";
           hostUid = 1000;
           externalStorageBaseDir = "/mnt/ext";
@@ -79,11 +79,11 @@
     };
 
   settingsOptions = mkOptionsDoc {
-    wantPrefix = ["tarow" "podman"];
-    excludePrefix = ["tarow" "podman" "stacks"];
+    wantPrefix = ["nps"];
+    excludePrefix = ["nps" "stacks"];
   };
   stackOptions = mkOptionsDoc {
-    wantPrefix = ["tarow" "podman" "stacks"];
+    wantPrefix = ["nps" "stacks"];
   };
   containerOptions = mkOptionsDoc {
     wantPrefix = ["services" "podman"];

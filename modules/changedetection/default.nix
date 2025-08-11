@@ -4,12 +4,12 @@
   ...
 }: let
   name = "changedetection";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name "sockpuppetbrowser"];
 
-  options.tarow.podman.stacks.${name}.enable = lib.mkEnableOption name;
+  options.nps.stacks.${name}.enable = lib.mkEnableOption name;
 
   config = lib.mkIf cfg.enable {
     services.podman.containers = {

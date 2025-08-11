@@ -4,12 +4,12 @@
   ...
 }: let
   name = "n8n";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name}.enable = lib.mkEnableOption name;
+  options.nps.stacks.${name}.enable = lib.mkEnableOption name;
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
@@ -18,7 +18,7 @@ in {
       volumes = ["${storage}/data:/home/node/.n8n:U"];
       environment = {
         DB_TYPE = "sqlite";
-        GENERIC_TIMEZONE = config.tarow.podman.defaultTz;
+        GENERIC_TIMEZONE = config.nps.defaultTz;
         N8N_EDITOR_BASE_URL = cfg.containers.${name}.traefik.serviceDomain;
         N8N_DIAGNOSTICS_ENABLED = false;
       };

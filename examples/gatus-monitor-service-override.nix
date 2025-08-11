@@ -5,8 +5,8 @@ the settings attribute can be used, which is directly mapped to an endpointentry
 For example to set the url to a custom one and change the condition:
 */
 {config, ...}: {
-  tarow.podman.stacks = let
-    cfg = config.tarow.podman.stacks.aiostreams.containers.aiostreams;
+  nps.stacks = let
+    cfg = config.nps.stacks.aiostreams.containers.aiostreams;
   in {
     aiostreams.containers.aiostreams.gatus = {
       enable = true;

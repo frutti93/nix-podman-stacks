@@ -1,12 +1,41 @@
 config: lib: stackName: containers:
-map (
-  c: (lib.doRename {
-    from = ["tarow" "podman" "stacks" stackName "containers" c];
-    to = ["services" "podman" "containers" c];
+lib.flatten containers
+|> (map (c: [
+  (lib.doRename {
+    from = [
+      "nps"
+      "stacks"
+      stackName
+      "containers"
+      c
+    ];
+    to = [
+      "services"
+      "podman"
+      "containers"
+      c
+    ];
     use = x: x;
     warn = false;
     visible = true;
-    condition = config.tarow.podman.stacks.${stackName}.enable;
+    condition = config.nps.stacks.${stackName}.enable;
   })
-)
-(lib.flatten containers)
+  (lib.doRename {
+    from = [
+      "nps"
+      "containers"
+      c
+    ];
+    to = [
+      "services"
+      "podman"
+      "containers"
+      c
+    ];
+    use = x: x;
+    warn = false;
+    visible = true;
+    condition = config.nps.stacks.${stackName}.enable;
+  })
+]))
+|> lib.flatten

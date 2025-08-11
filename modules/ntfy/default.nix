@@ -5,12 +5,12 @@
   ...
 }: let
   name = "ntfy";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     enableGrafanaDashboard = lib.mkEnableOption "Grafana Dashboard";
     enablePrometheusExport = lib.mkEnableOption "Prometheus Export";
@@ -32,7 +32,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.monitoring = {
+    nps.stacks.monitoring = {
       grafana.dashboards = lib.optional cfg.enableGrafanaDashboard ./grafana_dashboard.json;
       prometheus.config.scrape_configs = lib.optional cfg.enablePrometheusExport {
         job_name = "ntfy";

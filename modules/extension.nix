@@ -172,10 +172,10 @@ in
                   port = sa.port;
                 }
               ) config.socketActivation)
-              ++ lib.optional (builtins.any (lib.hasPrefix "${globalConf.tarow.podman.socketLocation}:") config.volumes) "podman.socket";
+              ++ lib.optional (builtins.any (lib.hasPrefix "${globalConf.nps.socketLocation}:") config.volumes) "podman.socket";
 
             environment = {
-              TZ = lib.mkDefault globalConf.tarow.podman.defaultTz;
+              TZ = lib.mkDefault globalConf.nps.defaultTz;
             }
             // lib.mapAttrs (_: v: v.destPath) config.fileEnvMount;
 

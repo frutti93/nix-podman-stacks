@@ -4,11 +4,11 @@
   ...
 }: let
   name = "stirling-pdf";
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name}.enable = lib.mkEnableOption name;
+  options.nps.stacks.${name}.enable = lib.mkEnableOption name;
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {

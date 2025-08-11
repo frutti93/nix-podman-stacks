@@ -8,15 +8,15 @@
   lib,
   ...
 }: let
-  stackCfg = config.tarow.podman.stacks.${stack};
+  stackCfg = config.nps.stacks.${stack};
   cfg = lib.getAttrFromPath (lib.flatten subPath) stackCfg;
-  socketProxyCfg = config.tarow.podman.stacks.docker-socket-proxy;
+  socketProxyCfg = config.nps.stacks.docker-socket-proxy;
 in {
-  options.tarow.podman.stacks = lib.setAttrByPath ([stack] ++ (lib.flatten subPath)) {
+  options.nps.stacks = lib.setAttrByPath ([stack] ++ (lib.flatten subPath)) {
     useSocketProxy = lib.mkOption {
       type = lib.types.bool;
-      default = config.tarow.podman.stacks.docker-socket-proxy.enable;
-      defaultText = lib.literalExpression ''config.tarow.podman.stacks.docker-socket-proxy.enable'';
+      default = config.nps.stacks.docker-socket-proxy.enable;
+      defaultText = lib.literalExpression ''config.nps.stacks.docker-socket-proxy.enable'';
       description = ''
         Whether to access the Podman socket through the read-only proxy for the ${stack} stack.
         Will be enabled by default if the 'docker-socket-proxy' stack is enabled.
@@ -27,7 +27,7 @@ in {
   config = lib.mkIf stackCfg.enable {
     assertions = let
       optionPath =
-        (["tarow" "podman" "stacks" stack] ++ (lib.flatten subPath))
+        (["nps" "stacks" stack] ++ (lib.flatten subPath))
         |> lib.concatStringsSep ".";
     in [
       {
@@ -40,7 +40,7 @@ in {
       # Socket Proxy option exists, but it not used.
       # Mount the socket directly then.
       volumes = lib.mkIf (!cfg.useSocketProxy) [
-        "${config.tarow.podman.socketLocation}:/${targetLocation}:ro"
+        "${config.nps.socketLocation}:/${targetLocation}:ro"
       ];
 
       # If socket-proxy is used, add the container to its bridge network so the proxy can be reached

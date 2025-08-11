@@ -5,12 +5,12 @@
   ...
 }: let
   name = "freshrss";
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     envFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
@@ -27,7 +27,7 @@ in {
   config = lib.mkIf cfg.enable {
     # Fix for https://github.com/FreshRSS/FreshRSS/issues/7300
     # Override entrypoint so that secrets passed as env variables get interpolated
-    tarow.podman.stacks.${name}.containers.${name} = let
+    nps.stacks.${name}.containers.${name} = let
       patchedEntryPoint = pkgs.writeTextFile {
         name = "entrypoint.sh";
         executable = true;
@@ -55,7 +55,7 @@ in {
       environment =
         {
           CRON_MIN = "3,33";
-          TRUSTED_PROXY = config.tarow.podman.stacks.traefik.network.subnet;
+          TRUSTED_PROXY = config.nps.stacks.traefik.network.subnet;
         }
         // lib.optionalAttrs (cfg.envFile != null) {
           FRESHRSS_INSTALL = "'${lib.concatStringsSep " " [

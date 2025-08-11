@@ -7,8 +7,8 @@
   name = "beszel";
   agentName = "${name}-agent";
 
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
-  cfg = config.tarow.podman.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
 
   yaml = pkgs.formats.yaml {};
 
@@ -26,7 +26,7 @@ in {
       agentName
     ];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     ed25519PrivateKeyFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
@@ -97,7 +97,7 @@ in {
     };
   };
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.authelia.oidc.clients.${name} = lib.mkIf cfg.authelia.registerClient {
+    nps.stacks.authelia.oidc.clients.${name} = lib.mkIf cfg.authelia.registerClient {
       client_name = "Beszel";
       client_secret = cfg.authelia.clientSecretHash;
       public = false;
@@ -157,7 +157,7 @@ in {
         network =
           if (!cfg.useSocketProxy)
           then ["host"]
-          else [config.tarow.podman.stacks.traefik.network.name];
+          else [config.nps.stacks.traefik.network.name];
 
         environment =
           {
@@ -165,7 +165,7 @@ in {
             DOCKER_HOST =
               if !cfg.useSocketProxy
               then "unix://${socketTargetLocation}"
-              else config.tarow.podman.stacks.docker-socket-proxy.address;
+              else config.nps.stacks.docker-socket-proxy.address;
           }
           // lib.optionalAttrs (cfg.ed25519PublicKeyFile != null) {
             KEY_FILE = "/data/hub_key";

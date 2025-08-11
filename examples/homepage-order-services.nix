@@ -4,7 +4,7 @@ You can set the `rank` attribute to influence the order of services.
 For example, to move the `traefik` and `wg-easy` services to the top:
 */
 {
-  tarow.podman.stacks = {
+  nps.stacks = {
     traefik.containers.traefik.homepage.settings.rank = 10;
     wg-easy.containers.wg-easy.homepage.settings.rank = 20;
   };

@@ -5,8 +5,8 @@
   ...
 }: let
   name = "lldap";
-  cfg = config.tarow.podman.stacks.${name};
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  cfg = config.nps.stacks.${name};
+  storage = "${config.nps.storageBaseDir}/${name}";
 
   toml = pkgs.formats.toml {};
   json = pkgs.formats.json {};
@@ -91,7 +91,7 @@
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     settings = lib.mkOption {
       type = lib.types.nullOr toml.type;
@@ -227,7 +227,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.${name}.settings = {
+    nps.stacks.${name}.settings = {
       ldap_base_dn = cfg.baseDn;
       ldap_user_dn = cfg.adminUsername;
       database_url = "sqlite:///db/users.db?mode=rwc";
@@ -239,7 +239,7 @@ in {
 
       # renovate: versioning=loose
       image = "ghcr.io/lldap/lldap:2025-08-06-alpine-rootless";
-      user = config.tarow.podman.defaultUid;
+      user = config.nps.defaultUid;
       volumes =
         [
           "${storage}/db:/db"

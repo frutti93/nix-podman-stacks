@@ -3,9 +3,9 @@
   config,
   ...
 }: let
-  stackCfg = config.tarow.podman.stacks.traefik;
+  stackCfg = config.nps.stacks.traefik;
 
-  ip4Address = config.tarow.podman.hostIP4Address;
+  ip4Address = config.nps.hostIP4Address;
 
   getPort = port: index:
     if port == null
@@ -70,7 +70,7 @@ in {
             description = ''
               The host name of the service as it will be registered in Traefik.
             '';
-            defaultText = lib.literalExpression ''"''${traefikCfg.subDomain}.''${tarow.podman.stacks.traefik.domain}"'';
+            defaultText = lib.literalExpression ''"''${traefikCfg.subDomain}.''${nps.stacks.traefik.domain}"'';
             default = let
               hostPort = getPort port 0;
               ipHost =

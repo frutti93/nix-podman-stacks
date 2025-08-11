@@ -5,7 +5,7 @@
   ...
 }: let
   name = "dockdns";
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
   yaml = pkgs.formats.yaml {};
 in {
   imports =
@@ -15,7 +15,7 @@ in {
     ]
     ++ import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable =
       lib.mkEnableOption name
       // {
@@ -45,15 +45,15 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.${name}.settings = lib.mkMerge [
+    nps.stacks.${name}.settings = lib.mkMerge [
       # Apply all leaf-attributes with default priority.
       # Allows for easy overriding of leaf-attributes
       (import ./config.nix |> lib.mapAttrsRecursive (_: lib.mkDefault))
 
-      (lib.mkIf config.tarow.podman.stacks.traefik.enable {
+      (lib.mkIf config.nps.stacks.traefik.enable {
         zones = [
           {
-            name = config.tarow.podman.stacks.traefik.domain;
+            name = config.nps.stacks.traefik.domain;
             provider = "cloudflare";
           }
         ];
@@ -67,7 +67,7 @@ in {
       ];
 
       environment = {
-        DOCKER_HOST = lib.mkIf (cfg.useSocketProxy) config.tarow.podman.stacks.docker-socket-proxy.address;
+        DOCKER_HOST = lib.mkIf (cfg.useSocketProxy) config.nps.stacks.docker-socket-proxy.address;
       };
       environmentFile = [cfg.envFile];
 

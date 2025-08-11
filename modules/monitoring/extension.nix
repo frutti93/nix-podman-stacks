@@ -3,7 +3,7 @@
   config,
   ...
 }: let
-  monitoringEnabled = config.tarow.podman.stacks.monitoring.enable;
+  monitoringEnabled = config.nps.stacks.monitoring.enable;
 in {
   # If a container has the logging label, add alloy
   options.services.podman.containers = lib.mkOption {

@@ -6,13 +6,13 @@
   name = "kimai";
   dbName = "${name}-db";
 
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  storage = "${config.nps.storageBaseDir}/${name}";
 
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
 in {
   imports = import ../mkAliases.nix config lib name [name dbName];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
 
     envFile = lib.mkOption {

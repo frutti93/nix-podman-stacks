@@ -16,20 +16,20 @@
   bazarrName = "bazarr";
   prowlarrName = "prowlarr";
 
-  cfg = config.tarow.podman.stacks.${stackName};
-  storage = "${config.tarow.podman.storageBaseDir}/${stackName}";
-  mediaStorage = "${config.tarow.podman.mediaStorageBaseDir}";
+  cfg = config.nps.stacks.${stackName};
+  storage = "${config.nps.storageBaseDir}/${stackName}";
+  mediaStorage = "${config.nps.mediaStorageBaseDir}";
 
   mkServarrEnv = name: {
-    PUID = config.tarow.podman.defaultUid;
-    PGID = config.tarow.podman.defaultGid;
+    PUID = config.nps.defaultUid;
+    PGID = config.nps.defaultGid;
     "${name}__AUTH__METHOD" = "Forms";
     "${name}__AUTH__REQUIRED" = "DisabledForLocalAddresses";
   };
 in {
   imports = import ../mkAliases.nix config lib stackName [gluetunName qbittorrentName jellyfinName sonarrName radarrName bazarrName prowlarrName];
 
-  options.tarow.podman.stacks.${stackName} =
+  options.nps.stacks.${stackName} =
     {
       enable = lib.mkEnableOption stackName;
       gluetun = {
@@ -76,7 +76,7 @@ in {
       |> lib.listToAttrs);
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.streaming.gluetun.settings = import ./gluetun_config.nix;
+    nps.stacks.streaming.gluetun.settings = import ./gluetun_config.nix;
 
     services.podman.containers = {
       ${gluetunName} = lib.mkIf cfg.gluetun.enable {
@@ -97,7 +97,7 @@ in {
           HTTPPROXY = "on";
           HEALTH_VPN_DURATION_INITIAL = "60s";
         };
-        network = [config.tarow.podman.stacks.traefik.network.name];
+        network = [config.nps.stacks.traefik.network.name];
 
         stack = stackName;
         port = 8888;
@@ -125,8 +125,8 @@ in {
         ];
         environmentFile = [cfg.qbittorrent.envFile];
         environment = {
-          PUID = config.tarow.podman.defaultUid;
-          PGID = config.tarow.podman.defaultGid;
+          PUID = config.nps.defaultUid;
+          PGID = config.nps.defaultGid;
           UMASK = "022";
           WEBUI_PORT = 8080;
         };
@@ -153,8 +153,8 @@ in {
         ];
         devices = ["/dev/dri:/dev/dri"];
         environment = {
-          PUID = config.tarow.podman.defaultUid;
-          PGID = config.tarow.podman.defaultGid;
+          PUID = config.nps.defaultUid;
+          PGID = config.nps.defaultGid;
           JELLYFIN_PublishedServerUrl = config.services.podman.containers.${jellyfinName}.traefik.serviceDomain;
         };
 

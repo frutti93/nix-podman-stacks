@@ -5,11 +5,11 @@
   ...
 }: let
   name = "traefik";
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
 
   yaml = pkgs.formats.yaml {};
 
-  storage = "${config.tarow.podman.storageBaseDir}/${name}";
+  storage = "${config.nps.storageBaseDir}/${name}";
 in {
   imports =
     [
@@ -18,7 +18,7 @@ in {
     ]
     ++ import ../mkAliases.nix config lib name name;
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable =
       lib.options.mkEnableOption name
       // {
@@ -122,12 +122,12 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.${name} = {
+    nps.stacks.${name} = {
       staticConfig = lib.mkMerge [
         (import ./config/traefik.nix cfg.domain cfg.network.name)
 
         (lib.mkIf cfg.useSocketProxy {
-          providers.docker.endpoint = config.tarow.podman.stacks.docker-socket-proxy.address;
+          providers.docker.endpoint = config.nps.stacks.docker-socket-proxy.address;
         })
 
         (lib.mkIf cfg.enablePrometheusExport {
@@ -155,7 +155,7 @@ in {
         })
       ];
     };
-    tarow.podman.stacks.monitoring = {
+    nps.stacks.monitoring = {
       grafana.dashboards =
         (lib.optional cfg.enableGrafanaAccessLogDashboard ./grafana/access_log_dashboard.json)
         ++ (lib.optional cfg.enableGrafanaMetricsDashboard ./grafana/metrics_dashboard.json);

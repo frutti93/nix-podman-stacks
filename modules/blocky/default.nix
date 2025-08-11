@@ -5,15 +5,15 @@
   ...
 }: let
   name = "blocky";
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
 
   yaml = pkgs.formats.yaml {};
 
-  ip = config.tarow.podman.hostIP4Address;
+  ip = config.nps.hostIP4Address;
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name} = {
+  options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     settings = lib.mkOption {
       type = yaml.type;
@@ -31,20 +31,20 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.${name}.settings = lib.mkMerge [
+    nps.stacks.${name}.settings = lib.mkMerge [
       (import ./settings.nix)
-      (lib.mkIf config.tarow.podman.stacks.traefik.enable {
-        customDNS.mapping.${config.tarow.podman.stacks.traefik.domain} = ip;
+      (lib.mkIf config.nps.stacks.traefik.enable {
+        customDNS.mapping.${config.nps.stacks.traefik.domain} = ip;
       })
       (lib.mkIf cfg.enablePrometheusExport {
         prometheus.enable = true;
       })
     ];
-    tarow.podman.stacks.monitoring.grafana = lib.mkIf cfg.enableGrafanaDashboard {
+    nps.stacks.monitoring.grafana = lib.mkIf cfg.enableGrafanaDashboard {
       dashboards = [./grafana_dashboard.json];
       settings.panels.disable_sanitize_html = true;
     };
-    tarow.podman.stacks.monitoring.prometheus.config = lib.mkIf cfg.enablePrometheusExport {
+    nps.stacks.monitoring.prometheus.config = lib.mkIf cfg.enablePrometheusExport {
       scrape_configs = [
         {
           job_name = "blocky";

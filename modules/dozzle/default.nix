@@ -4,7 +4,7 @@
   ...
 }: let
   name = "dozzle";
-  cfg = config.tarow.podman.stacks.${name};
+  cfg = config.nps.stacks.${name};
 in {
   imports =
     [
@@ -13,7 +13,7 @@ in {
     ]
     ++ import ../mkAliases.nix config lib name [name];
 
-  options.tarow.podman.stacks.${name}.enable =
+  options.nps.stacks.${name}.enable =
     lib.mkEnableOption name
     // {
       description = ''
@@ -27,7 +27,7 @@ in {
     services.podman.containers.${name} = {
       image = "docker.io/amir20/dozzle:v8.13.8";
       environment = {
-        DOZZLE_REMOTE_HOST = lib.mkIf (cfg.useSocketProxy) config.tarow.podman.stacks.docker-socket-proxy.address;
+        DOZZLE_REMOTE_HOST = lib.mkIf (cfg.useSocketProxy) config.nps.stacks.docker-socket-proxy.address;
       };
 
       port = 8080;

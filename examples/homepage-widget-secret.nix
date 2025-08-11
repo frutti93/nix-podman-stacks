@@ -6,7 +6,7 @@ If a value is a passed as a 'path', it will be replaced by an placeholder and th
 will be automatically added to the homepage container.
 */
 {config, ...}: {
-  tarow.stacks = {
+  nps.stacks = {
     streaming.containers.sonarr.homepage.settings.widget = {
       enable = true;
       key = {path = config.sops.secrets."SONARR_API_KEY".path;};

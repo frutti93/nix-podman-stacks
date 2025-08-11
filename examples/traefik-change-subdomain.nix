@@ -8,7 +8,7 @@ Changes to the traefik subdomain will automatically be reflected on the Homepage
 so the href will update automatically.
 */
 {lib, ...}: {
-  tarow.podman.stacks = {
+  nps.stacks = {
     streaming.containers.sonarr.traefik.name = lib.mkForce "series";
   };
 }

@@ -12,6 +12,51 @@ let
   toml = pkgs.formats.toml { };
   json = pkgs.formats.json { };
 
+  customAttrsType = lib.types.oneOf [
+    lib.types.str
+    lib.types.int
+    lib.types.bool
+  ];
+  schemaType = lib.types.attrsOf (
+    lib.types.submodule (
+      { name, ... }:
+      {
+        options = {
+          name = lib.mkOption {
+            type = lib.types.str;
+            description = "Name of field, case insensitve - you should use lowercase";
+            default = name;
+            defaultText = lib.literalExpression ''<name>'';
+          };
+          attributeType = lib.mkOption {
+            type = lib.types.enum [
+              "STRING"
+              "INTEGER"
+              "JPGEG"
+              "DATE_TIME"
+            ];
+            description = "Type of the attribute";
+          };
+          isEditable = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = "Whether the attribute is editable by users";
+          };
+          isList = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = "Whether the attribute can have multiple values";
+          };
+          isVisible = lib.mkOption {
+            type = lib.types.bool;
+            default = true;
+            description = "Whether the attribute is visible by users";
+          };
+        };
+      }
+    )
+  );
+
   mkUserPasswordSecret =
     userId: srcPath:
     let
@@ -37,6 +82,8 @@ let
 
   userConfigsDir = "/bootstrap/user-configs";
   groupConfigsDir = "/bootstrap/group-configs";
+  userSchemasDir = "/bootstrap/user-schemas";
+  groupSchemasDir = "/bootstrap/group-schemas";
 
   finalUserVolumes =
     cfg.bootstrap.users
@@ -51,10 +98,11 @@ let
 
   finalGroupVolumes =
     cfg.bootstrap.groups
-    |> map (g: {
-      name = g;
-    })
+    |> lib.attrValues
     |> map (g: "${json.generate "${g.name}.json" g}:${groupConfigsDir}/${g.name}.json");
+
+  finalUserSchemaVolumes = "${json.generate "user_schemas.json" (lib.attrValues cfg.bootstrap.userSchemas)}:${userSchemasDir}/user_schemas.json";
+  finalGroupSchemaVolumes = "${json.generate "group_schemas.json" (lib.attrValues cfg.bootstrap.groupSchemas)}:${groupSchemasDir}/group_schemas.json";
 
   bootstrapWrapper = pkgs.writeTextFile {
     name = "bootstrap_wrapper.sh";
@@ -67,6 +115,8 @@ let
       })"
       export USER_CONFIGS_DIR="${userConfigsDir}"
       export GROUP_CONFIGS_DIR="${groupConfigsDir}"
+      export USER_SCHEMAS_DIR="${userSchemasDir}"
+      export GROUP_SCHEMAS_DIR="${groupSchemasDir}"
       export DO_CLEANUP="${if cfg.bootstrap.cleanUp then "true" else "false"}"
       exec /app/bootstrap.sh
     '';
@@ -121,6 +171,7 @@ in
           lib.types.submodule (
             { name, ... }:
             {
+              freeformType = customAttrsType;
               options = {
                 id = lib.mkOption {
                   type = lib.types.str;
@@ -174,17 +225,49 @@ in
         default = [ ];
         description = ''
           LLDAP users that will be provisioned at startup.
+          You can also specify custom attributes for the user, if they are defined in the `useSchemas` option.
 
           See <https://github.com/lldap/lldap/blob/main/example_configs/bootstrap/bootstrap.md#user-config-file-example>
         '';
       };
       groups = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ ];
+        type = lib.types.attrsOf (
+          lib.types.submodule (
+            { name, ... }:
+            {
+              freeformType = customAttrsType;
+              options = {
+                name = lib.mkOption {
+                  type = lib.types.str;
+                  description = "Name of the group. Defaults to the name of the attribute.";
+                  default = name;
+                  defaultText = lib.literalExpression ''<name>'';
+                };
+              };
+
+            }
+          )
+        );
+        default = { };
         description = ''
-          Names of the groups that will be created.
+          Groups that will be created.
+          Besides the name, you can also specify custom attributes for the group, if they are defined in the `groupSchemas` option.
 
           See <https://github.com/lldap/lldap/blob/main/example_configs/bootstrap/bootstrap.md#group-config-file-example>
+        '';
+      };
+      userSchemas = lib.mkOption {
+        type = schemaType;
+        default = { };
+        description = ''
+          User schema. Can be used to create custom user attributes.
+        '';
+      };
+      groupSchemas = lib.mkOption {
+        type = schemaType;
+        default = { };
+        description = ''
+          Group schemas. Can be used to create custom group attributes.
         '';
       };
     };
@@ -230,15 +313,15 @@ in
         "${cfg.settings}:/data/lldap_config.toml"
       ]
       ++ (builtins.concatLists (map (s: s.volume) ((lib.attrValues userPasswordFiles))))
-      ++ finalUserVolumes
-      ++ finalGroupVolumes
-      ++ lib.optionals (finalUserVolumes != [ ] || finalUserVolumes != [ ]) [
+      ++ lib.flatten [
+        finalUserVolumes
+        finalGroupVolumes
+        finalUserSchemaVolumes
+        finalGroupSchemaVolumes
         "${bootstrapWrapper}:/app/bootstrap_wrapper.sh"
       ];
 
-      extraConfig.Service.ExecStartPost = lib.mkIf (
-        finalUserVolumes != [ ] || finalGroupVolumes != [ ]
-      ) "${lib.getExe pkgs.podman} exec ${name} /app/bootstrap_wrapper.sh";
+      extraConfig.Service.ExecStartPost = "${lib.getExe pkgs.podman} exec ${name} /app/bootstrap_wrapper.sh";
 
       environment = {
         LLDAP_KEY_FILE = "";

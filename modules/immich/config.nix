@@ -10,9 +10,21 @@
   ffmpeg = {
     accel = "qsv";
     accelDecode = true;
-    acceptedAudioCodecs = ["aac" "mp3" "libopus" "pcm_s16le"];
-    acceptedContainers = ["mov" "ogg" "webm"];
-    acceptedVideoCodecs = ["hevc" "h264"];
+    acceptedAudioCodecs = [
+      "aac"
+      "mp3"
+      "libopus"
+      "pcm_s16le"
+    ];
+    acceptedContainers = [
+      "mov"
+      "ogg"
+      "webm"
+    ];
+    acceptedVideoCodecs = [
+      "hevc"
+      "h264"
+    ];
     bframes = -1;
     cqMode = "auto";
     crf = 23;
@@ -52,17 +64,39 @@
   };
 
   job = {
-    backgroundTask = {concurrency = 5;};
-    faceDetection = {concurrency = 2;};
-    library = {concurrency = 5;};
-    metadataExtraction = {concurrency = 5;};
-    migration = {concurrency = 5;};
-    notifications = {concurrency = 5;};
-    search = {concurrency = 5;};
-    sidecar = {concurrency = 5;};
-    smartSearch = {concurrency = 2;};
-    thumbnailGeneration = {concurrency = 3;};
-    videoConversion = {concurrency = 1;};
+    backgroundTask = {
+      concurrency = 5;
+    };
+    faceDetection = {
+      concurrency = 2;
+    };
+    library = {
+      concurrency = 5;
+    };
+    metadataExtraction = {
+      concurrency = 5;
+    };
+    migration = {
+      concurrency = 5;
+    };
+    notifications = {
+      concurrency = 5;
+    };
+    search = {
+      concurrency = 5;
+    };
+    sidecar = {
+      concurrency = 5;
+    };
+    smartSearch = {
+      concurrency = 2;
+    };
+    thumbnailGeneration = {
+      concurrency = 3;
+    };
+    videoConversion = {
+      concurrency = 1;
+    };
   };
 
   library = {
@@ -97,7 +131,7 @@
       minScore = 0.7;
       modelName = "buffalo_l";
     };
-    urls = ["http://immich-machine-learning:3003"];
+    urls = [ "http://immich-machine-learning:3003" ];
   };
 
   map = {
@@ -129,26 +163,6 @@
         username = "";
       };
     };
-  };
-
-  oauth = {
-    autoLaunch = false;
-    autoRegister = true;
-    buttonText = "Login with OAuth";
-    clientId = "";
-    clientSecret = "";
-    defaultStorageQuota = 0;
-    enabled = false;
-    issuerUrl = "";
-    mobileOverrideEnabled = false;
-    mobileRedirectUri = "";
-    profileSigningAlgorithm = "none";
-    scope = "openid email profile";
-    signingAlgorithm = "RS256";
-    storageLabelClaim = "preferred_username";
-    storageQuotaClaim = "immich_quota";
-    timeout = 30000;
-    tokenEndpointAuthMethod = "client_secret_post";
   };
 
   passwordLogin = {

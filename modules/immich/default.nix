@@ -3,7 +3,8 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   name = "immich";
 
   dbName = "${name}-db";
@@ -14,22 +15,30 @@
   mediaStorage = "${config.tarow.podman.mediaStorageBaseDir}";
   cfg = config.tarow.podman.stacks.${name};
 
-  env =
-    {
-      DB_HOSTNAME = dbName;
-      DB_USERNAME = "postgres";
-      DB_DATABASE_NAME = "immich";
-      REDIS_HOSTNAME = redisName;
-      NODE_ENV = "production";
-      UPLOAD_LOCATION = "/usr/src/app/upload";
-    }
-    // lib.optionalAttrs (cfg.settings != null) {
-      IMMICH_CONFIG_FILE = "/usr/src/app/config/config.json";
-    };
+  patchedConfigLocation = "/run/user/${toString config.tarow.podman.hostUid}/immmich/config_patched.json";
+  configSource = if cfg.authelia.enable then patchedConfigLocation else cfg.settings;
 
-  json = pkgs.formats.json {};
-in {
-  imports = import ../mkAliases.nix config lib name [name redisName dbName mlName];
+  env = {
+    DB_HOSTNAME = dbName;
+    DB_USERNAME = "postgres";
+    DB_DATABASE_NAME = "immich";
+    REDIS_HOSTNAME = redisName;
+    NODE_ENV = "production";
+    UPLOAD_LOCATION = "/usr/src/app/upload";
+  }
+  // lib.optionalAttrs (cfg.settings != null) {
+    IMMICH_CONFIG_FILE = "/usr/src/app/config/config.json";
+  };
+
+  json = pkgs.formats.json { };
+in
+{
+  imports = import ../mkAliases.nix config lib name [
+    name
+    redisName
+    dbName
+    mlName
+  ];
 
   options.tarow.podman.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -42,10 +51,37 @@ in {
 
         For details to the config file see <https://immich.app/docs/install/config-file/>
       '';
-      apply = settings:
-        if (settings != null)
-        then (json.generate "config.json" settings)
-        else null;
+      apply = settings: if (settings != null) then (json.generate "config.json" settings) else null;
+    };
+    authelia = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Whether to enable OIDC login with Authelia. This will register an OIDC client in Authelia
+          and setup the necessary configuration in Immich.
+
+          For details, see:
+
+          - <https://www.authelia.com/integration/openid-connect/clients/immich/>
+          - <https://immich.app/docs/administration/oauth/>
+        '';
+      };
+      clientSecretFile = lib.mkOption {
+        type = lib.types.path;
+        description = ''
+          Path to the file containing that client secret that will be used to authenticate against Authelia.
+        '';
+      };
+      clientSecretHash = lib.mkOption {
+        type = lib.types.str;
+        description = ''
+          The hashed client_secret. Will be set in the Authelia client config.
+          For examples on how to generate a client secret, see
+
+          <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
+        '';
+      };
     };
     envFile = lib.mkOption {
       type = lib.types.path;
@@ -62,23 +98,81 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    tarow.podman.stacks.${name}.settings = import ./config.nix;
+    tarow.podman.stacks.authelia = lib.mkIf cfg.authelia.enable {
+      oidc.clients.${name} = {
+        client_name = "Immich";
+        client_secret = cfg.authelia.clientSecretHash;
+        public = false;
+        authorization_policy = "one_factor";
+        require_pkce = false;
+        pkce_challenge_method = "";
+        pre_configured_consent_duration = "1 month";
+        redirect_uris = [
+          "${cfg.containers.${name}.traefik.serviceDomain}/auth/login"
+          "${cfg.containers.${name}.traefik.serviceDomain}/user-settings"
+          "app.immich:///oauth-callback"
+        ];
+        token_endpoint_auth_method = "client_secret_post";
+      };
+    };
+
+    tarow.podman.stacks.${name}.settings =
+      import ./config.nix
+      // (lib.optionalAttrs cfg.authelia.enable {
+        oauth = {
+          enabled = true;
+          autoLaunch = false;
+          autoRegister = true;
+          buttonText = "Login with Authelia";
+          clientId = name;
+          clientSecret = "";
+          defaultStorageQuota = 0;
+          issuerUrl = config.tarow.podman.stacks.authelia.containers.authelia.traefik.serviceDomain;
+          mobileOverrideEnabled = false;
+          mobileRedirectUri = "";
+
+          storageLabelClaim = "preferred_username";
+          storageQuotaClaim = "immich_quota";
+          timeout = 30000;
+          tokenEndpointAuthMethod = "client_secret_post";
+        };
+      });
 
     services.podman.containers = {
       ${name} = {
         image = "ghcr.io/immich-app/immich-server:v1.137.3";
-        volumes =
-          [
-            "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
-          ]
-          ++ lib.optional (cfg.settings != null) "${cfg.settings}:${env.IMMICH_CONFIG_FILE}";
+        volumes = [
+          "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
+        ]
+        ++ lib.optional (cfg.settings != null) "${configSource}:${env.IMMICH_CONFIG_FILE}";
 
         environment = env;
-        environmentFile = [cfg.envFile];
+        environmentFile = [ cfg.envFile ];
+        devices = [ "/dev/dri:/dev/dri" ];
 
-        devices = ["/dev/dri:/dev/dri"];
+        extraConfig.Service.ExecStartPre = lib.mkIf cfg.authelia.enable [
+          (lib.getExe (
+            pkgs.writeShellApplication {
+              name = "patch_immich_config";
+              runtimeInputs = [
+                pkgs.jq
+              ];
+              text = ''
+                install -D -m 600 /dev/null ${patchedConfigLocation}
+                oauthClientSecret="$(<${cfg.authelia.clientSecretFile})"
+                jq -c \
+                  --arg oauthClientSecret "$oauthClientSecret" \
+                  '.oauth.clientSecret = $oauthClientSecret' \
+                  ${cfg.settings} > ${patchedConfigLocation}
+              '';
+            }
+          ))
+        ];
 
-        dependsOnContainer = [redisName dbName];
+        dependsOnContainer = [
+          redisName
+          dbName
+        ];
         port = 2283;
 
         stack = name;
@@ -101,8 +195,8 @@ in {
 
       ${dbName} = {
         image = "docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0";
-        volumes = ["${storage}/pgdata:/var/lib/postgresql/data"];
-        environmentFile = [cfg.db.envFile];
+        volumes = [ "${storage}/pgdata:/var/lib/postgresql/data" ];
+        environmentFile = [ cfg.db.envFile ];
         environment = {
           POSTGRES_USER = env.DB_USERNAME;
           POSTGRES_DB = env.DB_DATABASE_NAME;
@@ -113,7 +207,7 @@ in {
 
       ${mlName} = {
         image = "ghcr.io/immich-app/immich-machine-learning:v1.137.3";
-        volumes = ["${storage}/model-cache:/cache"];
+        volumes = [ "${storage}/model-cache:/cache" ];
 
         stack = name;
       };

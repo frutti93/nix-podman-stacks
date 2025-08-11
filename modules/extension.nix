@@ -191,13 +191,15 @@ in
                   volumes = map (v: lib.head (lib.splitString ":" v)) (config.volumes or [ ]);
                   volumeDirs = lib.filter (v: lib.hasInfix "/" v && !lib.hasPrefix "/run" v) volumes;
                 in
-                "${lib.getExe (
-                  pkgs.writeShellApplication {
-                    name = "setupVolumes";
-                    runtimeInputs = [ pkgs.coreutils ];
-                    text = (map (v: "[ -e ${v} ] || mkdir -p ${v}") volumeDirs) |> lib.concatStringsSep "\n";
-                  }
-                )}";
+                [
+                  (lib.getExe (
+                    pkgs.writeShellApplication {
+                      name = "setupVolumes";
+                      runtimeInputs = [ pkgs.coreutils ];
+                      text = (map (v: "[ -e ${v} ] || mkdir -p ${v}") volumeDirs) |> lib.concatStringsSep "\n";
+                    }
+                  ))
+                ];
             };
           };
         }

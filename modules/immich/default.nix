@@ -98,7 +98,44 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    nps.stacks.lldap.bootstrap.userSchemas = {
+      immich-quota.attributeType = "INTEGER";
+      immich-role.attributeType = "STRING";
+    };
+
     nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
+      settings.authentication_backend = {
+        ldap.attributes.extra = {
+          immich-quota = {
+            name = "immich_quota";
+            value_type = "integer";
+          };
+          immich-role = {
+            name = "immich_role";
+            value_type = "string";
+          };
+        };
+        file.extraAttributes = {
+          immich_quota = {
+            multi_valued = false;
+            value_type = "integer";
+          };
+          immich_role = {
+            multi_valued = false;
+            value_type = "string";
+          };
+        };
+      };
+      settings.identity_providers.oidc = {
+        claims_policies.immich_policy.custom_claims = {
+          immich_quota.attribute = "immich_quota";
+          immich_role.attribute = "immich_role";
+        };
+        scopes.immich_scope.claims = [
+          "immich_quota"
+          "immich_role"
+        ];
+      };
       oidc.clients.${name} = {
         client_name = "Immich";
         client_secret = cfg.authelia.clientSecretHash;
@@ -113,6 +150,13 @@ in
           "app.immich:///oauth-callback"
         ];
         token_endpoint_auth_method = "client_secret_post";
+        scopes = [
+          "openid"
+          "profile"
+          "email"
+          "immich_scope"
+        ];
+        claims_policy = "immich_policy";
       };
     };
 
@@ -130,9 +174,10 @@ in
           issuerUrl = config.nps.stacks.authelia.containers.authelia.traefik.serviceDomain;
           mobileOverrideEnabled = false;
           mobileRedirectUri = "";
-
+          scope = "openid profile email immich_scope";
           storageLabelClaim = "preferred_username";
           storageQuotaClaim = "immich_quota";
+          roleClaim = "immich_role";
           timeout = 30000;
           tokenEndpointAuthMethod = "client_secret_post";
         };

@@ -23,7 +23,7 @@ let
       {
         options = {
           name = lib.mkOption {
-            type = lib.types.str;
+            type = lib.types.strMatching "^[a-zA-Z0-9-]+$";
             description = "Name of field, case insensitve - you should use lowercase";
             default = name;
             defaultText = lib.literalExpression ''<name>'';

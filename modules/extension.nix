@@ -14,6 +14,7 @@ let
       suffix ? ".socket",
     }:
     "${prefix}${name}-${toString port |> lib.replaceStrings [ "." ":" ] [ "_" "-" ]}${suffix}";
+
 in
 {
   # Extend the podman options in order to custom build custom abstraction
@@ -44,6 +45,20 @@ in
                 List of containers that this container depends on.
                 Similar to `dependsOn`, but will automatically apply correct pre- and suffix for
                 the generated systemd services.
+              '';
+            };
+
+            envFromFile = lib.mkOption {
+              type = lib.types.attrsOf lib.types.path;
+              default = { };
+              example = {
+                # Load environment variables from a file
+                DB_PASSWORD = "/some/path/secrets/db-password";
+                API_KEY = "/home/user/api-key";
+              };
+              description = ''
+                Environment variables that should be loaded from a file.
+                Useful for containers that don't support passing environment variables using the "_FILE" pattern.
               '';
             };
 
@@ -160,48 +175,73 @@ in
             };
           };
 
-          config = {
-            autoUpdate = lib.mkDefault "registry";
+          config =
+            let
+              envFromFileContentLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_file_content_env";
+            in
+            {
+              autoUpdate = lib.mkDefault "registry";
 
-            network = lib.mkIf (config.stack != null) [ config.stack ];
-            dependsOn =
-              (map (
-                sa:
-                mkSocketName {
-                  inherit name;
-                  port = sa.port;
-                }
-              ) config.socketActivation)
-              ++ lib.optional (builtins.any (lib.hasPrefix "${globalConf.nps.socketLocation}:") config.volumes) "podman.socket";
+              network = lib.mkIf (config.stack != null) [ config.stack ];
+              dependsOn =
+                (map (
+                  sa:
+                  mkSocketName {
+                    inherit name;
+                    port = sa.port;
+                  }
+                ) config.socketActivation)
+                ++ lib.optional (builtins.any (lib.hasPrefix "${globalConf.nps.socketLocation}:") config.volumes) "podman.socket";
 
-            environment = {
-              TZ = lib.mkDefault globalConf.nps.defaultTz;
-            }
-            // lib.mapAttrs (_: v: v.destPath) config.fileEnvMount;
+              environment = {
+                TZ = lib.mkDefault globalConf.nps.defaultTz;
+              }
+              // lib.mapAttrs (_: v: v.destPath) config.fileEnvMount;
+              environmentFile = lib.optional (config.envFromFile != { }) envFromFileContentLocation;
 
-            volumes = config.fileEnvMount |> lib.attrValues |> lib.map (v: "${v.sourcePath}:${v.destPath}");
+              volumes = config.fileEnvMount |> lib.attrValues |> lib.map (v: "${v.sourcePath}:${v.destPath}");
 
-            extraConfig = {
-              Unit.Requires = config.dependsOn ++ config.dependsOnContainer;
-              Unit.After = config.dependsOn ++ config.dependsOnContainer;
+              extraConfig = {
+                Unit.Requires = config.dependsOn ++ config.dependsOnContainer;
+                Unit.After = config.dependsOn ++ config.dependsOnContainer;
 
-              # Automatically create host directories for volumes if they don't exist
-              Service.ExecStartPre =
-                let
-                  volumes = map (v: lib.head (lib.splitString ":" v)) (config.volumes or [ ]);
-                  volumeDirs = lib.filter (v: lib.hasInfix "/" v && !lib.hasPrefix "/run" v) volumes;
-                in
-                [
-                  (lib.getExe (
-                    pkgs.writeShellApplication {
-                      name = "setupVolumes";
-                      runtimeInputs = [ pkgs.coreutils ];
-                      text = (map (v: "[ -e ${v} ] || mkdir -p ${v}") volumeDirs) |> lib.concatStringsSep "\n";
-                    }
-                  ))
-                ];
+                # Automatically create host directories for volumes if they don't exist
+                Service.ExecStartPre =
+                  let
+                    volumes = map (v: lib.head (lib.splitString ":" v)) (config.volumes or [ ]);
+                    volumeDirs = lib.filter (v: lib.hasInfix "/" v && !lib.hasPrefix "/run" v) volumes;
+                  in
+                  [
+                    (lib.getExe (
+                      pkgs.writeShellApplication {
+                        name = "setup-volumes";
+                        runtimeInputs = [ pkgs.coreutils ];
+                        text = (map (v: "[ -e ${v} ] || mkdir -p ${v}") volumeDirs) |> lib.concatStringsSep "\n";
+                      }
+                    ))
+                  ]
+                  ++ lib.optional (config.envFromFile != { }) (
+                    lib.getExe (
+                      pkgs.writeShellApplication {
+                        name = "create-env-file-from-file-content";
+                        runtimeInputs = [ pkgs.coreutils ];
+                        text = ''
+                          install -D -m 600 /dev/null ${envFromFileContentLocation}
+                        ''
+                        + (
+                          config.envFromFile
+                          |> lib.mapAttrsToList (
+                            name: path: ''
+                              echo "${name}=$(<${path})" >> "${envFromFileContentLocation}"
+                            ''
+                          )
+                          |> lib.concatStringsSep "\n"
+                        );
+                      }
+                    )
+                  );
+              };
             };
-          };
         }
       )
     );

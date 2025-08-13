@@ -3,18 +3,20 @@
   lib,
   options,
   ...
-}: let
+}:
+let
   name = "pocketid";
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
-in {
-  imports = import ../mkAliases.nix config lib name [name];
+in
+{
+  imports = import ../mkAliases.nix config lib name [ name ];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     env = lib.mkOption {
-      type = (options.services.podman.containers.type.getSubOptions []).environment.type;
-      default = {};
+      type = (options.services.podman.containers.type.getSubOptions [ ]).environment.type;
+      default = { };
       description = ''
         Additional environment variables passed to the Pocket ID container
         See <https://pocket-id.org/docs/configuration/environment-variables>
@@ -31,19 +33,38 @@ in {
       '';
     };
     traefikIntegration = {
-      envFile = lib.mkOption {
-        type = lib.types.nullOr lib.types.path;
-        default = null;
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = config.nps.stacks.traefik.enable;
+        defaultText = lib.literalExpression ''config.nps.stacks.traefik.enable'';
         description = ''
-          Environment file being passed to the Traefik container.
-          If this is set, a new `pocketid` middleware will be registered in Traefik.
-          In order to work, the environment file should contain the secrets
-          'POCKET_ID_CLIENT_ID', 'POCKET_ID_CLIENT_SECRET' & 'OIDC_MIDDLEWARE_SECRET'
-
-          'POCKET_ID_CLIENT_ID' and 'POCKET_ID_CLIENT_SECRET' are the credentials generated within PocketID
-          for the Traefik client. 'OIDC_MIDDLEWARE_SECRET' should be a random secret.
+          Whether to setup a 'pocketid' middleware in Traefik.
+          The middleware will use the <https://github.com/sevensolutions/traefik-oidc-auth> plugin to secure upstream services.
         '';
       };
+      clientId = lib.mkOption {
+        type = lib.types.str;
+        description = ''
+          The client ID used by the Traefik OIDC middleware.
+        '';
+        example = "traefik";
+      };
+      clientSecretFile = lib.mkOption {
+        type = lib.types.path;
+        description = ''
+          The file containing the client secret used by the Traefik OIDC middleware.
+        '';
+      };
+      encryptionSecretFile = lib.mkOption {
+        type = lib.types.path;
+        description = ''
+          The file containing the encryption secret used by the Traefik OIDC middleware.
+          This should be a random secret.
+
+          See <https://traefik-oidc-auth.sevensolutions.cc/docs/getting-started/middleware-configuration>
+        '';
+      };
+
     };
     ldap = {
       enableSynchronisation = lib.mkOption {
@@ -75,9 +96,16 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.traefik = lib.mkIf (cfg.traefikIntegration.envFile != null) {
-      containers.traefik.environmentFile = [cfg.traefikIntegration.envFile];
-
+    nps.containers.traefik = lib.mkIf cfg.traefikIntegration.enable {
+      environment = {
+        POCKET_ID_CLIENT_ID = cfg.traefikIntegration.clientId;
+      };
+      envFromFile = {
+        POCKET_ID_CLIENT_SECRET = cfg.traefikIntegration.clientSecretFile;
+        OIDC_MIDDLEWARE_SECRET = cfg.traefikIntegration.encryptionSecretFile;
+      };
+    };
+    nps.stacks.traefik = lib.mkIf cfg.traefikIntegration.enable {
       staticConfig.experimental.plugins.traefik-oidc-auth = {
         moduleName = "github.com/sevensolutions/traefik-oidc-auth";
         version = "v0.14.0";
@@ -101,41 +129,40 @@ in {
 
     services.podman.containers.${name} = {
       image = "ghcr.io/pocket-id/pocket-id:v1.7.0";
-      volumes =
-        [
-          "${storage}/data:/app/data"
-        ]
-        ++ lib.optional cfg.ldap.enableSynchronisation "${cfg.ldap.passwordFile}:/secrets/ldap_password";
+      volumes = [
+        "${storage}/data:/app/data"
+      ]
+      ++ lib.optional cfg.ldap.enableSynchronisation "${cfg.ldap.passwordFile}:/secrets/ldap_password";
 
-      environment =
+      environment = {
+        PUID = config.nps.defaultUid;
+        PGID = config.nps.defaultGid;
+        TRUST_PROXY = true;
+        APP_URL = cfg.containers.${name}.traefik.serviceDomain;
+        ANALYTICS_DISABLED = true;
+      }
+      // lib.optionalAttrs cfg.ldap.enableSynchronisation (
+        let
+          lldap = config.nps.stacks.lldap;
+        in
         {
-          PUID = config.nps.defaultUid;
-          PGID = config.nps.defaultGid;
-          TRUST_PROXY = true;
-          APP_URL = cfg.containers.${name}.traefik.serviceDomain;
-          ANALYTICS_DISABLED = true;
+          UI_CONFIG_DISABLED = true;
+          LDAP_ENABLED = true;
+          LDAP_URL = lldap.address;
+          LDAP_BASE = lldap.baseDn;
+          LDAP_BIND_DN = "CN=${cfg.ldap.user},OU=people," + lldap.baseDn;
+          LDAP_ATTRIBUTE_USER_UNIQUE_IDENTIFIER = "uuid";
+          LDAP_ATTRIBUTE_USER_USERNAME = "uid";
+          LDAP_ATTRIBUTE_USER_EMAIL = "mail";
+          LDAP_ATTRIBUTE_USER_FIRST_NAME = "firstname";
+          LDAP_ATTRIBUTE_USER_LAST_NAME = "lastname";
+          LDAP_ATTRIBUTE_USER_PROFILE_PICTURE = "avatar";
+          LDAP_ATTRIBUTE_GROUP_MEMBER = "member";
+          LDAP_ATTRIBUTE_GROUP_UNIQUE_IDENTIFIER = "uuid";
+          LDAP_ATTRIBUTE_GROUP_NAME = "cn";
+          LDAP_BIND_PASSWORD_FILE = "/secrets/ldap_password";
         }
-        // lib.optionalAttrs cfg.ldap.enableSynchronisation (
-          let
-            lldap = config.nps.stacks.lldap;
-          in {
-            UI_CONFIG_DISABLED = true;
-            LDAP_ENABLED = true;
-            LDAP_URL = lldap.address;
-            LDAP_BASE = lldap.baseDn;
-            LDAP_BIND_DN = "CN=${cfg.ldap.user},OU=people," + lldap.baseDn;
-            LDAP_ATTRIBUTE_USER_UNIQUE_IDENTIFIER = "uuid";
-            LDAP_ATTRIBUTE_USER_USERNAME = "uid";
-            LDAP_ATTRIBUTE_USER_EMAIL = "mail";
-            LDAP_ATTRIBUTE_USER_FIRST_NAME = "firstname";
-            LDAP_ATTRIBUTE_USER_LAST_NAME = "lastname";
-            LDAP_ATTRIBUTE_USER_PROFILE_PICTURE = "avatar";
-            LDAP_ATTRIBUTE_GROUP_MEMBER = "member";
-            LDAP_ATTRIBUTE_GROUP_UNIQUE_IDENTIFIER = "uuid";
-            LDAP_ATTRIBUTE_GROUP_NAME = "cn";
-            LDAP_BIND_PASSWORD_FILE = "/secrets/ldap_password";
-          }
-        );
+      );
       environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
 
       port = 1411;

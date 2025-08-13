@@ -2,7 +2,8 @@
   config,
   lib,
   ...
-}: {
+}:
+{
   nps = {
     hostIP4Address = "192.168.178.2";
     hostUid = 1000;
@@ -86,8 +87,12 @@
         ftp.envFile = config.sops.secrets."paperless/ftp_env".path;
       };
       pocketid = {
-        enable = true;
-        traefikIntegration.envFile = config.sops.secrets."pocketId/traefikEnv".path;
+        traefikIntegration = {
+          enable = true;
+          clientId = "some-client-id";
+          clientSecretFile = config.sops.secrets."pocketid/traefik/clientSecret".path;
+          encryptionSecretFile = config.sops.secrets."pocketid/traefik/middlewareSecret".path;
+        };
       };
       romm = {
         enable = true;
@@ -107,7 +112,7 @@
         enable = true;
         domain = "mydomain.com";
         envFile = config.sops.secrets."traefik/env".path;
-        geoblock.allowedCountries = ["DE"];
+        geoblock.allowedCountries = [ "DE" ];
       };
       uptime-kuma.enable = true;
       vaultwarden.enable = true;

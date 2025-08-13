@@ -320,6 +320,7 @@ in
       server = lib.mkIf cfg.enableTraefikMiddleware {
         endpoints.authz.forward-auth.implementation = "ForwardAuth";
       };
+      webauthn.enable_passkey_login = true;
     };
 
     nps.stacks.traefik = lib.mkIf cfg.enableTraefikMiddleware {

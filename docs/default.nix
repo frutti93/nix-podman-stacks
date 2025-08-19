@@ -40,14 +40,15 @@ let
 
   mkOptionsDoc =
     {
+      options ? eval.options,
       wantPrefix ? [ ],
       excludePrefix ? [ ],
     }:
     pkgs.nixosOptionsDoc {
-      inherit (eval) options;
-
       documentType = "none";
       warningsAreErrors = false;
+
+      inherit options;
 
       transformOptions =
         option:
@@ -104,6 +105,24 @@ let
     ];
   };
   allOptions = mkOptionsDoc { };
+
+  stackDocs =
+    let
+      stackNames = lib.attrNames eval.options.nps.stacks;
+    in
+    stackNames
+    |> lib.map (
+      stack:
+      (lib.nameValuePair stack (mkOptionsDoc {
+        wantPrefix = [
+          "nps"
+          "stacks"
+          stack
+        ];
+      }))
+    )
+    |> lib.listToAttrs;
+
 in
 {
   book = pkgs.stdenv.mkDerivation {
@@ -111,8 +130,10 @@ in
     version = "0.0.1";
     src = self;
 
-    nativeBuildInputs = [
-      pkgs.mdbook
+    nativeBuildInputs = with pkgs; [
+      mdbook
+      mdbook-alerts
+      mdbook-linkcheck
     ];
 
     dontConfigure = true;
@@ -122,19 +143,25 @@ in
       runHook preBuild
       mkdir -p src/images
 
-      cp docs/mdbook/* src/
+      cp docs/mdbook/book.toml .
+      cp docs/mdbook/src/* src/
       cp ${self}/README.md src/introduction.md
       cp ${self}/images/* src/images/
       cat ${settingsOptions.optionsCommonMark} >> src/settings-options.md
-      cat ${stackOptions.optionsCommonMark} >> src/stack-options.md
       cat ${containerOptions.optionsCommonMark} >> src/container-options.md
+
+      # Generate a subpage for each stack
+      ${lib.concatMapAttrsStringSep "\n" (stack: opts: ''
+        cat ${opts.optionsCommonMark} > src/stack-${stack}-options.md
+        echo "  - [${stack}](./stack-${stack}-options.md)" >> src/SUMMARY.md
+      '') stackDocs}
       mdbook build
       runHook postBuild
     '';
 
     installPhase = ''
       runHook preInstall
-      mv book $out
+      mv book/html $out
       runHook postInstall
     '';
   };

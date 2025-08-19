@@ -7,7 +7,4 @@ If you want to make changes that are not possible through the exposed stack opti
 
 For instance, accessing `nps.stacks.streaming.containers.jellyfin` is an alias to `services.podman.containers.jellyfin` and allows editing any of the known [`services.podman.containers`](https://home-manager-options.extranix.com/?query=services.podman.containers&release=master) options, such as networks, volumes and environment files. Usually this should not be necessary though.
 
-The following list contains the options for all available stacks.
-<br/><br/>
-
----
+The following sub-pages contain the options for each available stack.

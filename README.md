@@ -147,7 +147,7 @@ Also make sure to generate your own encryption age key and encrypt your secrets 
 ## 🔧 Customize Settings
 
 The Podman stacks are mostly opinionated and configured to work out of the box.
-Refer to [option documentation](https://tarow.github.io/nix-podman-stacks/) or the source code of each module to see which options are exposed on stack level and can be modified.
+Refer to [option documentation](https://tarow.github.io/nix-podman-stacks/book) or the source code of each module to see which options are exposed on stack level and can be modified.
 An example would be [Traefik](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/traefik/default.nix), which requires a domain to be set.
 Also it ships with preconfigured static and dynamic configurations, but allows you to extend or customize those.
 

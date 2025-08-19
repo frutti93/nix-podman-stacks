@@ -48,16 +48,27 @@ in
               '';
             };
 
-            envFromFile = lib.mkOption {
-              type = lib.types.attrsOf lib.types.path;
+            extraEnv = lib.mkOption {
+              type = (import ./types.nix lib).extraEnv;
               default = { };
               example = {
                 # Load environment variables from a file
-                DB_PASSWORD = "/some/path/secrets/db-password";
-                API_KEY = "/home/user/api-key";
+                ENCRYPTION_KEY = "literal-value";
+                DB_PASSWORD = {
+                  fromFile = "/some/path/secrets/db-password";
+                };
+                DB_URL = {
+                  fromTemplate = "postgresql://user:\${DB_PASSWORD}@localhost:5432/mydb";
+                };
+                API_KEY = {
+                  fromFile = "/home/user/api-key";
+                };
               };
               description = ''
-                Environment variables that should be loaded from a file.
+                Convinience wrapper option for passing environment variables to the container.
+                The values of the environment variables can either be a primitive value or a path to a file.
+
+                In case of passing a path (using the `fromFile` attribure), the file will be read and the content will be set as the value of the environment variable.
                 Useful for containers that don't support passing environment variables using the "_FILE" pattern.
               '';
             };
@@ -88,7 +99,6 @@ in
                     sourcePath = value;
                     destPath = "/run/secrets/${name}";
                   }
-
               );
               default = { };
               example = {
@@ -178,6 +188,18 @@ in
           config =
             let
               envFromFileContentLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_file_content_env";
+              envFromTemplateLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_templated_env";
+
+              extraLiteralEnv = config.extraEnv |> lib.filterAttrs (_: v: !lib.isAttrs v);
+              extraFileContentEnv =
+                config.extraEnv
+                |> lib.filterAttrs (_: v: lib.isAttrs v && v.fromFile != null)
+                |> lib.mapAttrs (_: v: v.fromFile);
+              extraTemplateEnv =
+                config.extraEnv
+                |> lib.filterAttrs (_: v: lib.isAttrs v && v.fromTemplate != null)
+                |> lib.mapAttrs (_: v: v.fromTemplate);
+
             in
             {
               autoUpdate = lib.mkDefault "registry";
@@ -196,14 +218,26 @@ in
               environment = {
                 TZ = lib.mkDefault globalConf.nps.defaultTz;
               }
+              // extraLiteralEnv
               // lib.mapAttrs (_: v: v.destPath) config.fileEnvMount;
-              environmentFile = lib.optional (config.envFromFile != { }) envFromFileContentLocation;
+              environmentFile =
+                lib.optional (extraFileContentEnv != { }) envFromFileContentLocation
+                ++ lib.optional (extraTemplateEnv != { }) envFromTemplateLocation;
 
               volumes = config.fileEnvMount |> lib.attrValues |> lib.map (v: "${v.sourcePath}:${v.destPath}");
 
               extraConfig = {
-                Unit.Requires = config.dependsOn ++ config.dependsOnContainer;
-                Unit.After = config.dependsOn ++ config.dependsOnContainer;
+                Unit = {
+                  Requires = config.dependsOn ++ config.dependsOnContainer;
+                  After = config.dependsOn ++ config.dependsOnContainer;
+
+                  StartLimitIntervalSec = lib.mkDefault "60";
+                  StartLimitBurst = lib.mkDefault 5;
+                };
+                Service = {
+                  # Try restarting every 5 seconds for a max 5 times
+                  RestartSec = lib.mkDefault "5s";
+                };
 
                 # Automatically create host directories for volumes if they don't exist
                 Service.ExecStartPre =
@@ -220,23 +254,49 @@ in
                       }
                     ))
                   ]
-                  ++ lib.optional (config.envFromFile != { }) (
+                  ++ lib.optional (extraFileContentEnv != { } || extraTemplateEnv != { }) (
                     lib.getExe (
                       pkgs.writeShellApplication {
-                        name = "create-env-file-from-file-content";
-                        runtimeInputs = [ pkgs.coreutils ];
-                        text = ''
-                          install -D -m 600 /dev/null ${envFromFileContentLocation}
-                        ''
-                        + (
-                          config.envFromFile
-                          |> lib.mapAttrsToList (
-                            name: path: ''
-                              echo "${name}=$(<${path})" >> "${envFromFileContentLocation}"
-                            ''
-                          )
-                          |> lib.concatStringsSep "\n"
-                        );
+                        name = "create-extra-env-files";
+                        runtimeInputs = [
+                          pkgs.coreutils
+                          pkgs.envsubst
+                        ];
+                        text =
+                          lib.optionalString (extraFileContentEnv != { }) ''
+                            # Write file-based envs to file
+                            install -D -m 600 /dev/null ${envFromFileContentLocation}
+                            {
+                            ${
+                              extraFileContentEnv
+                              |> lib.mapAttrsToList (name: path: ''echo "${name}=$(<${path})" '')
+                              |> lib.concatStringsSep "\n"
+                            }
+                            } >> "${envFromFileContentLocation}"
+                          ''
+                          + lib.optionalString (extraTemplateEnv != { }) ''
+                            # Export all env vars so envsubst can use them for the template
+                            ${
+                              config.environment
+                              |> lib.mapAttrsToList (name: value: ''${name}="${toString value}"; export ${name}'')
+                              |> lib.concatStringsSep "\n"
+                            }
+                            ${
+                              extraFileContentEnv
+                              |> lib.mapAttrsToList (name: path: ''${name}=$(<${path}); export ${name}'')
+                              |> lib.concatStringsSep "\n"
+                            }
+
+                            # Write template-based envs to a new file using envsubst
+                            install -D -m 600 /dev/null ${envFromTemplateLocation}                          
+                            envsubst < "${
+                              pkgs.writeText "env-template-${name}" (
+                                extraTemplateEnv
+                                |> lib.mapAttrsToList (name: template: ''${name}=${template}'')
+                                |> lib.concatStringsSep "\n"
+                              )
+                            }" >> "${envFromTemplateLocation}"
+                          '';
                       }
                     )
                   );
@@ -248,6 +308,22 @@ in
   };
 
   config = {
+    assertions = [
+      {
+        message = "When using `extraEnv` with `fromFile` or `fromTemplate`, exactly one of them must be set.";
+        # For every container check all extraEnv attributes that are attrs.
+        # If yes check that only one of 'fromFile' or 'fromTemplate' is set.
+        assertion =
+          config.services.podman.containers
+          |> lib.attrValues
+          |> lib.all (
+            c:
+            c.extraEnv
+            |> lib.attrValues
+            |> lib.all (v: (!lib.isAttrs v) || (v.fromFile != null) != (v.fromTemplate != null))
+          );
+      }
+    ];
     # For every stack, define a default network.
     services.podman.networks =
       let

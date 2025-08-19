@@ -22,15 +22,21 @@ in
         See <https://pocket-id.org/docs/configuration/environment-variables>
       '';
     };
-    envFile = lib.mkOption {
-      type = lib.types.nullOr lib.types.path;
-      default = null;
+    extraEnv = lib.mkOption {
+      type = (import ../types.nix lib).extraEnv;
+      default = { };
       description = ''
-        Environment file being passed to the container. Can be used to pass additional variables such
-        as 'MAXMIND_LICENSE_KEY'.
-        Refer to <https://pocket-id.org/docs/configuration/environment-variables/>
-        for a full list of available variables
+        Extra environment variables to set for the container.
+        Variables can be either set directly or sourced from a file (e.g. for secrets).
+
+        See <https://pocket-id.org/docs/configuration/environment-variables>
       '';
+      example = {
+        MAXMIND_LICENSE_KEY = {
+          fromFile = "/run/secrets/maxmind_key";
+        };
+        FOO = "bar";
+      };
     };
     traefikIntegration = {
       enable = lib.mkOption {
@@ -100,9 +106,9 @@ in
       environment = {
         POCKET_ID_CLIENT_ID = cfg.traefikIntegration.clientId;
       };
-      envFromFile = {
-        POCKET_ID_CLIENT_SECRET = cfg.traefikIntegration.clientSecretFile;
-        OIDC_MIDDLEWARE_SECRET = cfg.traefikIntegration.encryptionSecretFile;
+      extraEnv = {
+        POCKET_ID_CLIENT_SECRET.fromFile = cfg.traefikIntegration.clientSecretFile;
+        OIDC_MIDDLEWARE_SECRET.fromFile = cfg.traefikIntegration.encryptionSecretFile;
       };
     };
     nps.stacks.traefik = lib.mkIf cfg.traefikIntegration.enable {
@@ -163,7 +169,7 @@ in
           LDAP_BIND_PASSWORD_FILE = "/secrets/ldap_password";
         }
       );
-      environmentFile = lib.optional (cfg.envFile != null) cfg.envFile;
+      extraEnv = cfg.extraEnv;
 
       port = 1411;
       traefik.name = name;

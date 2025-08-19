@@ -1,4 +1,5 @@
 result
+template/flake.lock
 *.drv
 *.out
 *.tmp

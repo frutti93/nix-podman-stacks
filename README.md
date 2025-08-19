@@ -138,7 +138,7 @@ The template includes an example configuration of the following setup:
 The rough overview of the templates architecture will look like this:
 
 <p align="center">
-<img src="./images/template-overview.excalidraw.svg" alt="template-overview">
+<img src="./images/template-overview.excalidraw.svg" width="512" alt="template-overview">
 </p>
 
 Make sure to go through the `flake.nix`, `stacks.nix` & `sops.nix` files and adapt options as needed.

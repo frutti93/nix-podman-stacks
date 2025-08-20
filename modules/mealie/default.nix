@@ -24,7 +24,8 @@ in
           For details, see:
 
           - <https://www.authelia.com/integration/openid-connect/clients/karakeep/>
-          - <https://docs.karakeep.app/configuration/#authentication--signup>
+          - <https://docs.mealie.io/documentation/getting-started/authentication/oidc-v2/>
+          - <https://docs.mealie.io/documentation/getting-started/installation/backend-config/#openid-connect-oidc>
         '';
       };
       clientSecretFile = lib.mkOption {

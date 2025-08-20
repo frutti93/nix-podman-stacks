@@ -77,7 +77,7 @@ in
         client_secret = cfg.authelia.clientSecretHash;
         public = false;
         authorization_policy = "one_factor";
-        claims_policy = "romm";
+        claims_policy = name;
         require_pkce = false;
         pkce_challenge_method = "";
         pre_configured_consent_duration = "1 month";

@@ -209,6 +209,11 @@ in
 
       karakeep = {
         enable = true;
+        authelia = {
+          enable = true;
+          clientSecretFile = dummySecretFile;
+          clientSecretHash = dummyHash;
+        };
         nextauthSecretFile = dummySecretFile;
         meiliMasterKeyFile = dummySecretFile;
       };

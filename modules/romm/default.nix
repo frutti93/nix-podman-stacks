@@ -66,9 +66,9 @@ in
       '';
     };
     settings = lib.mkOption {
-      type = lib.types.nullOr yaml.type;
-      default = null;
-      apply = settings: if settings != null then yaml.generate "config.yml" settings else null;
+      type = yaml.type;
+      apply = yaml.generate "config.yml";
+      default = { };
       example = {
         platforms = {
           gc = "ngc";
@@ -76,8 +76,7 @@ in
         };
       };
       description = ''
-        RomM settings. If set, will be mounted as the `config.yml`.
-        If unset, configuration through UI is possible.
+        RomM settings. Will be mounted as the `config.yml`.
 
         See <https://docs.romm.app/latest/Getting-Started/Configuration-File/>
       '';
@@ -175,14 +174,7 @@ in
           "${storage}/redis_data:/redis-data"
           "${cfg.romLibraryPath}:/romm/library"
           "${storage}/assets:/romm/assets"
-        ]
-        ++ [
-          (
-            if (cfg.settings == null) then
-              "${storage}/config:/romm/config"
-            else
-              "${cfg.settings}:/romm/config/config.yml"
-          )
+          "${cfg.settings}:/romm/config/config.yml"
         ];
 
         extraEnv =

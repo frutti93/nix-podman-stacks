@@ -51,8 +51,7 @@
             home.username = "ci";
             home.homeDirectory = "/home/ci";
           }
-          ./template/sops.nix
-          ./template/stacks.nix
+          ./ci_config.nix
         ];
       };
 

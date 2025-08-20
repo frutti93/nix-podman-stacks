@@ -246,7 +246,14 @@ in
         };
       };
 
-      mealie.enable = true;
+      mealie = {
+        enable = true;
+        authelia = {
+          enable = true;
+          clientSecretHash = dummyHash;
+          clientSecretFile = dummySecretFile;
+        };
+      };
 
       microbin = {
         enable = true;

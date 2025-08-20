@@ -283,6 +283,8 @@ in
           };
         };
 
+        refresh_interval = "1m";
+
         # Disable password reset/change if users file is readonly (when mounted from Nix store)
         password_reset.disable = !useLdap && usersReadOnly;
         password_change.disable = !useLdap && usersReadOnly;

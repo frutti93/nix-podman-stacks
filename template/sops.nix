@@ -32,6 +32,7 @@
       "lldap/jwt_secret"
       "lldap/admin_password"
       "lldap/john_password"
+      "paperless/admin_password"
       "paperless/secret_key"
       "paperless/authelia_client_secret"
       "paperless/db_password"

@@ -271,6 +271,11 @@ in
 
       paperless = {
         enable = true;
+        adminProvisioning = {
+          username = dummyUser;
+          email = dummyEmail;
+          passwordFile = dummySecretFile;
+        };
         authelia = {
           enable = true;
           clientSecretFile = dummySecretFile;

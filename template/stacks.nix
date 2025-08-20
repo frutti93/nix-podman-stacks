@@ -74,6 +74,12 @@
       monitoring.enable = true;
 
       paperless = {
+        enable = true;
+        adminProvisioning = {
+          username = "admin";
+          email = "admin@example.com";
+          passwordFile = config.sops.secrets."paperless/admin_password".path;
+        };
         authelia = {
           enable = true;
           clientSecretFile = config.sops.secrets."paperless/authelia_client_secret".path;

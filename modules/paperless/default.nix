@@ -31,6 +31,32 @@ in
         See <https://docs.paperless-ngx.com/configuration/#PAPERLESS_SECRET_KEY>
       '';
     };
+    adminProvisioning = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Whether to automatically create an admin user on the first run.
+          If set to false, an admin user can be manually created using the `createsuperuser` command.
+
+          See <https://docs.paperless-ngx.com/administration/#create-superuser>
+        '';
+      };
+      username = lib.mkOption {
+        type = lib.types.str;
+        default = "admin";
+        description = "Username for the admin user";
+      };
+      email = lib.mkOption {
+        type = lib.types.str;
+        description = "Email address for the admin user ";
+      };
+      passwordFile = lib.mkOption {
+        type = lib.types.path;
+        default = null;
+        description = "Path to a file containing the admin user password";
+      };
+    };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
       default = { };
@@ -133,6 +159,11 @@ in
           PAPERLESS_DBUSER = cfg.db.username;
           PAPERLESS_DBPASS.fromFile = cfg.db.passwordFile;
           PAPERLESS_SECRET_KEY.fromFile = cfg.secretKeyFile;
+        }
+        // lib.optionalAttrs cfg.adminProvisioning.enable {
+          PAPERLESS_ADMIN_USER = cfg.adminProvisioning.username;
+          PAPERLESS_ADMIN_MAIL = cfg.adminProvisioning.email;
+          PAPERLESS_ADMIN_PASSWORD.fromFile = cfg.adminProvisioning.passwordFile;
         }
         // lib.optionalAttrs cfg.authelia.enable {
           PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";

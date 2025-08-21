@@ -48,6 +48,11 @@ in
               '';
             };
 
+            # Extend upstream option. Filter out null values, so env variables can be unset when overwritten
+            environment = lib.mkOption {
+              apply = lib.filterAttrs (k: v: v != null);
+            };
+
             extraEnv = lib.mkOption {
               type = (import ./types.nix lib).extraEnv;
               default = { };

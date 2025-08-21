@@ -2,13 +2,11 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   name = "stirling-pdf";
   cfg = config.nps.stacks.${name};
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;

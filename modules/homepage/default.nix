@@ -3,25 +3,23 @@
   pkgs,
   lib,
   ...
-}:
-let
+}: let
   name = "homepage";
   externalStorage = config.nps.externalStorageBaseDir;
   cfg = config.nps.stacks.${name};
-  yaml = pkgs.formats.yaml { };
+  yaml = pkgs.formats.yaml {};
 
   utils = import ./utils.nix lib;
 
-  deepFilterWidgets =
-    value:
-    if lib.isAttrs value then
+  deepFilterWidgets = value:
+    if lib.isAttrs value
+    then
       lib.filterAttrs (n: v: !(n == "widget" && !(v.enable or false))) (
         lib.mapAttrs (_: deepFilterWidgets) value
       )
-    else if lib.isList value then
-      builtins.map deepFilterWidgets value
-    else
-      value;
+    else if lib.isList value
+    then builtins.map deepFilterWidgets value
+    else value;
 
   # Replace paths values in the configuration with environment variable placeholders
   bookmarks = utils.replacePathsDeep cfg.bookmarks |> yaml.generate "bookmarks";
@@ -41,44 +39,45 @@ let
       cfg.widgets
     ]
     |> map utils.pathEntries
-    |> lib.foldl' (a: b: a // b) { };
+    |> lib.foldl' (a: b: a // b) {};
 
-  sortByRank =
-    attrs:
+  sortByRank = attrs:
     builtins.sort (
-      a: b:
-      let
+      a: b: let
         orderA = attrs.${a}.rank or 999;
         orderB = attrs.${b}.rank or 999;
       in
-      if orderA == orderB then (lib.strings.toLower a) < (lib.strings.toLower b) else orderA < orderB
+        if orderA == orderB
+        then (lib.strings.toLower a) < (lib.strings.toLower b)
+        else orderA < orderB
     ) (builtins.attrNames attrs);
 
-  toOrderedList =
-    attrs:
+  toOrderedList = attrs:
     builtins.map (groupName: {
       "${groupName}" = builtins.map (serviceName: {
         "${serviceName}" = attrs.${groupName}.${serviceName};
       }) (sortByRank attrs.${groupName});
     }) (sortByRank attrs);
-in
-{
-  imports = [
-    ./extension.nix
-    (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix { stack = name; })
-  ]
-  ++ import ../mkAliases.nix config lib name [ name ];
+in {
+  imports =
+    [
+      ./extension.nix
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {stack = name;})
+    ]
+    ++ import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
-    enable = lib.mkEnableOption name // {
-      description = ''
-        Whether to enable the Homepage stack.
+    enable =
+      lib.mkEnableOption name
+      // {
+        description = ''
+          Whether to enable the Homepage stack.
 
-        The services of enabled stacks will be automatically added to Homepage.
-        The module will also automatically configure the docker integration for the local host and
-        setup some widgets.
-      '';
-    };
+          The services of enabled stacks will be automatically added to Homepage.
+          The module will also automatically configure the docker integration for the local host and
+          setup some widgets.
+        '';
+      };
     bookmarks = lib.mkOption {
       inherit (yaml) type;
       description = ''
@@ -112,7 +111,7 @@ in
           ];
         }
       ];
-      default = [ ];
+      default = [];
     };
     services = lib.mkOption {
       inherit (yaml) type;
@@ -144,7 +143,7 @@ in
           ];
         }
       ];
-      default = [ ];
+      default = [];
     };
     widgets = lib.mkOption {
       inherit (yaml) type;
@@ -168,7 +167,7 @@ in
           };
         }
       ];
-      default = [ ];
+      default = [];
     };
     docker = lib.mkOption {
       inherit (yaml) type;
@@ -177,7 +176,7 @@ in
 
         See <https://gethomepage.dev/configs/docker/>.
       '';
-      default = { };
+      default = {};
     };
     settings = lib.mkOption {
       inherit (yaml) type;
@@ -186,7 +185,7 @@ in
 
         See <https://gethomepage.dev/configs/settings/>.
       '';
-      default = { };
+      default = {};
     };
   };
 
@@ -218,13 +217,12 @@ in
 
     nps.stacks.${name} = {
       docker.local =
-        if cfg.useSocketProxy then
-          {
-            host = "docker-socket-proxy";
-            port = config.nps.stacks.docker-socket-proxy.port;
-          }
-        else
-          { socket = "/var/run/docker.sock"; };
+        if cfg.useSocketProxy
+        then {
+          host = "docker-socket-proxy";
+          port = config.nps.stacks.docker-socket-proxy.port;
+        }
+        else {socket = "/var/run/docker.sock";};
       settings.statusStyle = "dot";
       settings.useEqualHeights = true;
 

@@ -1,12 +1,9 @@
 lib:
 with lib;
-with types;
-rec {
-
+with types; rec {
   fromFileOrTemplateSubmodule = (
     submodule (
-      { config, ... }:
-      {
+      {config, ...}: {
         options = {
           fromFile = mkOption {
             type = nullOr path;
@@ -26,7 +23,6 @@ rec {
             example = "DB_URL=\${DB_USERNAME}:\${DB_PASSWORD}@localhost:5432/mydb";
           };
         };
-
       }
     )
   );
@@ -44,5 +40,6 @@ rec {
     ]
   );
 
-  extraEnv = attrsOf primitiveOrSubmodule;
+  # Allow null values, so env variables can be unset when overwritten
+  extraEnv = attrsOf (nullOr primitiveOrSubmodule);
 }

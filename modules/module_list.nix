@@ -44,9 +44,9 @@ let
     wg-portal = ./wg-portal;
   };
 in
-modules
-// {
-  nps = {
-    imports = builtins.attrValues modules;
-  };
-}
+  modules
+  // {
+    nps = {
+      imports = builtins.attrValues modules;
+    };
+  }

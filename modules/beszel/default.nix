@@ -3,29 +3,28 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "beszel";
   agentName = "${name}-agent";
 
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
 
-  yaml = pkgs.formats.yaml { };
+  yaml = pkgs.formats.yaml {};
 
   socketTargetLocation = "/var/run/podman.sock";
-in
-{
-  imports = [
-    (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {
-      stack = name;
-      targetLocation = socketTargetLocation;
-    })
-  ]
-  ++ import ../mkAliases.nix config lib name [
-    name
-    agentName
-  ];
+in {
+  imports =
+    [
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {
+        stack = name;
+        targetLocation = socketTargetLocation;
+      })
+    ]
+    ++ import ../mkAliases.nix config lib name [
+      name
+      agentName
+    ];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -50,7 +49,10 @@ in
     settings = lib.mkOption {
       type = lib.types.nullOr yaml.type;
       default = null;
-      apply = settings: if (settings != null) then yaml.generate "config.yml" settings else null;
+      apply = settings:
+        if (settings != null)
+        then yaml.generate "config.yml" settings
+        else null;
 
       description = ''
         System configuration (optional).
@@ -63,7 +65,7 @@ in
             name = "Local";
             host = "/beszel_socket/beszel.sock";
             port = 45876;
-            users = [ "admin@example.com" ];
+            users = ["admin@example.com"];
           }
         ];
       };
@@ -111,17 +113,18 @@ in
     services.podman.containers = {
       ${name} = {
         image = "ghcr.io/henrygd/beszel/beszel:0.12.3";
-        volumes = [
-          "${storage}/data:/beszel_data"
-          "${storage}/beszel_socket:/beszel_socket"
-        ]
-        ++ lib.optional (cfg.settings != null) "${cfg.settings}:/beszel_data/config.yml"
-        ++ lib.optional (
-          cfg.ed25519PrivateKeyFile != null
-        ) "${cfg.ed25519PrivateKeyFile}:/beszel_data/id_ed25519"
-        ++ lib.optional (
-          cfg.ed25519PublicKeyFile != null
-        ) "${cfg.ed25519PublicKeyFile}:/beszel_data/id_ed25519.pub";
+        volumes =
+          [
+            "${storage}/data:/beszel_data"
+            "${storage}/beszel_socket:/beszel_socket"
+          ]
+          ++ lib.optional (cfg.settings != null) "${cfg.settings}:/beszel_data/config.yml"
+          ++ lib.optional (
+            cfg.ed25519PrivateKeyFile != null
+          ) "${cfg.ed25519PrivateKeyFile}:/beszel_data/id_ed25519"
+          ++ lib.optional (
+            cfg.ed25519PublicKeyFile != null
+          ) "${cfg.ed25519PublicKeyFile}:/beszel_data/id_ed25519.pub";
 
         environment = {
           SHARE_ALL_SYSTEMS = true;
@@ -150,15 +153,17 @@ in
 
         # No way to connect to socket proxy through host network yet
         # Check traefik tcp router with socket activation eventually
-        network = if (!cfg.useSocketProxy) then [ "host" ] else [ config.nps.stacks.traefik.network.name ];
+        network =
+          if (!cfg.useSocketProxy)
+          then ["host"]
+          else [config.nps.stacks.traefik.network.name];
 
         environment = {
           LISTEN = "/beszel_socket/beszel.sock";
           DOCKER_HOST =
-            if !cfg.useSocketProxy then
-              "unix://${socketTargetLocation}"
-            else
-              config.nps.stacks.docker-socket-proxy.address;
+            if !cfg.useSocketProxy
+            then "unix://${socketTargetLocation}"
+            else config.nps.stacks.docker-socket-proxy.address;
         };
       };
     };

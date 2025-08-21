@@ -2,8 +2,7 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   name = "karakeep";
   chromeName = "${name}-chrome";
   meilisearchName = "${name}-meilisearch";
@@ -11,8 +10,7 @@ let
   storage = "${config.nps.storageBaseDir}/${name}";
 
   cfg = config.nps.stacks.${name};
-in
-{
+in {
   imports = import ../mkAliases.nix config lib name [
     name
     chromeName
@@ -70,7 +68,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-
     nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
       oidc.clients.${name} = {
         client_name = "Karakeep";
@@ -108,16 +105,17 @@ in
           BROWSER_WEB_URL = "http://${chromeName}:9222";
           NEXTAUTH_URL = cfg.containers.${name}.traefik.serviceDomain;
         };
-        extraEnv = {
-          NEXTAUTH_SECRET.fromFile = cfg.nextauthSecretFile;
-          MEILI_MASTER_KEY.fromFile = cfg.meiliMasterKeyFile;
-        }
-        // lib.optionalAttrs cfg.authelia.enable {
-          OAUTH_WELLKNOWN_URL = "${config.nps.containers.authelia.traefik.serviceDomain}/.well-known/openid-configuration";
-          OAUTH_CLIENT_ID = name;
-          OAUTH_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
-          OAUTH_PROVIDER_NAME = "Authelia";
-        };
+        extraEnv =
+          {
+            NEXTAUTH_SECRET.fromFile = cfg.nextauthSecretFile;
+            MEILI_MASTER_KEY.fromFile = cfg.meiliMasterKeyFile;
+          }
+          // lib.optionalAttrs cfg.authelia.enable {
+            OAUTH_WELLKNOWN_URL = "${config.nps.containers.authelia.traefik.serviceDomain}/.well-known/openid-configuration";
+            OAUTH_CLIENT_ID = name;
+            OAUTH_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
+            OAUTH_PROVIDER_NAME = "Authelia";
+          };
 
         stack = name;
         port = 3000;
@@ -155,7 +153,7 @@ in
         extraEnv = {
           MEILI_MASTER_KEY.fromFile = cfg.meiliMasterKeyFile;
         };
-        volumes = [ "${storage}/meilisearch:/meili_data" ];
+        volumes = ["${storage}/meilisearch:/meili_data"];
 
         stack = name;
       };

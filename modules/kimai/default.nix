@@ -2,16 +2,14 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   name = "kimai";
   dbName = "${name}-db";
 
   storage = "${config.nps.storageBaseDir}/${name}";
 
   cfg = config.nps.stacks.${name};
-in
-{
+in {
   imports = import ../mkAliases.nix config lib name [
     name
     dbName
@@ -48,7 +46,6 @@ in
         description = "Path to the file containing the password for the MySQL root user.";
       };
     };
-
   };
 
   config = lib.mkIf cfg.enable {
@@ -69,7 +66,7 @@ in
           DATABASE_URL.fromTemplate = "mysql://${cfg.db.username}:\${DATABASE_PASSWORD}@${dbName}/${cfg.db.databaseName}?charset=utf8mb4";
         };
 
-        dependsOnContainer = [ dbName ];
+        dependsOnContainer = [dbName];
         stack = name;
 
         port = 8001;
@@ -86,7 +83,7 @@ in
 
       ${dbName} = {
         image = "docker.io/mysql:9";
-        volumes = [ "${storage}/db:/var/lib/mysql" ];
+        volumes = ["${storage}/db:/var/lib/mysql"];
         extraEnv = {
           MYSQL_DATABASE = cfg.db.databaseName;
           MYSQL_USER = cfg.db.username;

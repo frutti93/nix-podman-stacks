@@ -3,15 +3,13 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "wg-portal";
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
-  yaml = pkgs.formats.yaml { };
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+  yaml = pkgs.formats.yaml {};
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -36,7 +34,7 @@ in
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -71,7 +69,7 @@ in
         "${storage}/data:/app/data"
         "${cfg.settings}:/app/config/config.yaml"
       ];
-      ports = [ "${toString cfg.port}:${toString cfg.port}/udp" ];
+      ports = ["${toString cfg.port}:${toString cfg.port}/udp"];
       addCapabilities = [
         "NET_ADMIN"
         "NET_RAW"

@@ -3,20 +3,18 @@
   lib,
   options,
   ...
-}:
-let
+}: let
   name = "bytestash";
   cfg = config.nps.stacks.${name};
   storage = "${config.nps.storageBaseDir}/${name}";
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -36,7 +34,7 @@ in
     services.podman.containers.${name} = {
       image = "ghcr.io/jordan-dalby/bytestash:1.5.8";
 
-      volumes = [ "${storage}/snippets:/data/snippets" ];
+      volumes = ["${storage}/snippets:/data/snippets"];
       environment = {
         BASE_PATH = "";
         TOKEN_EXPIRY = "24h";

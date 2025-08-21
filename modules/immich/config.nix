@@ -131,7 +131,7 @@
       minScore = 0.7;
       modelName = "buffalo_l";
     };
-    urls = [ "http://immich-machine-learning:3003" ];
+    urls = ["http://immich-machine-learning:3003"];
   };
 
   map = {

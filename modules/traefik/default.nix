@@ -3,29 +3,30 @@
   config,
   pkgs,
   ...
-}:
-let
+}: let
   name = "traefik";
   cfg = config.nps.stacks.${name};
 
-  yaml = pkgs.formats.yaml { };
+  yaml = pkgs.formats.yaml {};
 
   storage = "${config.nps.storageBaseDir}/${name}";
-in
-{
-  imports = [
-    ./extension.nix
-    (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix { stack = name; })
-  ]
-  ++ import ../mkAliases.nix config lib name name;
+in {
+  imports =
+    [
+      ./extension.nix
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {stack = name;})
+    ]
+    ++ import ../mkAliases.nix config lib name name;
 
   options.nps.stacks.${name} = {
-    enable = lib.options.mkEnableOption name // {
-      description = ''
-        Wheter to enable Traefik.
-        The Traefik stack ships preconfigured with a dynamic and static configuration.
-      '';
-    };
+    enable =
+      lib.options.mkEnableOption name
+      // {
+        description = ''
+          Wheter to enable Traefik.
+          The Traefik stack ships preconfigured with a dynamic and static configuration.
+        '';
+      };
     domain = lib.options.mkOption {
       type = lib.types.str;
       description = "Base domain handled by Traefik";
@@ -81,7 +82,7 @@ in
     };
     dynamicConfig = lib.options.mkOption {
       type = yaml.type;
-      default = { };
+      default = {};
       description = ''
         Dynamic configuration for Traefik.
         By default, the module will setup two middlewares: private & public.
@@ -92,7 +93,7 @@ in
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -118,7 +119,7 @@ in
       };
       allowedCountries = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [ ];
+        default = [];
         description = ''
           List of allowed country codes (ISO 3166-1 alpha-2 format)
           See <https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements>
@@ -149,7 +150,7 @@ in
 
         (lib.mkIf cfg.geoblock.enable {
           http.middlewares = {
-            public.chain.middlewares = lib.mkOrder 1100 [ "geoblock" ];
+            public.chain.middlewares = lib.mkOrder 1100 ["geoblock"];
             geoblock.plugin.geoblock = {
               enabled = true;
               databaseFilePath = "/plugins/geoblock/IP2LOCATION-LITE-DB1.IPV6.BIN";
@@ -171,7 +172,7 @@ in
         honor_timestamps = true;
         metrics_path = "/metrics";
         scheme = "http";
-        static_configs = [ { targets = [ "${name}:9100" ]; } ];
+        static_configs = [{targets = ["${name}:9100"];}];
       };
     };
 

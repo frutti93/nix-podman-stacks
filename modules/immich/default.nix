@@ -3,8 +3,7 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "immich";
 
   dbName = "${name}-db";
@@ -16,23 +15,26 @@ let
   cfg = config.nps.stacks.${name};
 
   patchedConfigLocation = "/run/user/${toString config.nps.hostUid}/immmich/config_patched.json";
-  configSource = if cfg.authelia.enable then patchedConfigLocation else cfg.settings;
+  configSource =
+    if cfg.authelia.enable
+    then patchedConfigLocation
+    else cfg.settings;
 
-  env = {
-    DB_HOSTNAME = dbName;
-    DB_USERNAME = "postgres";
-    DB_DATABASE_NAME = "immich";
-    REDIS_HOSTNAME = redisName;
-    NODE_ENV = "production";
-    UPLOAD_LOCATION = "/usr/src/app/upload";
-  }
-  // lib.optionalAttrs (cfg.settings != null) {
-    IMMICH_CONFIG_FILE = "/usr/src/app/config/config.json";
-  };
+  env =
+    {
+      DB_HOSTNAME = dbName;
+      DB_USERNAME = "postgres";
+      DB_DATABASE_NAME = "immich";
+      REDIS_HOSTNAME = redisName;
+      NODE_ENV = "production";
+      UPLOAD_LOCATION = "/usr/src/app/upload";
+    }
+    // lib.optionalAttrs (cfg.settings != null) {
+      IMMICH_CONFIG_FILE = "/usr/src/app/config/config.json";
+    };
 
-  json = pkgs.formats.json { };
-in
-{
+  json = pkgs.formats.json {};
+in {
   imports = import ../mkAliases.nix config lib name [
     name
     redisName
@@ -51,7 +53,10 @@ in
 
         For details to the config file see <https://immich.app/docs/install/config-file/>
       '';
-      apply = settings: if (settings != null) then (json.generate "config.json" settings) else null;
+      apply = settings:
+        if (settings != null)
+        then (json.generate "config.json" settings)
+        else null;
     };
     authelia = {
       enable = lib.mkOption {
@@ -180,14 +185,15 @@ in
     services.podman.containers = {
       ${name} = {
         image = "ghcr.io/immich-app/immich-server:v1.138.1";
-        volumes = [
-          "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
-        ]
-        ++ lib.optional (cfg.settings != null) "${configSource}:${env.IMMICH_CONFIG_FILE}";
+        volumes =
+          [
+            "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
+          ]
+          ++ lib.optional (cfg.settings != null) "${configSource}:${env.IMMICH_CONFIG_FILE}";
 
         environment = env;
         extraEnv.DB_PASSWORD.fromFile = cfg.dbPasswordFile;
-        devices = [ "/dev/dri:/dev/dri" ];
+        devices = ["/dev/dri:/dev/dri"];
 
         extraConfig.Service.ExecStartPre = lib.mkIf cfg.authelia.enable [
           (lib.getExe (
@@ -234,7 +240,7 @@ in
 
       ${dbName} = {
         image = "docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0";
-        volumes = [ "${storage}/pgdata:/var/lib/postgresql/data" ];
+        volumes = ["${storage}/pgdata:/var/lib/postgresql/data"];
 
         extraEnv = {
           POSTGRES_USER = env.DB_USERNAME;
@@ -247,7 +253,7 @@ in
 
       ${mlName} = {
         image = "ghcr.io/immich-app/immich-machine-learning:v1.138.1";
-        volumes = [ "${storage}/model-cache:/cache" ];
+        volumes = ["${storage}/model-cache:/cache"];
 
         stack = name;
       };

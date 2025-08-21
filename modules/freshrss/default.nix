@@ -3,14 +3,12 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "freshrss";
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -49,23 +47,22 @@ in
   config = lib.mkIf cfg.enable {
     # Fix for https://github.com/FreshRSS/FreshRSS/issues/7300
     # Override entrypoint so that secrets passed as env variables get interpolated
-    nps.stacks.${name}.containers.${name} =
-      let
-        patchedEntryPoint = pkgs.writeTextFile {
-          name = "entrypoint.sh";
-          executable = true;
-          text = ''
-            #!/bin/sh
-            export FRESHRSS_USER="$(eval echo "$FRESHRSS_USER")"
-            export FRESHRSS_INSTALL="$(eval echo "$FRESHRSS_INSTALL")"
-            exec ./Docker/entrypoint.sh "$@"
-          '';
-        };
-      in
+    nps.stacks.${name}.containers.${name} = let
+      patchedEntryPoint = pkgs.writeTextFile {
+        name = "entrypoint.sh";
+        executable = true;
+        text = ''
+          #!/bin/sh
+          export FRESHRSS_USER="$(eval echo "$FRESHRSS_USER")"
+          export FRESHRSS_INSTALL="$(eval echo "$FRESHRSS_INSTALL")"
+          exec ./Docker/entrypoint.sh "$@"
+        '';
+      };
+    in
       lib.mkIf (cfg.adminProvisioning.enable) {
         entrypoint = "./Docker/patchedEntrypoint.sh";
         exec = "bash -c '([ -z \"\\$\\$CRON_MIN\" ] || cron) && . /etc/apache2/envvars && exec apache2 -D FOREGROUND'";
-        volumes = [ "${patchedEntryPoint}:/var/www/FreshRSS/Docker/patchedEntrypoint.sh" ];
+        volumes = ["${patchedEntryPoint}:/var/www/FreshRSS/Docker/patchedEntrypoint.sh"];
       };
 
     services.podman.containers.${name} = {
@@ -75,35 +72,36 @@ in
         "${storage}/extensions:/var/www/FreshRSS/extensions"
       ];
 
-      extraEnv = {
-        CRON_MIN = "3,33";
-        TRUSTED_PROXY = config.nps.stacks.traefik.network.subnet;
-      }
-      // lib.optionalAttrs (cfg.adminProvisioning.enable) {
-        ADMIN_USERNAME = cfg.adminProvisioning.username;
-        ADMIN_EMAIL = cfg.adminProvisioning.adminEmail;
-        ADMIN_PASSWORD.fromFile = cfg.adminProvisioning.adminPasswordFile;
-        ADMIN_API_PASSWORD.fromFile = cfg.adminProvisioning.adminApiPasswordFile;
+      extraEnv =
+        {
+          CRON_MIN = "3,33";
+          TRUSTED_PROXY = config.nps.stacks.traefik.network.subnet;
+        }
+        // lib.optionalAttrs (cfg.adminProvisioning.enable) {
+          ADMIN_USERNAME = cfg.adminProvisioning.username;
+          ADMIN_EMAIL = cfg.adminProvisioning.adminEmail;
+          ADMIN_PASSWORD.fromFile = cfg.adminProvisioning.adminPasswordFile;
+          ADMIN_API_PASSWORD.fromFile = cfg.adminProvisioning.adminApiPasswordFile;
 
-        FRESHRSS_INSTALL = "'${
-          lib.concatStringsSep " " [
-            "--api-enabled"
-            "--base-url ${cfg.containers.${name}.traefik.serviceDomain}"
-            "--default-user \\$\\$\{ADMIN_USERNAME\}"
-            "--language en"
-          ]
-        }'";
+          FRESHRSS_INSTALL = "'${
+            lib.concatStringsSep " " [
+              "--api-enabled"
+              "--base-url ${cfg.containers.${name}.traefik.serviceDomain}"
+              "--default-user \\$\\$\{ADMIN_USERNAME\}"
+              "--language en"
+            ]
+          }'";
 
-        FRESHRSS_USER = "'${
-          lib.concatStringsSep " " [
-            "--api-password \\$\\$\{ADMIN_API_PASSWORD\}"
-            "--email \\$\\$\{ADMIN_EMAIL\}"
-            "--language en"
-            "--password \\$\\$\{ADMIN_PASSWORD\}"
-            "--user \\$\\$\{ADMIN_USERNAME\}"
-          ]
-        }'";
-      };
+          FRESHRSS_USER = "'${
+            lib.concatStringsSep " " [
+              "--api-password \\$\\$\{ADMIN_API_PASSWORD\}"
+              "--email \\$\\$\{ADMIN_EMAIL\}"
+              "--language en"
+              "--password \\$\\$\{ADMIN_PASSWORD\}"
+              "--user \\$\\$\{ADMIN_USERNAME\}"
+            ]
+          }'";
+        };
 
       port = 80;
       traefik.name = name;

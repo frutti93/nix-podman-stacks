@@ -3,31 +3,32 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "gatus";
   dbName = "${name}-db";
   cfg = config.nps.stacks.${name};
   storage = "${config.nps.storageBaseDir}/${name}";
-  yaml = pkgs.formats.yaml { };
-in
-{
-  imports = [
-    ./extension.nix
-  ]
-  ++ import ../mkAliases.nix config lib name [
-    name
-    dbName
-  ];
+  yaml = pkgs.formats.yaml {};
+in {
+  imports =
+    [
+      ./extension.nix
+    ]
+    ++ import ../mkAliases.nix config lib name [
+      name
+      dbName
+    ];
 
   options.nps.stacks.${name} = {
-    enable = lib.mkEnableOption name // {
-      description = ''
-        Whether to enable Gatus.
-        The module also provides an extension that will add Gatus options to a container.
-        This allows services to be added to Gatus by settings container options.
-      '';
-    };
+    enable =
+      lib.mkEnableOption name
+      // {
+        description = ''
+          Whether to enable Gatus.
+          The module also provides an extension that will add Gatus options to a container.
+          This allows services to be added to Gatus by settings container options.
+        '';
+      };
     settings = lib.mkOption {
       type = yaml.type;
       description = ''
@@ -38,7 +39,7 @@ in
     };
     extraSettingsFiles = lib.mkOption {
       type = lib.types.listOf lib.types.path;
-      default = [ ];
+      default = [];
       description = ''
         List of additional YAML files to include in the settings.
         These files will be mounted as is. Can be used to directly provide YAML files containing secrets, e.g. from sops
@@ -94,7 +95,7 @@ in
       };
       allowedSubjects = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [ ];
+        default = [];
         description = ''
           List of allowed subjects. If not set, all subjects will be allowed.
         '';
@@ -102,7 +103,7 @@ in
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -143,7 +144,6 @@ in
           Only used if db.type is set to "postgres".
         '';
       };
-
     };
   };
 
@@ -167,53 +167,52 @@ in
       storage = {
         type = cfg.db.type;
         path =
-          if (cfg.db.type == "sqlite") then
-            "/data/data.db"
-          else
-            "postgres://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@${dbName}:5432/${
-              cfg.containers.${dbName}.environment.POSTGRES_DB
-            }?sslmode=disable";
+          if (cfg.db.type == "sqlite")
+          then "/data/data.db"
+          else "postgres://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@${dbName}:5432/${
+            cfg.containers.${dbName}.environment.POSTGRES_DB
+          }?sslmode=disable";
       };
       security = lib.mkIf cfg.authelia.enable {
-        oidc =
-          let
-            authelia = config.nps.stacks.authelia;
-            oidcClient = authelia.oidc.clients.${name};
-          in
-          {
-            issuer-url = authelia.containers.authelia.traefik.serviceDomain;
-            client-id = oidcClient.client_id;
-            client-secret = "\${AUTHELIA_CLIENT_SECRET}";
-            redirect-url = lib.elemAt oidcClient.redirect_uris 0;
-            scopes = [
-              "openid"
-              "profile"
-              "email"
-            ];
-            allowed-subjects = cfg.authelia.allowedSubjects;
-          };
+        oidc = let
+          authelia = config.nps.stacks.authelia;
+          oidcClient = authelia.oidc.clients.${name};
+        in {
+          issuer-url = authelia.containers.authelia.traefik.serviceDomain;
+          client-id = oidcClient.client_id;
+          client-secret = "\${AUTHELIA_CLIENT_SECRET}";
+          redirect-url = lib.elemAt oidcClient.redirect_uris 0;
+          scopes = [
+            "openid"
+            "profile"
+            "email"
+          ];
+          allowed-subjects = cfg.authelia.allowedSubjects;
+        };
       };
     };
 
     services.podman.containers = {
-      ${name} =
-        let
-          settings = cfg.settings // {
-            endpoints = lib.map (e: lib.recursiveUpdate cfg.defaultEndpoint e) (cfg.settings.endpoints or [ ]);
+      ${name} = let
+        settings =
+          cfg.settings
+          // {
+            endpoints = lib.map (e: lib.recursiveUpdate cfg.defaultEndpoint e) (cfg.settings.endpoints or []);
           };
-          configDir = "/app/config";
-        in
-        {
-          image = "ghcr.io/twin/gatus:v5.23.2";
-          volumes = [
+        configDir = "/app/config";
+      in {
+        image = "ghcr.io/twin/gatus:v5.23.2";
+        volumes =
+          [
             "${yaml.generate "config.yml" settings}:${configDir}/config.yml"
           ]
           ++ (lib.map (f: "${f}:${configDir}/${builtins.baseNameOf f}") cfg.extraSettingsFiles)
           ++ lib.optional (cfg.db.type == "sqlite") "${storage}/sqlite:/data";
-          environment = {
-            GATUS_CONFIG_PATH = configDir;
-          };
-          extraEnv = {
+        environment = {
+          GATUS_CONFIG_PATH = configDir;
+        };
+        extraEnv =
+          {
             AUTHELIA_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
           }
           // lib.optionalAttrs (cfg.db.type == "postgres") {
@@ -222,23 +221,23 @@ in
           }
           // cfg.extraEnv;
 
-          stack = name;
-          port = 8080;
-          traefik.name = name;
-          homepage = {
-            category = "Monitoring";
-            name = "Gatus";
-            settings = {
-              description = "Health Monitoring";
-              icon = "gatus";
-              widget.type = "gatus";
-            };
+        stack = name;
+        port = 8080;
+        traefik.name = name;
+        homepage = {
+          category = "Monitoring";
+          name = "Gatus";
+          settings = {
+            description = "Health Monitoring";
+            icon = "gatus";
+            widget.type = "gatus";
           };
         };
+      };
 
       ${dbName} = lib.mkIf (cfg.db.type == "postgres") {
         image = "docker.io/postgres:17";
-        volumes = [ "${storage}/postgres:/var/lib/postgresql/data" ];
+        volumes = ["${storage}/postgres:/var/lib/postgresql/data"];
         extraEnv = {
           POSTGRES_DB = "gatus";
           POSTGRES_USER = cfg.db.postgresUser;

@@ -3,20 +3,18 @@
   lib,
   options,
   ...
-}:
-let
+}: let
   name = "vaultwarden";
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).

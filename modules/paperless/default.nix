@@ -3,8 +3,7 @@
   lib,
   options,
   ...
-}:
-let
+}: let
   name = "paperless";
   dbName = "${name}-db";
   brokerName = "${name}-broker";
@@ -12,8 +11,7 @@ let
 
   cfg = config.nps.stacks.${name};
   storage = "${config.nps.storageBaseDir}/${name}";
-in
-{
+in {
   imports = import ../mkAliases.nix config lib name [
     name
     dbName
@@ -27,7 +25,7 @@ in
       type = lib.types.path;
       description = ''
         Path to the file containing the Paperless secret key
-              
+
         See <https://docs.paperless-ngx.com/configuration/#PAPERLESS_SECRET_KEY>
       '';
     };
@@ -59,7 +57,7 @@ in
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -155,26 +153,25 @@ in
           PAPERLESS_URL = config.services.podman.containers.${name}.traefik.serviceDomain;
         };
 
-        extraEnv = {
-          PAPERLESS_DBUSER = cfg.db.username;
-          PAPERLESS_DBPASS.fromFile = cfg.db.passwordFile;
-          PAPERLESS_SECRET_KEY.fromFile = cfg.secretKeyFile;
-        }
-        // lib.optionalAttrs cfg.adminProvisioning.enable {
-          PAPERLESS_ADMIN_USER = cfg.adminProvisioning.username;
-          PAPERLESS_ADMIN_MAIL = cfg.adminProvisioning.email;
-          PAPERLESS_ADMIN_PASSWORD.fromFile = cfg.adminProvisioning.passwordFile;
-        }
-        // lib.optionalAttrs cfg.authelia.enable {
-          PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
-          AUTHELIA_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
-          PAPERLESS_SOCIALACCOUNT_PROVIDERS.fromTemplate =
-            let
+        extraEnv =
+          {
+            PAPERLESS_DBUSER = cfg.db.username;
+            PAPERLESS_DBPASS.fromFile = cfg.db.passwordFile;
+            PAPERLESS_SECRET_KEY.fromFile = cfg.secretKeyFile;
+          }
+          // lib.optionalAttrs cfg.adminProvisioning.enable {
+            PAPERLESS_ADMIN_USER = cfg.adminProvisioning.username;
+            PAPERLESS_ADMIN_MAIL = cfg.adminProvisioning.email;
+            PAPERLESS_ADMIN_PASSWORD.fromFile = cfg.adminProvisioning.passwordFile;
+          }
+          // lib.optionalAttrs cfg.authelia.enable {
+            PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
+            AUTHELIA_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
+            PAPERLESS_SOCIALACCOUNT_PROVIDERS.fromTemplate = let
               autheliaUrl = config.nps.containers.authelia.traefik.serviceDomain;
-            in
-            ''{"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"${name}","secret":"''${AUTHELIA_CLIENT_SECRET}","settings":{"server_url":"${autheliaUrl}","token_auth_method":"client_secret_basic"}}]}}'';
-        }
-        // cfg.extraEnv;
+            in ''{"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"${name}","secret":"''${AUTHELIA_CLIENT_SECRET}","settings":{"server_url":"${autheliaUrl}","token_auth_method":"client_secret_basic"}}]}}'';
+          }
+          // cfg.extraEnv;
 
         port = 8000;
 
@@ -198,7 +195,7 @@ in
 
       ${dbName} = {
         image = "docker.io/postgres:16";
-        volumes = [ "${storage}/db:/var/lib/postgresql/data" ];
+        volumes = ["${storage}/db:/var/lib/postgresql/data"];
         extraEnv = {
           POSTGRES_DB = "paperless";
           POSTGRES_USER = cfg.db.username;
@@ -208,14 +205,19 @@ in
         stack = name;
       };
 
-      ${ftpName} =
-        let
-          uid = config.nps.defaultUid;
-          gid = config.nps.defaultGid;
+      ${ftpName} = let
+        uid = config.nps.defaultUid;
+        gid = config.nps.defaultGid;
 
-          user = if uid == 0 then "root" else "paperless";
-          home = if uid == 0 then "/${user}" else "home/${user}";
-        in
+        user =
+          if uid == 0
+          then "root"
+          else "paperless";
+        home =
+          if uid == 0
+          then "/${user}"
+          else "home/${user}";
+      in
         lib.mkIf cfg.ftp.enable {
           image = "docker.io/garethflowers/ftp-server:0.9.2";
           volumes = [

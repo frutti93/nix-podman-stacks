@@ -4,18 +4,16 @@
   pkgs,
   options,
   ...
-}:
-let
+}: let
   name = "authelia";
   cfg = config.nps.stacks.${name};
 
   storage = "${config.nps.storageBaseDir}/${name}";
 
-  yaml = pkgs.formats.yaml { };
+  yaml = pkgs.formats.yaml {};
 
   # Write this file manually, otherwise there will be single quotes around the key, breaking the file after templating
-  writeOidcJwksConfigFile =
-    oidcIssuerPrivateKeyFile:
+  writeOidcJwksConfigFile = oidcIssuerPrivateKeyFile:
     pkgs.writeText "oidc-jwks.yaml" ''
       identity_providers:
         oidc:
@@ -28,16 +26,14 @@ let
   lldap = config.nps.stacks.lldap;
 
   finalUsersFile =
-    if cfg.authenticationBackend.users != { } then
-      yaml.generate "users.yml" { users = cfg.authenticationBackend.users; }
-    else
-      cfg.authenticationBackend.usersFile;
-  usersReadOnly = cfg.authenticationBackend.usersFile != { };
+    if cfg.authenticationBackend.users != {}
+    then yaml.generate "users.yml" {users = cfg.authenticationBackend.users;}
+    else cfg.authenticationBackend.usersFile;
+  usersReadOnly = cfg.authenticationBackend.usersFile != {};
 
   useLdap = cfg.authenticationBackend.type == "ldap";
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -89,11 +85,10 @@ in
           OIDC client configuration.
           See <https://www.authelia.com/configuration/identity-providers/openid-connect/clients/>
         '';
-        default = [ ];
+        default = [];
         type = lib.types.attrsOf (
           lib.types.submodule (
-            { name, ... }:
-            {
+            {name, ...}: {
               freeformType = yaml.type;
               options = {
                 client_id = lib.mkOption {
@@ -108,16 +103,20 @@ in
     };
     settings = lib.mkOption {
       type = yaml.type;
-      apply =
-        settings:
-        let
-          backendSettings = lib.removeAttrs settings.authentication_backend [
-            (if useLdap then "file" else "ldap")
-          ];
-          finalSettings = settings // {
+      apply = settings: let
+        backendSettings = lib.removeAttrs settings.authentication_backend [
+          (
+            if useLdap
+            then "file"
+            else "ldap"
+          )
+        ];
+        finalSettings =
+          settings
+          // {
             authentication_backend = backendSettings;
           };
-        in
+      in
         yaml.generate "configuration.yml" finalSettings;
       description = ''
         Additional Authelia settings. Will be provided in the `configuration.yml`.
@@ -129,7 +128,10 @@ in
           "file"
           "ldap"
         ];
-        default = if config.nps.stacks.lldap.enable then "ldap" else "file";
+        default =
+          if config.nps.stacks.lldap.enable
+          then "ldap"
+          else "file";
         defaultText = lib.literalExpression ''if config.nps.stacks.lldap.enable then "ldap" else "file"'';
         description = ''
           The authentication backend that will be used.
@@ -158,8 +160,7 @@ in
       users = lib.mkOption {
         type = lib.types.attrsOf (
           lib.types.submodule (
-            { name, ... }:
-            {
+            {name, ...}: {
               freeformType = yaml.type;
               options = {
                 disabled = lib.mkOption {
@@ -184,14 +185,14 @@ in
                 };
                 groups = lib.mkOption {
                   type = lib.types.listOf lib.types.str;
-                  default = [ ];
+                  default = [];
                   description = "The groups list for the user";
                 };
               };
             }
           )
         );
-        default = { };
+        default = {};
         description = ''
           User configuration. Besides the defined options, any value can be defined here.
           See <https://www.authelia.com/reference/guides/passwords/#yaml-format>
@@ -239,8 +240,9 @@ in
       }
       {
         assertion =
-          cfg.authenticationBackend.type != "file"
-          || ((cfg.authenticationBackend.users != { }) != (cfg.authenticationBackend.usersFile != null));
+          cfg.authenticationBackend.type
+          != "file"
+          || ((cfg.authenticationBackend.users != {}) != (cfg.authenticationBackend.usersFile != null));
         message = ''
           Authelia: When `authenticationBackend.type` is set to "file", exactly one of `users` or `usersFile` has to be set.
         '';
@@ -324,36 +326,39 @@ in
 
     services.podman.containers.${name} = {
       image = "ghcr.io/authelia/authelia:4.39.6";
-      environment = {
-        AUTHELIA_STORAGE_LOCAL_PATH = "/data/db.sqlite3";
-      }
-      // lib.optionalAttrs oidcEnabled {
-        X_AUTHELIA_CONFIG_FILTERS = "template";
-        X_AUTHELIA_CONFIG = "/config/configuration.yml,/config/jwks_key_config.yml";
-      };
+      environment =
+        {
+          AUTHELIA_STORAGE_LOCAL_PATH = "/data/db.sqlite3";
+        }
+        // lib.optionalAttrs oidcEnabled {
+          X_AUTHELIA_CONFIG_FILTERS = "template";
+          X_AUTHELIA_CONFIG = "/config/configuration.yml,/config/jwks_key_config.yml";
+        };
 
-      fileEnvMount = {
-        AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE = cfg.jwtSecretFile;
-        AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE = cfg.storageEncryptionKeyFile;
-        AUTHELIA_SESSION_SECRET_FILE = cfg.sessionSecretFile;
-      }
-      // lib.optionalAttrs useLdap {
-        AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = cfg.authenticationBackend.ldap.passwordFile;
-      }
-      // lib.optionalAttrs oidcEnabled {
-        IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE = cfg.oidc.hmacSecretFile;
-      };
+      fileEnvMount =
+        {
+          AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE = cfg.jwtSecretFile;
+          AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE = cfg.storageEncryptionKeyFile;
+          AUTHELIA_SESSION_SECRET_FILE = cfg.sessionSecretFile;
+        }
+        // lib.optionalAttrs useLdap {
+          AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = cfg.authenticationBackend.ldap.passwordFile;
+        }
+        // lib.optionalAttrs oidcEnabled {
+          IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE = cfg.oidc.hmacSecretFile;
+        };
 
-      volumes = [
-        "${storage}/db:/data"
-        "${storage}/notifier:/notifier"
-        "${cfg.settings}:/config/configuration.yml"
-      ]
-      ++ lib.optionals oidcEnabled [
-        "${cfg.oidc.jwksRsaKeyFile}:/secrets/oidc/jwks/rsa.key"
-        "${writeOidcJwksConfigFile "/secrets/oidc/jwks/rsa.key"}:/config/jwks_key_config.yml"
-      ]
-      ++ lib.optional (!useLdap) "${finalUsersFile}:/config/users.yml";
+      volumes =
+        [
+          "${storage}/db:/data"
+          "${storage}/notifier:/notifier"
+          "${cfg.settings}:/config/configuration.yml"
+        ]
+        ++ lib.optionals oidcEnabled [
+          "${cfg.oidc.jwksRsaKeyFile}:/secrets/oidc/jwks/rsa.key"
+          "${writeOidcJwksConfigFile "/secrets/oidc/jwks/rsa.key"}:/config/jwks_key_config.yml"
+        ]
+        ++ lib.optional (!useLdap) "${finalUsersFile}:/config/users.yml";
 
       port = 9091;
       traefik.name = name;

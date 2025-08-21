@@ -4,8 +4,7 @@
   options,
   pkgs,
   ...
-}:
-let
+}: let
   name = "romm";
   dbName = "${name}-db";
 
@@ -13,9 +12,8 @@ let
   defaultRomStorage = "${storage}/library";
   cfg = config.nps.stacks.${name};
 
-  yaml = pkgs.formats.yaml { };
-in
-{
+  yaml = pkgs.formats.yaml {};
+in {
   imports = import ../mkAliases.nix config lib name [
     name
     dbName
@@ -68,7 +66,7 @@ in
     settings = lib.mkOption {
       type = yaml.type;
       apply = yaml.generate "config.yml";
-      default = { };
+      default = {};
       example = {
         platforms = {
           gc = "ngc";
@@ -83,7 +81,7 @@ in
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -177,10 +175,9 @@ in
           "${cfg.settings}:/romm/config/config.yml"
         ];
 
-        extraEnv =
-          let
-            db = cfg.containers.${dbName}.environment;
-          in
+        extraEnv = let
+          db = cfg.containers.${dbName}.environment;
+        in
           {
             ROMM_AUTH_SECRET_KEY.fromFile = cfg.authSecretKeyFile;
             DB_HOST = dbName;
@@ -197,8 +194,7 @@ in
             let
               authelia = config.nps.stacks.authelia;
               oidcClient = authelia.oidc.clients.${name};
-            in
-            {
+            in {
               OIDC_ENABLED = true;
               OIDC_PROVIDER = "authelia";
               OIDC_CLIENT_ID = oidcClient.client_id;
@@ -229,7 +225,7 @@ in
           };
         };
 
-        dependsOnContainer = [ dbName ];
+        dependsOnContainer = [dbName];
         stack = name;
 
         port = 8080;
@@ -246,7 +242,7 @@ in
       };
       ${dbName} = {
         image = "docker.io/mariadb:11";
-        volumes = [ "${storage}/db:/var/lib/mysql" ];
+        volumes = ["${storage}/db:/var/lib/mysql"];
         extraEnv = {
           MARIADB_DATABASE = "romm";
           MARIADB_USER = "romm-user";

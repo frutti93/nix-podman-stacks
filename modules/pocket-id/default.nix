@@ -3,20 +3,18 @@
   lib,
   options,
   ...
-}:
-let
+}: let
   name = "pocketid";
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     env = lib.mkOption {
-      type = (options.services.podman.containers.type.getSubOptions [ ]).environment.type;
-      default = { };
+      type = (options.services.podman.containers.type.getSubOptions []).environment.type;
+      default = {};
       description = ''
         Additional environment variables passed to the Pocket ID container
         See <https://pocket-id.org/docs/configuration/environment-variables>
@@ -24,7 +22,7 @@ in
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -70,7 +68,6 @@ in
           See <https://traefik-oidc-auth.sevensolutions.cc/docs/getting-started/middleware-configuration>
         '';
       };
-
     };
     ldap = {
       enableSynchronisation = lib.mkOption {
@@ -135,40 +132,41 @@ in
 
     services.podman.containers.${name} = {
       image = "ghcr.io/pocket-id/pocket-id:v1.7.0";
-      volumes = [
-        "${storage}/data:/app/data"
-      ]
-      ++ lib.optional cfg.ldap.enableSynchronisation "${cfg.ldap.passwordFile}:/secrets/ldap_password";
+      volumes =
+        [
+          "${storage}/data:/app/data"
+        ]
+        ++ lib.optional cfg.ldap.enableSynchronisation "${cfg.ldap.passwordFile}:/secrets/ldap_password";
 
-      environment = {
-        PUID = config.nps.defaultUid;
-        PGID = config.nps.defaultGid;
-        TRUST_PROXY = true;
-        APP_URL = cfg.containers.${name}.traefik.serviceDomain;
-        ANALYTICS_DISABLED = true;
-      }
-      // lib.optionalAttrs cfg.ldap.enableSynchronisation (
-        let
-          lldap = config.nps.stacks.lldap;
-        in
+      environment =
         {
-          UI_CONFIG_DISABLED = true;
-          LDAP_ENABLED = true;
-          LDAP_URL = lldap.address;
-          LDAP_BASE = lldap.baseDn;
-          LDAP_BIND_DN = "CN=${cfg.ldap.user},OU=people," + lldap.baseDn;
-          LDAP_ATTRIBUTE_USER_UNIQUE_IDENTIFIER = "uuid";
-          LDAP_ATTRIBUTE_USER_USERNAME = "uid";
-          LDAP_ATTRIBUTE_USER_EMAIL = "mail";
-          LDAP_ATTRIBUTE_USER_FIRST_NAME = "firstname";
-          LDAP_ATTRIBUTE_USER_LAST_NAME = "lastname";
-          LDAP_ATTRIBUTE_USER_PROFILE_PICTURE = "avatar";
-          LDAP_ATTRIBUTE_GROUP_MEMBER = "member";
-          LDAP_ATTRIBUTE_GROUP_UNIQUE_IDENTIFIER = "uuid";
-          LDAP_ATTRIBUTE_GROUP_NAME = "cn";
-          LDAP_BIND_PASSWORD_FILE = "/secrets/ldap_password";
+          PUID = config.nps.defaultUid;
+          PGID = config.nps.defaultGid;
+          TRUST_PROXY = true;
+          APP_URL = cfg.containers.${name}.traefik.serviceDomain;
+          ANALYTICS_DISABLED = true;
         }
-      );
+        // lib.optionalAttrs cfg.ldap.enableSynchronisation (
+          let
+            lldap = config.nps.stacks.lldap;
+          in {
+            UI_CONFIG_DISABLED = true;
+            LDAP_ENABLED = true;
+            LDAP_URL = lldap.address;
+            LDAP_BASE = lldap.baseDn;
+            LDAP_BIND_DN = "CN=${cfg.ldap.user},OU=people," + lldap.baseDn;
+            LDAP_ATTRIBUTE_USER_UNIQUE_IDENTIFIER = "uuid";
+            LDAP_ATTRIBUTE_USER_USERNAME = "uid";
+            LDAP_ATTRIBUTE_USER_EMAIL = "mail";
+            LDAP_ATTRIBUTE_USER_FIRST_NAME = "firstname";
+            LDAP_ATTRIBUTE_USER_LAST_NAME = "lastname";
+            LDAP_ATTRIBUTE_USER_PROFILE_PICTURE = "avatar";
+            LDAP_ATTRIBUTE_GROUP_MEMBER = "member";
+            LDAP_ATTRIBUTE_GROUP_UNIQUE_IDENTIFIER = "uuid";
+            LDAP_ATTRIBUTE_GROUP_NAME = "cn";
+            LDAP_BIND_PASSWORD_FILE = "/secrets/ldap_password";
+          }
+        );
       extraEnv = cfg.extraEnv;
 
       port = 1411;

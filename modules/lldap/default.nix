@@ -3,14 +3,13 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "lldap";
   cfg = config.nps.stacks.${name};
   storage = "${config.nps.storageBaseDir}/${name}";
 
-  toml = pkgs.formats.toml { };
-  json = pkgs.formats.json { };
+  toml = pkgs.formats.toml {};
+  json = pkgs.formats.json {};
 
   customAttrsType = lib.types.oneOf [
     lib.types.str
@@ -19,8 +18,7 @@ let
   ];
   schemaType = lib.types.attrsOf (
     lib.types.submodule (
-      { name, ... }:
-      {
+      {name, ...}: {
         options = {
           name = lib.mkOption {
             type = lib.types.strMatching "^[a-zA-Z0-9-]+$";
@@ -57,21 +55,18 @@ let
     )
   );
 
-  mkUserPasswordSecret =
-    userId: srcPath:
-    let
-      dstPath = "/run/secrets/users/${userId}_pw";
-    in
-    if srcPath == null then
-      {
-        volume = [ ];
-        dstPath = null;
-      }
-    else
-      {
-        volume = [ "${srcPath}:${dstPath}" ];
-        dstPath = dstPath;
-      };
+  mkUserPasswordSecret = userId: srcPath: let
+    dstPath = "/run/secrets/users/${userId}_pw";
+  in
+    if srcPath == null
+    then {
+      volume = [];
+      dstPath = null;
+    }
+    else {
+      volume = ["${srcPath}:${dstPath}"];
+      dstPath = dstPath;
+    };
 
   userPasswordFiles =
     cfg.bootstrap.users
@@ -90,9 +85,9 @@ let
     |> lib.attrValues
     |> map (
       u:
-      lib.filterAttrs (_: v: v != null) (
-        u // { password_file = userPasswordFiles.${u.id}.dstPath or null; }
-      )
+        lib.filterAttrs (_: v: v != null) (
+          u // {password_file = userPasswordFiles.${u.id}.dstPath or null;}
+        )
     )
     |> map (u: "${json.generate "${u.id}.json" u}:${userConfigsDir}/${u.id}.json");
 
@@ -117,13 +112,16 @@ let
       export GROUP_CONFIGS_DIR="${groupConfigsDir}"
       export USER_SCHEMAS_DIR="${userSchemasDir}"
       export GROUP_SCHEMAS_DIR="${groupSchemasDir}"
-      export DO_CLEANUP="${if cfg.bootstrap.cleanUp then "true" else "false"}"
+      export DO_CLEANUP="${
+        if cfg.bootstrap.cleanUp
+        then "true"
+        else "false"
+      }"
       exec /app/bootstrap.sh
     '';
   };
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -169,8 +167,7 @@ in
       users = lib.mkOption {
         type = lib.types.attrsOf (
           lib.types.submodule (
-            { name, ... }:
-            {
+            {name, ...}: {
               freeformType = customAttrsType;
               options = {
                 id = lib.mkOption {
@@ -215,14 +212,14 @@ in
                 };
                 groups = lib.mkOption {
                   type = lib.types.listOf lib.types.str;
-                  default = [ ];
+                  default = [];
                   description = "An array of groups the user would be a member of (all the groups must be specified in the `group` option)";
                 };
               };
             }
           )
         );
-        default = [ ];
+        default = [];
         description = ''
           LLDAP users that will be provisioned at startup.
           You can also specify custom attributes for the user, if they are defined in the `useSchemas` option.
@@ -233,8 +230,7 @@ in
       groups = lib.mkOption {
         type = lib.types.attrsOf (
           lib.types.submodule (
-            { name, ... }:
-            {
+            {name, ...}: {
               freeformType = customAttrsType;
               options = {
                 name = lib.mkOption {
@@ -244,11 +240,10 @@ in
                   defaultText = lib.literalExpression ''<name>'';
                 };
               };
-
             }
           )
         );
-        default = { };
+        default = {};
         description = ''
           Groups that will be created.
           Besides the name, you can also specify custom attributes for the group, if they are defined in the `groupSchemas` option.
@@ -258,14 +253,14 @@ in
       };
       userSchemas = lib.mkOption {
         type = schemaType;
-        default = { };
+        default = {};
         description = ''
           User schema. Can be used to create custom user attributes.
         '';
       };
       groupSchemas = lib.mkOption {
         type = schemaType;
-        default = { };
+        default = {};
         description = ''
           Group schemas. Can be used to create custom group attributes.
         '';
@@ -285,7 +280,6 @@ in
       readOnly = true;
       visible = false;
     };
-
   };
 
   config = lib.mkIf cfg.enable {
@@ -302,18 +296,19 @@ in
       # renovate: versioning=loose
       image = "ghcr.io/lldap/lldap:2025-08-17-alpine-rootless";
       user = config.nps.defaultUid;
-      volumes = [
-        "${storage}/db:/db"
-        "${cfg.settings}:/data/lldap_config.toml"
-      ]
-      ++ (builtins.concatLists (map (s: s.volume) ((lib.attrValues userPasswordFiles))))
-      ++ lib.flatten [
-        finalUserVolumes
-        finalGroupVolumes
-        finalUserSchemaVolumes
-        finalGroupSchemaVolumes
-        "${bootstrapWrapper}:/app/bootstrap_wrapper.sh"
-      ];
+      volumes =
+        [
+          "${storage}/db:/db"
+          "${cfg.settings}:/data/lldap_config.toml"
+        ]
+        ++ (builtins.concatLists (map (s: s.volume) (lib.attrValues userPasswordFiles)))
+        ++ lib.flatten [
+          finalUserVolumes
+          finalGroupVolumes
+          finalUserSchemaVolumes
+          finalGroupSchemaVolumes
+          "${bootstrapWrapper}:/app/bootstrap_wrapper.sh"
+        ];
 
       extraConfig.Service.ExecStartPost = "${lib.getExe pkgs.podman} exec ${name} /app/bootstrap_wrapper.sh";
 

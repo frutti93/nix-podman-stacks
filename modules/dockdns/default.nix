@@ -3,27 +3,28 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "dockdns";
   cfg = config.nps.stacks.${name};
-  yaml = pkgs.formats.yaml { };
-in
-{
-  imports = [
-    ./extension.nix
-    (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix { stack = name; })
-  ]
-  ++ import ../mkAliases.nix config lib name [ name ];
+  yaml = pkgs.formats.yaml {};
+in {
+  imports =
+    [
+      ./extension.nix
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {stack = name;})
+    ]
+    ++ import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
-    enable = lib.mkEnableOption name // {
-      description = ''
-        Whether to enable DockDNS. This will run a Cloudflare DNS client that updates DNS records based on Docker labels.
-        The module contains an extension that will automatically create DNS records for services with the 'public' Traefik middleware,
-        so they are accessible from the internet. It will also automatically delete DNS records for services, that are no longer exposed (e.g. 'private' middleware)
-      '';
-    };
+    enable =
+      lib.mkEnableOption name
+      // {
+        description = ''
+          Whether to enable DockDNS. This will run a Cloudflare DNS client that updates DNS records based on Docker labels.
+          The module contains an extension that will automatically create DNS records for services with the 'public' Traefik middleware,
+          so they are accessible from the internet. It will also automatically delete DNS records for services, that are no longer exposed (e.g. 'private' middleware)
+        '';
+      };
     settings = lib.mkOption {
       type = yaml.type;
       description = ''
@@ -36,7 +37,7 @@ in
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -74,10 +75,11 @@ in
         "${cfg.settings}:/app/config.yaml"
       ];
 
-      extraEnv = {
-        DOCKER_HOST = lib.mkIf (cfg.useSocketProxy) config.nps.stacks.docker-socket-proxy.address;
-      }
-      // cfg.extraEnv;
+      extraEnv =
+        {
+          DOCKER_HOST = lib.mkIf (cfg.useSocketProxy) config.nps.stacks.docker-socket-proxy.address;
+        }
+        // cfg.extraEnv;
 
       port = 8080;
       traefik.name = name;

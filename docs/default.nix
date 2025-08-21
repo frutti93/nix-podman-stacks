@@ -5,8 +5,7 @@
   lib,
   system,
   ...
-}:
-let
+}: let
   # Use a full HM system rather than (say) the result of
   # `lib.evalModules`.  This is because our HM module refers to
   # `services.podman`, which may itself refer to any number of other NixOS
@@ -38,55 +37,55 @@ let
 
   hasLocPrefix = prefix: loc: lib.lists.take (lib.length prefix) loc == prefix;
 
-  mkOptionsDoc =
-    {
-      options ? eval.options,
-      wantPrefix ? [ ],
-      excludePrefix ? [ ],
-    }:
+  mkOptionsDoc = {
+    options ? eval.options,
+    wantPrefix ? [],
+    excludePrefix ? [],
+  }:
     pkgs.nixosOptionsDoc {
       documentType = "none";
       warningsAreErrors = false;
 
       inherit options;
 
-      transformOptions =
-        option:
+      transformOptions = option:
         option
         // {
           visible =
             option.visible
-            &&
-              option.loc != [
-                "services"
-                "podman"
-                "containers"
-              ]
+            && option.loc
+            != [
+              "services"
+              "podman"
+              "containers"
+            ]
             && (lib.hasPrefix nixPodmanStacksPath (toString option.declarations))
             && hasLocPrefix wantPrefix option.loc
-            && !(excludePrefix != [ ] && hasLocPrefix excludePrefix option.loc);
+            && !(excludePrefix != [] && hasLocPrefix excludePrefix option.loc);
         }
         // {
           declarations =
             map (
               decl:
-              if lib.hasPrefix nixPodmanStacksPath (toString decl) then
-                gitHubDeclaration "tarow" "nix-podman-stacks" "main" (
-                  lib.removePrefix "/" (lib.removePrefix nixPodmanStacksPath (toString decl))
-                )
-              else if lib.hasPrefix hmPath (toString decl) then
-                gitHubDeclaration "nix-community" "home-manager" "master" (
-                  lib.removePrefix "/" (lib.removePrefix hmPath (toString decl))
-                )
-              else
-                null
-            ) option.declarations
+                if lib.hasPrefix nixPodmanStacksPath (toString decl)
+                then
+                  gitHubDeclaration "tarow" "nix-podman-stacks" "main" (
+                    lib.removePrefix "/" (lib.removePrefix nixPodmanStacksPath (toString decl))
+                  )
+                else if lib.hasPrefix hmPath (toString decl)
+                then
+                  gitHubDeclaration "nix-community" "home-manager" "master" (
+                    lib.removePrefix "/" (lib.removePrefix hmPath (toString decl))
+                  )
+                else null
+            )
+            option.declarations
             |> lib.filter (d: d != null);
         };
     };
 
   settingsOptions = mkOptionsDoc {
-    wantPrefix = [ "nps" ];
+    wantPrefix = ["nps"];
     excludePrefix = [
       "nps"
       "stacks"
@@ -104,16 +103,14 @@ let
       "podman"
     ];
   };
-  allOptions = mkOptionsDoc { };
+  allOptions = mkOptionsDoc {};
 
-  stackDocs =
-    let
-      stackNames = lib.attrNames eval.options.nps.stacks;
-    in
+  stackDocs = let
+    stackNames = lib.attrNames eval.options.nps.stacks;
+  in
     stackNames
     |> lib.map (
-      stack:
-      (lib.nameValuePair stack (mkOptionsDoc {
+      stack: (lib.nameValuePair stack (mkOptionsDoc {
         wantPrefix = [
           "nps"
           "stacks"
@@ -122,9 +119,7 @@ let
       }))
     )
     |> lib.listToAttrs;
-
-in
-{
+in {
   book = pkgs.stdenv.mkDerivation {
     pname = "nix-podman-stacks-docs-book";
     version = "0.0.1";
@@ -152,9 +147,10 @@ in
 
       # Generate a subpage for each stack
       ${lib.concatMapAttrsStringSep "\n" (stack: opts: ''
-        cat ${opts.optionsCommonMark} > src/stack-${stack}-options.md
-        echo "  - [${stack}](./stack-${stack}-options.md)" >> src/SUMMARY.md
-      '') stackDocs}
+          cat ${opts.optionsCommonMark} > src/stack-${stack}-options.md
+          echo "  - [${stack}](./stack-${stack}-options.md)" >> src/SUMMARY.md
+        '')
+        stackDocs}
       mdbook build
       runHook postBuild
     '';

@@ -2,20 +2,18 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   name = "aiostreams";
   cfg = config.nps.stacks.${name};
   storage = "${config.nps.storageBaseDir}/${name}";
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Can be used to pass secrets such as the `TMDB_ACCESS_TOKEN`.
@@ -41,7 +39,7 @@ in
         HealthRetries = 5;
         HealthStartPeriod = "10s";
       };
-      volumes = [ "${storage}/data:/app/data" ];
+      volumes = ["${storage}/data:/app/data"];
       environment = {
         ADDON_NAME = "AIOStreams";
         ADDON_ID = "aiostreams.viren070.com";

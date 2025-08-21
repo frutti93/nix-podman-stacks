@@ -2,9 +2,7 @@
   config,
   lib,
   ...
-}:
-{
-
+}: {
   # !IMPORTANT! This is just for demo purposes.
   # In a real setup, place your age key in any location and refer to it in
   # the `sops.age.keyFile` option. Make sure it's not in the Nix store!
@@ -37,6 +35,6 @@
       "paperless/authelia_client_secret"
       "paperless/db_password"
       "traefik/cf_api_token"
-    ] (s: { });
+    ] (s: {});
   };
 }

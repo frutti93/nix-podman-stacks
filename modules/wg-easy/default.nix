@@ -2,14 +2,12 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   name = "wg-easy";
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -23,10 +21,9 @@ in
         See <https://wg-easy.github.io/wg-easy/v15.1/advanced/config/unattended-setup/>
       '';
       default =
-        if config.nps.stacks.traefik.enable then
-          "vpn.${config.nps.stacks.traefik.domain}"
-        else
-          config.nps.hostIP4Address;
+        if config.nps.stacks.traefik.enable
+        then "vpn.${config.nps.stacks.traefik.domain}"
+        else config.nps.hostIP4Address;
       defaultText = lib.literalExpression ''"vpn.''${config.nps.stacks.traefik.domain}"'';
     };
     port = lib.mkOption {
@@ -41,7 +38,7 @@ in
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -55,7 +52,6 @@ in
         INIT_DNS = "1.1.1.1";
       };
     };
-
   };
 
   config = lib.mkIf cfg.enable {
@@ -65,7 +61,7 @@ in
         "${storage}/config:/etc/wireguard"
       ];
 
-      ports = [ "${toString cfg.port}:${toString cfg.port}/udp" ];
+      ports = ["${toString cfg.port}:${toString cfg.port}/udp"];
       addCapabilities = [
         "NET_ADMIN"
         "NET_RAW"

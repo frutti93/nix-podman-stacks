@@ -3,13 +3,12 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "crowdsec";
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
 
-  yaml = pkgs.formats.yaml { };
+  yaml = pkgs.formats.yaml {};
 
   timer = {
     Timer = {
@@ -17,7 +16,7 @@ let
       Persistent = true;
     };
     Install = {
-      WantedBy = [ "timers.target" ];
+      WantedBy = ["timers.target"];
     };
   };
   job = {
@@ -37,22 +36,22 @@ let
       );
     };
   };
-in
-{
-  imports = [
-    # Create the `traefikIntegration.useSocketProxy` option
-    (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {
-      stack = name;
-      subPath = "traefikIntegration";
-    })
-  ]
-  ++ import ../mkAliases.nix config lib name [ name ];
+in {
+  imports =
+    [
+      # Create the `traefikIntegration.useSocketProxy` option
+      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {
+        stack = name;
+        subPath = "traefikIntegration";
+      })
+    ]
+    ++ import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
     acquisSettings = lib.mkOption {
       type = yaml.type;
-      default = { };
+      default = {};
       description = ''
         Acquisitions settings for Crowdsec.
         If Traefik is enabled, the module will automatically setup acquisition for Traefik.
@@ -61,7 +60,7 @@ in
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -111,7 +110,7 @@ in
 
     nps.stacks.${name}.acquisSettings = lib.mkIf cfg.traefikIntegration.enable {
       source = "docker";
-      container_name = [ "traefik" ];
+      container_name = ["traefik"];
       labels = {
         type = "traefik";
       };
@@ -120,43 +119,43 @@ in
 
     nps.stacks.traefik =
       lib.mkIf (cfg.traefikIntegration.enable && cfg.traefikIntegration.bouncerKeyFile != null)
-        {
-          containers.traefik.extraEnv = lib.mkIf (cfg.traefikIntegration.bouncerKeyFile != null) {
-            BOUNCER_KEY_TRAEFIK.fromFile = cfg.traefikIntegration.bouncerKeyFile;
-          };
-          staticConfig.experimental.plugins.bouncer = {
-            moduleName = "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin";
-            version = "v1.4.4";
-          };
-          dynamicConfig.http.middlewares = {
-            public.chain.middlewares = lib.mkAfter [ "crowdsec" ];
+      {
+        containers.traefik.extraEnv = lib.mkIf (cfg.traefikIntegration.bouncerKeyFile != null) {
+          BOUNCER_KEY_TRAEFIK.fromFile = cfg.traefikIntegration.bouncerKeyFile;
+        };
+        staticConfig.experimental.plugins.bouncer = {
+          moduleName = "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin";
+          version = "v1.4.4";
+        };
+        dynamicConfig.http.middlewares = {
+          public.chain.middlewares = lib.mkAfter ["crowdsec"];
 
-            crowdsec.plugin.bouncer = {
-              enabled = true;
-              logLevel = "INFO";
-              updateIntervalSeconds = 60;
-              updateMaxFailure = 0;
-              defaultDecisionSeconds = 60;
-              httpTimeoutSeconds = 10;
-              crowdsecMode = "live";
-              crowdsecAppsecEnabled = false;
-              crowdsecAppsecHost = "crowdsec:7422";
-              crowdsecAppsecPath = "/";
-              crowdsecAppsecFailureBlock = true;
-              crowdsecAppsecUnreachableBlock = true;
-              crowdsecAppsecBodyLimit = 10485760;
-              crowdsecLapiKey = "{{ env \"BOUNCER_KEY_TRAEFIK\" }}";
-              crowdsecLapiScheme = "http";
-              crowdsecLapiHost = "crowdsec:8080";
-              crowdsecLapiPath = "/";
-              clientTrustedIPs = [
-                "10.0.0.0/8"
-                "172.16.0.0/12"
-                "192.168.0.0/16"
-              ];
-            };
+          crowdsec.plugin.bouncer = {
+            enabled = true;
+            logLevel = "INFO";
+            updateIntervalSeconds = 60;
+            updateMaxFailure = 0;
+            defaultDecisionSeconds = 60;
+            httpTimeoutSeconds = 10;
+            crowdsecMode = "live";
+            crowdsecAppsecEnabled = false;
+            crowdsecAppsecHost = "crowdsec:7422";
+            crowdsecAppsecPath = "/";
+            crowdsecAppsecFailureBlock = true;
+            crowdsecAppsecUnreachableBlock = true;
+            crowdsecAppsecBodyLimit = 10485760;
+            crowdsecLapiKey = "{{ env \"BOUNCER_KEY_TRAEFIK\" }}";
+            crowdsecLapiScheme = "http";
+            crowdsecLapiHost = "crowdsec:8080";
+            crowdsecLapiPath = "/";
+            clientTrustedIPs = [
+              "10.0.0.0/8"
+              "172.16.0.0/12"
+              "192.168.0.0/16"
+            ];
           };
         };
+      };
 
     systemd.user = {
       timers."crowdsec-upgrade" = timer;

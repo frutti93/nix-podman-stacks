@@ -3,14 +3,12 @@
   lib,
   options,
   ...
-}:
-let
+}: let
   name = "ntfy";
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -37,7 +35,7 @@ in
         honor_timestamps = true;
         metrics_path = "/metrics";
         scheme = "http";
-        static_configs = [ { targets = [ "${name}:80" ]; } ];
+        static_configs = [{targets = ["${name}:80"];}];
       };
     };
 

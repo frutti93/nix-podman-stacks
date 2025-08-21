@@ -2,15 +2,13 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   name = "healthchecks";
 
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -37,7 +35,7 @@ in
       ${name} = {
         # renovate: versioning=regex:^v(?<major>\d+)\.(?<minor>\d+)-ls(?<build>.+)$
         image = "ghcr.io/linuxserver/healthchecks:v3.10-ls305";
-        volumes = [ "${storage}/config:/config" ];
+        volumes = ["${storage}/config:/config"];
         environment = {
           PUID = config.nps.defaultUid;
           PGID = config.nps.defaultGid;

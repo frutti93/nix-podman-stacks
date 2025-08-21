@@ -1,5 +1,4 @@
-lib: domain: network:
-let
+lib: domain: network: let
   mkRedirect = to: {
     address = ":80";
     http = {
@@ -11,8 +10,7 @@ let
       };
     };
   };
-in
-{
+in {
   entryPoints = rec {
     web = mkRedirect "websecure";
 
@@ -28,7 +26,7 @@ in
           domains = [
             {
               main = domain;
-              sans = [ "*.${domain}" ];
+              sans = ["*.${domain}"];
             }
           ];
         };

@@ -3,13 +3,14 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   stackName = "monitoring";
   cfg = config.nps.stacks.${stackName};
   storage = "${config.nps.storageBaseDir}/${stackName}";
 
-  yaml = pkgs.formats.yaml {};
-  ini = pkgs.formats.ini {};
+  yaml = pkgs.formats.yaml { };
+  ini = pkgs.formats.ini { };
 
   grafanaName = "grafana";
   lokiName = "loki";
@@ -19,7 +20,7 @@
 
   dashboardPath = "/var/lib/grafana/dashboards";
 
-  dashboards = pkgs.runCommandLocal "grafana-dashboards-dir" {} ''
+  dashboards = pkgs.runCommandLocal "grafana-dashboards-dir" { } ''
     mkdir -p "$out"
     for f in ${lib.concatStringsSep " " cfg.grafana.dashboards}; do
       baseName=$(basename "$f")
@@ -31,44 +32,41 @@
   prometheusUrl = "http://${prometheusName}:${toString cfg.prometheus.port}";
 
   dockerHost =
-    if cfg.alloy.useSocketProxy
-    then config.nps.stacks.docker-socket-proxy.address
-    else "unix:///var/run/docker.sock";
-in {
-  imports =
-    [
-      ./extension.nix
-      # Create the `alloy.useSocketProxy` option
-      (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {
-        stack = stackName;
-        container = alloyName;
-        subPath = alloyName;
-      })
-    ]
-    ++ import ../mkAliases.nix config lib stackName [
-      grafanaName
-      lokiName
-      prometheusName
-      alloyName
-      podmanExporterName
-    ];
+    if cfg.alloy.useSocketProxy then
+      config.nps.stacks.docker-socket-proxy.address
+    else
+      "unix:///var/run/docker.sock";
+in
+{
+  imports = [
+    ./extension.nix
+    # Create the `alloy.useSocketProxy` option
+    (import ../docker-socket-proxy/mkSocketProxyOptionModule.nix {
+      stack = stackName;
+      container = alloyName;
+      subPath = alloyName;
+    })
+  ]
+  ++ import ../mkAliases.nix config lib stackName [
+    grafanaName
+    lokiName
+    prometheusName
+    alloyName
+    podmanExporterName
+  ];
 
   options.nps.stacks.${stackName} = {
-    enable =
-      lib.mkEnableOption stackName
-      // {
-        description = ''
-          Enable the ${stackName} stack.
-          This stack provides monitoring services including Grafana, Loki, Alloy, and Prometheus.
-          Configuration files for each service will be provided automatically to work out of the box.
-        '';
-      };
+    enable = lib.mkEnableOption stackName // {
+      description = ''
+        Enable the ${stackName} stack.
+        This stack provides monitoring services including Grafana, Loki, Alloy, and Prometheus.
+        Configuration files for each service will be provided automatically to work out of the box.
+      '';
+    };
     grafana = {
-      enable =
-        lib.mkEnableOption "Grafana"
-        // {
-          default = true;
-        };
+      enable = lib.mkEnableOption "Grafana" // {
+        default = true;
+      };
       dashboardProvider = lib.mkOption {
         type = yaml.type;
         default = import ./dashboard_provider.nix dashboardPath;
@@ -81,7 +79,7 @@ in {
       };
       dashboards = lib.mkOption {
         type = lib.types.listOf lib.types.path;
-        default = [];
+        default = [ ];
         description = ''
           List of paths to Grafana dashboard JSON files.
         '';
@@ -96,7 +94,7 @@ in {
       };
       settings = lib.mkOption {
         type = ini.type;
-        default = {};
+        default = { };
         apply = ini.generate "grafana.ini";
         description = ''
           Settings for Grafana.
@@ -137,11 +135,9 @@ in {
       };
     };
     loki = {
-      enable =
-        lib.mkEnableOption "Loki"
-        // {
-          default = true;
-        };
+      enable = lib.mkEnableOption "Loki" // {
+        default = true;
+      };
       port = lib.mkOption {
         type = lib.types.port;
         default = 3100;
@@ -149,7 +145,7 @@ in {
       };
       config = lib.mkOption {
         type = yaml.type;
-        default = {};
+        default = { };
         apply = yaml.generate "loki_config.yaml";
         description = ''
           Configuration for Loki.
@@ -160,11 +156,9 @@ in {
       };
     };
     alloy = {
-      enable =
-        lib.mkEnableOption "Alloy"
-        // {
-          default = true;
-        };
+      enable = lib.mkEnableOption "Alloy" // {
+        default = true;
+      };
       port = lib.mkOption {
         type = lib.types.port;
         default = 12345;
@@ -184,11 +178,9 @@ in {
       };
     };
     prometheus = {
-      enable =
-        lib.mkEnableOption "Prometheus"
-        // {
-          default = true;
-        };
+      enable = lib.mkEnableOption "Prometheus" // {
+        default = true;
+      };
       port = lib.mkOption {
         type = lib.types.port;
         default = 9090;
@@ -196,7 +188,7 @@ in {
       };
       config = lib.mkOption {
         type = yaml.type;
-        default = {};
+        default = { };
         apply = yaml.generate "prometheus_config.yml";
         description = ''
           Configuration for Prometheus.
@@ -206,19 +198,18 @@ in {
         '';
       };
     };
-    podmanExporter.enable =
-      lib.mkEnableOption "Podman Metrics Exporter"
-      // {
-        default = true;
-      };
+    podmanExporter.enable = lib.mkEnableOption "Podman Metrics Exporter" // {
+      default = true;
+    };
   };
 
-  config = let
-    grafanaAdminGroupName = "grafana_admin";
-  in
+  config =
+    let
+      grafanaAdminGroupName = "grafana_admin";
+    in
     lib.mkIf cfg.enable {
       nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.grafana.authelia.enable) {
-        ${grafanaAdminGroupName} = {};
+        ${grafanaAdminGroupName} = { };
       };
 
       nps.stacks.authelia = lib.mkIf cfg.grafana.authelia.enable {
@@ -263,7 +254,7 @@ in {
                 honor_timestamps = true;
                 metrics_path = "/metrics";
                 scheme = "http";
-                static_configs = [{targets = ["${podmanExporterName}:9882"];}];
+                static_configs = [ { targets = [ "${podmanExporterName}:9882" ]; } ];
               }
             ];
           })
@@ -288,9 +279,10 @@ in {
             GF_AUTH_DISABLE_LOGIN_FORM = "true";
           };
 
-          extraEnv = let
-            autheliaUrl = config.nps.containers.authelia.traefik.serviceDomain;
-          in
+          extraEnv =
+            let
+              autheliaUrl = config.nps.containers.authelia.traefik.serviceDomain;
+            in
             lib.optionalAttrs (cfg.grafana.authelia.enable) {
               GF_SERVER_ROOT_URL = cfg.containers.${grafanaName}.traefik.serviceDomain;
               GF_AUTH_GENERIC_OAUTH_ENABLED = true;
@@ -303,8 +295,8 @@ in {
               GF_AUTH_GENERIC_OAUTH_AUTH_URL = "${autheliaUrl}/api/oidc/authorization";
               GF_AUTH_GENERIC_OAUTH_TOKEN_URL = "${autheliaUrl}/api/oidc/token";
               GF_AUTH_GENERIC_OAUTH_API_URL = "${autheliaUrl}/api/oidc/userinfo";
-              GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH = "preferred_username";
               GF_AUTH_GENERIC_OAUTH_USE_PKCE = true;
+              GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH = "preferred_username";
               GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH = "groups";
               GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_NAME = "email";
               GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH = "name";
@@ -347,9 +339,10 @@ in {
           };
         };
 
-        ${alloyName} = let
-          configDst = "/etc/alloy/config.alloy";
-        in
+        ${alloyName} =
+          let
+            configDst = "/etc/alloy/config.alloy";
+          in
           lib.mkIf cfg.alloy.enable {
             image = "docker.io/grafana/alloy:v1.10.2";
             volumes = [
@@ -370,9 +363,10 @@ in {
             };
           };
 
-        ${prometheusName} = let
-          configDst = "/etc/prometheus/prometheus.yml";
-        in
+        ${prometheusName} =
+          let
+            configDst = "/etc/prometheus/prometheus.yml";
+          in
           lib.mkIf cfg.prometheus.enable {
             image = "docker.io/prom/prometheus:v3.5.0";
             exec = "--config.file=${configDst}";
@@ -403,7 +397,7 @@ in {
           ];
           environment.CONTAINER_HOST = "unix:///var/run/podman/podman.sock";
           user = config.nps.defaultUid;
-          extraPodmanArgs = ["--security-opt=label=disable"];
+          extraPodmanArgs = [ "--security-opt=label=disable" ];
 
           stack = stackName;
         };

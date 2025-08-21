@@ -2,14 +2,12 @@
   config,
   lib,
   ...
-}:
-let
+}: let
   name = "mealie";
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -23,7 +21,7 @@ in
 
           For details, see:
 
-          - <https://www.authelia.com/integration/openid-connect/clients/karakeep/>
+          - <https://www.authelia.com/integration/openid-connect/clients/mealie/>
           - <https://docs.mealie.io/documentation/getting-started/authentication/oidc-v2/>
           - <https://docs.mealie.io/documentation/getting-started/installation/backend-config/#openid-connect-oidc>
         '';
@@ -47,15 +45,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.lldap.bootstrap.groups =
-      let
-        env = cfg.containers.${name}.environment;
-      in
+    nps.stacks.lldap.bootstrap.groups = let
+      env = cfg.containers.${name}.environment;
+    in
       lib.mkIf cfg.authelia.enable {
-        mealie-admins = lib.mkIf (builtins.hasAttr "OIDC_ADMIN_GROUP" env) {
+        mealie-admin = lib.mkIf (builtins.hasAttr "OIDC_ADMIN_GROUP" env) {
           name = env.OIDC_ADMIN_GROUP;
         };
-        mealie-users = lib.mkIf (builtins.hasAttr "OIDC_USER_GROUP" env) {
+        mealie-user = lib.mkIf (builtins.hasAttr "OIDC_USER_GROUP" env) {
           name = env.OIDC_USER_GROUP;
         };
       };
@@ -77,7 +74,7 @@ in
     services.podman.containers = {
       ${name} = {
         image = "ghcr.io/mealie-recipes/mealie:v3.1.1";
-        volumes = [ "${storage}/data:/app/data/" ];
+        volumes = ["${storage}/data:/app/data/"];
         environment = {
           ALLOW_SIGNUP = false;
           PUID = config.nps.defaultUid;
@@ -95,8 +92,8 @@ in
           OIDC_CLIENT_ID = name;
           OIDC_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
           OIDC_AUTO_REDIRECT = false;
-          OIDC_ADMIN_GROUP = "mealie-admins";
-          OIDC_USER_GROUP = "mealie-users";
+          OIDC_ADMIN_GROUP = "mealie_admin";
+          OIDC_USER_GROUP = "mealie_user";
         };
 
         port = 9000;

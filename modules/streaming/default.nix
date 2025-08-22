@@ -3,11 +3,10 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   stackName = "streaming";
 
-  toml = pkgs.formats.toml { };
+  toml = pkgs.formats.toml {};
 
   gluetunName = "gluetun";
   qbittorrentName = "qbittorrent";
@@ -27,8 +26,7 @@ let
     "${name}__AUTH__METHOD" = "Forms";
     "${name}__AUTH__REQUIRED" = "DisabledForLocalAddresses";
   };
-in
-{
+in {
   imports = import ../mkAliases.nix config lib stackName [
     gluetunName
     qbittorrentName
@@ -39,149 +37,159 @@ in
     prowlarrName
   ];
 
-  options.nps.stacks.${stackName} = {
-    enable = lib.mkEnableOption stackName;
-    gluetun = {
-      enable = lib.mkEnableOption "Gluetun" // {
-        default = true;
-      };
-      vpnProvider = lib.mkOption {
-        type = lib.types.str;
-        description = "The VPN provider to use with Gluetun.";
-      };
-      wireguardPrivateKeyFile = lib.mkOption {
-        type = lib.types.path;
-        description = "Path to the file containing the Wireguard private key. Will be used to set the `WIREGUARD_PRIVATE_KEY` environment variable.";
-      };
-      wireguardPresharedKeyFile = lib.mkOption {
-        type = lib.types.nullOr lib.types.path;
-        default = null;
-        description = "Path to the file containing the Wireguard pre-shared key. Will be used to set the `WIREGUARD_PRESHARED_KEY` environment variable.";
-      };
-      wireguardAddressesFile = lib.mkOption {
-        type = lib.types.nullOr lib.types.path;
-        default = null;
-        description = "Path to the file containing the Wireguard addresses. Will be used to set the `WIREGUARD_ADDRESSES` environment variable.";
-      };
-      extraEnv = lib.mkOption {
-        type = (import ../types.nix lib).extraEnv;
-        default = { };
-        description = ''
-          Extra environment variables to set for the container.
-          Variables can be either set directly or sourced from a file (e.g. for secrets).
-
-          See <https://github.com/qdm12/gluetun-wiki/tree/main/setup/options>
-        '';
-        example = {
-          SERVER_NAMES = "Alderamin,Alderamin";
-          HTTP_CONTROL_SERVER_LOG = "off";
-          HTTPPROXY_PASSWORD = {
-            fromFile = "/run/secrets/http_proxy_password";
+  options.nps.stacks.${stackName} =
+    {
+      enable = lib.mkEnableOption stackName;
+      gluetun = {
+        enable =
+          lib.mkEnableOption "Gluetun"
+          // {
+            default = true;
           };
-        };
-      };
-      settings = lib.mkOption {
-        type = toml.type;
-        apply = toml.generate "config.toml";
-        description = "Additional Gluetun configuration settings.";
-      };
-    };
-    qbittorrent = {
-      enable = lib.mkEnableOption "qBittorrent" // {
-        default = true;
-      };
-      extraEnv = lib.mkOption {
-        type = (import ../types.nix lib).extraEnv;
-        default = { };
-        description = ''
-          Extra environment variables to set for the container.
-          Variables can be either set directly or sourced from a file (e.g. for secrets).
-
-          See <https://docs.linuxserver.io/images/docker-qbittorrent/#environment-variables-e>
-        '';
-        example = {
-          TORRENTING_PORT = "6881";
-        };
-      };
-    };
-    jellyfin = {
-      enable = lib.mkEnableOption "Jellyfin" // {
-        default = true;
-      };
-      authelia = {
-        enable = lib.mkOption {
-          type = lib.types.bool;
-          default = false;
-          description = ''
-            Whether to enable OIDC login with Authelia. This will register an OIDC client in Authelia
-            and setup the necessary configuration file.
-
-            The plugin configuration will be automatically provided, the plugin itself has to be installed in the
-            Jellyfin Web-UI tho.
-
-            For details, see:
-
-            - <https://www.authelia.com/integration/openid-connect/clients/jellyfin/>
-            - <https://github.com/9p4/jellyfin-plugin-sso>
-          '';
-        };
-        clientSecretFile = lib.mkOption {
+        vpnProvider = lib.mkOption {
           type = lib.types.str;
-          description = ''
-            The file containing the client secret for the OIDC client that will be registered in Authelia.
-          '';
+          description = "The VPN provider to use with Gluetun.";
         };
-        clientSecretHash = lib.mkOption {
-          type = lib.types.str;
-          description = ''
-            The hashed client_secret. Will be set in the Authelia client config.
-            For examples on how to generate a client secret, see
-
-            <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
-          '';
+        wireguardPrivateKeyFile = lib.mkOption {
+          type = lib.types.path;
+          description = "Path to the file containing the Wireguard private key. Will be used to set the `WIREGUARD_PRIVATE_KEY` environment variable.";
         };
-      };
-    };
-    flaresolverr.enable = lib.mkEnableOption "Flaresolverr" // {
-      default = true;
-    };
-  }
-  // (
-    [
-      sonarrName
-      radarrName
-      bazarrName
-      prowlarrName
-    ]
-    |> lib.map (
-      name:
-      lib.nameValuePair name {
-        enable = lib.mkEnableOption name // {
-          default = true;
+        wireguardPresharedKeyFile = lib.mkOption {
+          type = lib.types.nullOr lib.types.path;
+          default = null;
+          description = "Path to the file containing the Wireguard pre-shared key. Will be used to set the `WIREGUARD_PRESHARED_KEY` environment variable.";
+        };
+        wireguardAddressesFile = lib.mkOption {
+          type = lib.types.nullOr lib.types.path;
+          default = null;
+          description = "Path to the file containing the Wireguard addresses. Will be used to set the `WIREGUARD_ADDRESSES` environment variable.";
         };
         extraEnv = lib.mkOption {
           type = (import ../types.nix lib).extraEnv;
-          default = { };
+          default = {};
           description = ''
             Extra environment variables to set for the container.
             Variables can be either set directly or sourced from a file (e.g. for secrets).
-          '';
-        };
-      }
-    )
-    |> lib.listToAttrs
-  );
 
-  config =
-    let
-      jellyfinAdminGroupName = "jellyfin_admin";
-      jellyfinUserGroupName = "jellyfin_user";
-      jellyfinClientSecretEnvName = "JELLYFIN_AUTHELIA_CLIENT_SECRET";
-    in
+            See <https://github.com/qdm12/gluetun-wiki/tree/main/setup/options>
+          '';
+          example = {
+            SERVER_NAMES = "Alderamin,Alderamin";
+            HTTP_CONTROL_SERVER_LOG = "off";
+            HTTPPROXY_PASSWORD = {
+              fromFile = "/run/secrets/http_proxy_password";
+            };
+          };
+        };
+        settings = lib.mkOption {
+          type = toml.type;
+          apply = toml.generate "config.toml";
+          description = "Additional Gluetun configuration settings.";
+        };
+      };
+      qbittorrent = {
+        enable =
+          lib.mkEnableOption "qBittorrent"
+          // {
+            default = true;
+          };
+        extraEnv = lib.mkOption {
+          type = (import ../types.nix lib).extraEnv;
+          default = {};
+          description = ''
+            Extra environment variables to set for the container.
+            Variables can be either set directly or sourced from a file (e.g. for secrets).
+
+            See <https://docs.linuxserver.io/images/docker-qbittorrent/#environment-variables-e>
+          '';
+          example = {
+            TORRENTING_PORT = "6881";
+          };
+        };
+      };
+      jellyfin = {
+        enable =
+          lib.mkEnableOption "Jellyfin"
+          // {
+            default = true;
+          };
+        authelia = {
+          enable = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = ''
+              Whether to enable OIDC login with Authelia. This will register an OIDC client in Authelia
+              and setup the necessary configuration file.
+
+              The plugin configuration will be automatically provided, the plugin itself has to be installed in the
+              Jellyfin Web-UI tho.
+
+              For details, see:
+
+              - <https://www.authelia.com/integration/openid-connect/clients/jellyfin/>
+              - <https://github.com/9p4/jellyfin-plugin-sso>
+            '';
+          };
+          clientSecretFile = lib.mkOption {
+            type = lib.types.str;
+            description = ''
+              The file containing the client secret for the OIDC client that will be registered in Authelia.
+            '';
+          };
+          clientSecretHash = lib.mkOption {
+            type = lib.types.str;
+            description = ''
+              The hashed client_secret. Will be set in the Authelia client config.
+              For examples on how to generate a client secret, see
+
+              <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
+            '';
+          };
+        };
+      };
+      flaresolverr.enable =
+        lib.mkEnableOption "Flaresolverr"
+        // {
+          default = true;
+        };
+    }
+    // (
+      [
+        sonarrName
+        radarrName
+        bazarrName
+        prowlarrName
+      ]
+      |> lib.map (
+        name:
+          lib.nameValuePair name {
+            enable =
+              lib.mkEnableOption name
+              // {
+                default = true;
+              };
+            extraEnv = lib.mkOption {
+              type = (import ../types.nix lib).extraEnv;
+              default = {};
+              description = ''
+                Extra environment variables to set for the container.
+                Variables can be either set directly or sourced from a file (e.g. for secrets).
+              '';
+            };
+          }
+      )
+      |> lib.listToAttrs
+    );
+
+  config = let
+    jellyfinAdminGroupName = "jellyfin_admin";
+    jellyfinUserGroupName = "jellyfin_user";
+    jellyfinClientSecretEnvName = "JELLYFIN_AUTHELIA_CLIENT_SECRET";
+  in
     lib.mkIf cfg.enable {
       nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.jellyfin.authelia.enable {
-        ${jellyfinAdminGroupName} = { };
-        ${jellyfinUserGroupName} = { };
+        ${jellyfinAdminGroupName} = {};
+        ${jellyfinUserGroupName} = {};
       };
       nps.stacks.authelia = lib.mkIf cfg.jellyfin.authelia.enable {
         oidc.clients.${jellyfinName} = {
@@ -204,8 +212,8 @@ in
       services.podman.containers = {
         ${gluetunName} = lib.mkIf cfg.gluetun.enable {
           image = "docker.io/qmcgaw/gluetun:v3.40.0";
-          addCapabilities = [ "NET_ADMIN" ];
-          devices = [ "/dev/net/tun:/dev/net/tun" ];
+          addCapabilities = ["NET_ADMIN"];
+          devices = ["/dev/net/tun:/dev/net/tun"];
           volumes = [
             "${storage}/${gluetunName}:/gluetun"
             "${cfg.gluetun.settings}:/gluetun/auth/config.toml"
@@ -219,14 +227,15 @@ in
             HTTPPROXY = "on";
             HEALTH_VPN_DURATION_INITIAL = "60s";
           };
-          extraEnv = {
-            WIREGUARD_PRIVATE_KEY.fromFile = cfg.gluetun.wireguardPrivateKeyFile;
-            WIREGUARD_PRESHARED_KEY.fromFile = cfg.gluetun.wireguardPresharedKeyFile;
-            WIREGUARD_ADDRESSES.fromFile = cfg.gluetun.wireguardAddressesFile;
-          }
-          // cfg.gluetun.extraEnv;
+          extraEnv =
+            {
+              WIREGUARD_PRIVATE_KEY.fromFile = cfg.gluetun.wireguardPrivateKeyFile;
+              WIREGUARD_PRESHARED_KEY.fromFile = cfg.gluetun.wireguardPresharedKeyFile;
+              WIREGUARD_ADDRESSES.fromFile = cfg.gluetun.wireguardAddressesFile;
+            }
+            // cfg.gluetun.extraEnv;
 
-          network = [ config.nps.stacks.traefik.network.name ];
+          network = [config.nps.stacks.traefik.network.name];
 
           stack = stackName;
           port = 8888;
@@ -246,8 +255,8 @@ in
 
         ${qbittorrentName} = lib.mkIf cfg.qbittorrent.enable {
           image = "docker.io/linuxserver/qbittorrent:5.1.2";
-          dependsOnContainer = [ gluetunName ];
-          network = lib.mkIf cfg.gluetun.enable (lib.mkForce [ "container:${gluetunName}" ]);
+          dependsOnContainer = [gluetunName];
+          network = lib.mkIf cfg.gluetun.enable (lib.mkForce ["container:${gluetunName}"]);
           volumes = [
             "${storage}/${qbittorrentName}:/config"
             "${mediaStorage}:/media"
@@ -276,34 +285,34 @@ in
           };
         };
 
-        ${jellyfinName} =
-          let
-            brandingXml = pkgs.writeText "branding.xml" ''
-              <?xml version="1.0" encoding="utf-8"?>
-              <BrandingOptions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-                <LoginDisclaimer>&lt;form action="${config.nps.containers.jellyfin.traefik.serviceDomain}/sso/OID/start/authelia"&gt;
-                &lt;button class="raised block emby-button button-submit"&gt;
-                  Sign in with Authelia
-                &lt;/button&gt;
-              &lt;/form&gt;</LoginDisclaimer>
-                <CustomCss>a.raised.emby-button {
-                padding: 0.9em 1em;
-                color: inherit !important;
-              }
-              .disclaimerContainer {
-                display: block;
-              }</CustomCss>
-                <SplashscreenEnabled>true</SplashscreenEnabled>
-              </BrandingOptions>
-            '';
-          in
+        ${jellyfinName} = let
+          brandingXml = pkgs.writeText "branding.xml" ''
+            <?xml version="1.0" encoding="utf-8"?>
+            <BrandingOptions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+              <LoginDisclaimer>&lt;form action="${config.nps.containers.jellyfin.traefik.serviceDomain}/sso/OID/start/authelia"&gt;
+              &lt;button class="raised block emby-button button-submit"&gt;
+                Sign in with Authelia
+              &lt;/button&gt;
+            &lt;/form&gt;</LoginDisclaimer>
+              <CustomCss>a.raised.emby-button {
+              padding: 0.9em 1em;
+              color: inherit !important;
+            }
+            .disclaimerContainer {
+              display: block;
+            }</CustomCss>
+              <SplashscreenEnabled>true</SplashscreenEnabled>
+            </BrandingOptions>
+          '';
+        in
           lib.mkIf cfg.jellyfin.enable {
             image = "lscr.io/linuxserver/jellyfin:10.10.7";
-            volumes = [
-              "${storage}/${jellyfinName}:/config"
-              "${mediaStorage}:/media"
-            ]
-            ++ lib.optional (cfg.jellyfin.authelia.enable) "${brandingXml}:/config/branding.xml";
+            volumes =
+              [
+                "${storage}/${jellyfinName}:/config"
+                "${mediaStorage}:/media"
+              ]
+              ++ lib.optional (cfg.jellyfin.authelia.enable) "${brandingXml}:/config/branding.xml";
 
             templateMount = lib.optional cfg.jellyfin.authelia.enable {
               templatePath = pkgs.writeText "oidc-template" (
@@ -324,7 +333,7 @@ in
               };
             };
 
-            devices = [ "/dev/dri:/dev/dri" ];
+            devices = ["/dev/dri:/dev/dri"];
             environment = {
               PUID = config.nps.defaultUid;
               PGID = config.nps.defaultGid;

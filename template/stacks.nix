@@ -1,5 +1,8 @@
-{ config, lib, ... }:
 {
+  config,
+  lib,
+  ...
+}: {
   nps = {
     hostIP4Address = "192.168.178.2";
     hostUid = 1000;
@@ -92,7 +95,7 @@
         enable = true;
         domain = "example.com";
         extraEnv.CF_DNS_API_TOKEN.fromFile = config.sops.secrets."traefik/cf_api_token".path;
-        geoblock.allowedCountries = [ "DE" ];
+        geoblock.allowedCountries = ["DE"];
         enablePrometheusExport = true;
         enableGrafanaMetricsDashboard = true;
         enableGrafanaAccessLogDashboard = true;

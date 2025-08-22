@@ -138,6 +138,37 @@ in {
               '';
             };
 
+            templateMount = lib.mkOption {
+              type = lib.types.listOf (
+                lib.types.submodule {
+                  options = {
+                    templatePath = lib.mkOption {
+                      type = lib.types.path;
+                      description = "Path to the template. Environment variables within this file will be substituted.";
+                    };
+                    destPath = lib.mkOption {
+                      type = lib.types.path;
+                      description = "Destination path of the templated file within the container";
+                    };
+                  };
+                }
+              );
+              default = [];
+              description = ''
+                Bind mount that will replace environment variables in a source file.
+                The resulting templated file will be mounted into the container.
+
+                All environment variables from the `environment` and `extraEnv` options will be available for
+                substitution.
+              '';
+              example = [
+                {
+                  templatePath = "/path/to/template";
+                  destPath = "/run/secrets/templated_file";
+                }
+              ];
+            };
+
             socketActivation = mkOption {
               type = types.listOf (
                 types.submodule {
@@ -184,8 +215,9 @@ in {
           };
 
           config = let
-            envFromFileContentLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_file_content_env";
-            envFromTemplateLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_templated_env";
+            envFromFileContentLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_env/from_file_content";
+            envFromTemplateLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_env/from_template_string";
+            mkTemplateMountSource = fileName: "/run/user/${toString globalConf.nps.hostUid}/${name}/template_mounts/${builtins.baseNameOf fileName}";
 
             extraLiteralEnv = config.extraEnv |> lib.filterAttrs (_: v: !lib.isAttrs v);
             extraFileContentEnv =
@@ -221,7 +253,9 @@ in {
               lib.optional (extraFileContentEnv != {}) envFromFileContentLocation
               ++ lib.optional (extraTemplateEnv != {}) envFromTemplateLocation;
 
-            volumes = config.fileEnvMount |> lib.attrValues |> lib.map (v: "${v.sourcePath}:${v.destPath}");
+            volumes =
+              (config.fileEnvMount |> lib.attrValues |> lib.map (v: "${v.sourcePath}:${v.destPath}"))
+              ++ (config.templateMount |> lib.map (m: "${mkTemplateMountSource m.destPath}:${m.destPath}"));
 
             extraConfig = {
               Unit = {
@@ -250,40 +284,64 @@ in {
                     }
                   ))
                 ]
-                ++ lib.optional (extraFileContentEnv != {} || extraTemplateEnv != {}) (
+                ++ lib.optional (extraFileContentEnv != {} || extraTemplateEnv != {} || config.templateMount != [])
+                (
                   lib.getExe (
                     pkgs.writeShellApplication {
-                      name = "create-extra-env-files";
+                      name = "create-extra-files";
                       runtimeInputs = [
                         pkgs.coreutils
                         pkgs.envsubst
                       ];
-                      text =
-                        lib.optionalString (extraFileContentEnv != {}) ''
+                      text = let
+                        literalEnvFile = pkgs.writeText "${name}-literal-env" (
+                          config.environment
+                          |> lib.mapAttrsToList (name: value: ''${name}=${toString value}'')
+                          |> lib.concatStringsSep "\n"
+                        );
+                      in
+                        ''
+                          # Podman/Docker retain quotes etc. in .env files, so parse them specially to match that behavior
+                          # See <https://github.com/containers/podman/issues/19565>
+                          load_env_file() {
+                            local file="$1"
+                            [ -f "$file" ] || return 0
+
+                            while IFS= read -r line || [[ -n "$line" ]]; do
+                              # skip empty lines and comments
+                              [ -z "$line" ] && continue
+                              case "$line" in
+                                \#*) continue ;;
+                              esac
+
+                              # skip lines without '='
+                              [[ "$line" == *"="* ]] || continue
+
+                              local name="''${line%%=*}";
+                              local value="''${line#*=}";
+
+                              export "$name=$value"
+                            done < "$file"
+                          }
+
+                        ''
+                        + lib.optionalString (extraFileContentEnv != {}) ''
                           # Write file-based envs to file
                           install -D -m 600 /dev/null ${envFromFileContentLocation}
                           {
                           ${
                             extraFileContentEnv
-                            |> lib.mapAttrsToList (name: path: ''echo "${name}=$(<${path})" '')
+                            |> lib.mapAttrsToList (name: path: ''echo "${name}=$(<${path})"'')
                             |> lib.concatStringsSep "\n"
                           }
                           } >> "${envFromFileContentLocation}"
                         ''
                         + lib.optionalString (extraTemplateEnv != {}) ''
                           # Export all env vars so envsubst can use them for the template
-                          ${
-                            config.environment
-                            |> lib.mapAttrsToList (name: value: ''${name}="${toString value}"; export ${name}'')
-                            |> lib.concatStringsSep "\n"
-                          }
-                          ${
-                            extraFileContentEnv
-                            |> lib.mapAttrsToList (name: path: ''${name}=$(<${path}); export ${name}'')
-                            |> lib.concatStringsSep "\n"
-                          }
+                          load_env_file ${literalEnvFile}
+                          load_env_file ${envFromFileContentLocation}
 
-                          # Write template-based envs to a new file using envsubst
+                          # Write template-based env variables to a new file using envsubst
                           install -D -m 600 /dev/null ${envFromTemplateLocation}
                           envsubst < "${
                             pkgs.writeText "env-template-${name}" (
@@ -292,6 +350,21 @@ in {
                               |> lib.concatStringsSep "\n"
                             )
                           }" >> "${envFromTemplateLocation}"
+                        ''
+                        + lib.optionalString (config.templateMount != []) ''
+                          # Export all env vars so envsubst can use them for the template
+                          load_env_file ${literalEnvFile}
+                          load_env_file ${envFromFileContentLocation}
+                          load_env_file ${envFromTemplateLocation}
+
+                          ${
+                            config.templateMount
+                            |> lib.map (m: ''
+                              install -D -m 600 /dev/null ${mkTemplateMountSource m.destPath}
+                              envsubst < "${m.templatePath}" >> ${mkTemplateMountSource m.destPath}
+                            '')
+                            |> lib.concatStringsSep "\n"
+                          }
                         '';
                     }
                   )

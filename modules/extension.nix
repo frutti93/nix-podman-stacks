@@ -3,15 +3,19 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   globalConf = config;
-  mkSocketName = {
-    name,
-    port,
-    prefix ? "podman-",
-    suffix ? ".socket",
-  }: "${prefix}${name}-${toString port |> lib.replaceStrings ["." ":"] ["_" "-"]}${suffix}";
-in {
+  mkSocketName =
+    {
+      name,
+      port,
+      prefix ? "podman-",
+      suffix ? ".socket",
+    }:
+    "${prefix}${name}-${toString port |> lib.replaceStrings [ "." ":" ] [ "_" "-" ]}${suffix}";
+in
+{
   # Extend the podman options in order to custom build custom abstraction
   options.services.podman.containers = lib.mkOption {
     type = lib.types.attrsOf (
@@ -20,11 +24,12 @@ in {
           name,
           config,
           ...
-        }: {
+        }:
+        {
           options = with lib; {
             dependsOn = mkOption {
               type = types.listOf types.str;
-              default = [];
+              default = [ ];
               description = ''
                 List of systemd resources that this container depends on.
                 When specifying a dependency on another container, use the option `dependsOnContainer` instead.
@@ -33,7 +38,7 @@ in {
 
             dependsOnContainer = mkOption {
               type = types.listOf types.str;
-              default = [];
+              default = [ ];
               apply = map (d: "podman-${d}.service");
               description = ''
                 List of containers that this container depends on.
@@ -49,7 +54,7 @@ in {
 
             extraEnv = lib.mkOption {
               type = (import ./types.nix lib).extraEnv;
-              default = {};
+              default = { };
               example = {
                 # Load environment variables from a file
                 ENCRYPTION_KEY = "literal-value";
@@ -91,14 +96,15 @@ in {
               );
               apply = lib.mapAttrs (
                 name: value:
-                  if builtins.isAttrs value
-                  then value
-                  else {
+                if builtins.isAttrs value then
+                  value
+                else
+                  {
                     sourcePath = value;
                     destPath = "/run/secrets/${name}";
                   }
               );
-              default = {};
+              default = { };
               example = {
                 # Short form: just give the source path, destPath is inferred
                 DB_PASSWORD_FILE = ./secrets/db-password.txt;
@@ -153,7 +159,7 @@ in {
                   };
                 }
               );
-              default = [];
+              default = [ ];
               description = ''
                 Bind mount that will replace environment variables in a source file.
                 The resulting templated file will be mounted into the container.
@@ -190,7 +196,7 @@ in {
                   };
                 }
               );
-              default = [];
+              default = [ ];
               description = ''
                 List of socket activation configurations for this container.
                 Each entry should specify a port and optionally a file descriptor name.
@@ -214,163 +220,171 @@ in {
             };
           };
 
-          config = let
-            envFromFileContentLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_env/from_file_content";
-            envFromTemplateLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_env/from_template_string";
-            mkTemplateMountSource = fileName: "/run/user/${toString globalConf.nps.hostUid}/${name}/template_mounts/${builtins.baseNameOf fileName}";
+          config =
+            let
+              envFromFileContentLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_env/from_file_content";
+              envFromTemplateLocation = "/run/user/${toString globalConf.nps.hostUid}/${name}/extra_env/from_template_string";
+              mkTemplateMountSource =
+                fileName:
+                "/run/user/${toString globalConf.nps.hostUid}/${name}/template_mounts/${builtins.baseNameOf fileName}";
 
-            extraLiteralEnv = config.extraEnv |> lib.filterAttrs (_: v: !lib.isAttrs v);
-            extraFileContentEnv =
-              config.extraEnv
-              |> lib.filterAttrs (_: v: lib.isAttrs v && v.fromFile != null)
-              |> lib.mapAttrs (_: v: v.fromFile);
-            extraTemplateEnv =
-              config.extraEnv
-              |> lib.filterAttrs (_: v: lib.isAttrs v && v.fromTemplate != null)
-              |> lib.mapAttrs (_: v: v.fromTemplate);
-          in {
-            autoUpdate = lib.mkDefault "registry";
+              extraLiteralEnv = config.extraEnv |> lib.filterAttrs (_: v: !lib.isAttrs v);
+              extraFileContentEnv =
+                config.extraEnv
+                |> lib.filterAttrs (_: v: lib.isAttrs v && v.fromFile != null)
+                |> lib.mapAttrs (_: v: v.fromFile);
+              extraTemplateEnv =
+                config.extraEnv
+                |> lib.filterAttrs (_: v: lib.isAttrs v && v.fromTemplate != null)
+                |> lib.mapAttrs (_: v: v.fromTemplate);
+            in
+            lib.mkMerge [
+              #globalConf.nps.defaultContainerSettings
+              ({
+                autoUpdate = lib.mkDefault "registry";
 
-            network = lib.mkIf (config.stack != null) [config.stack];
-            dependsOn =
-              (map (
-                  sa:
+                network = lib.mkIf (config.stack != null) [ config.stack ];
+                dependsOn =
+                  (map (
+                    sa:
                     mkSocketName {
                       inherit name;
                       port = sa.port;
                     }
-                )
-                config.socketActivation)
-              ++ lib.optional (builtins.any (lib.hasPrefix "${globalConf.nps.socketLocation}:") config.volumes) "podman.socket";
+                  ) config.socketActivation)
+                  ++ lib.optional (builtins.any (lib.hasPrefix "${globalConf.nps.socketLocation}:") config.volumes) "podman.socket";
 
-            environment =
-              {
-                TZ = lib.mkDefault globalConf.nps.defaultTz;
-              }
-              // extraLiteralEnv
-              // lib.mapAttrs (_: v: v.destPath) config.fileEnvMount;
-            environmentFile =
-              lib.optional (extraFileContentEnv != {}) envFromFileContentLocation
-              ++ lib.optional (extraTemplateEnv != {}) envFromTemplateLocation;
+                environment = {
+                  TZ = lib.mkDefault globalConf.nps.defaultTz;
+                }
+                // extraLiteralEnv
+                // lib.mapAttrs (_: v: v.destPath) config.fileEnvMount;
+                environmentFile =
+                  lib.optional (extraFileContentEnv != { }) envFromFileContentLocation
+                  ++ lib.optional (extraTemplateEnv != { }) envFromTemplateLocation;
 
-            volumes =
-              (config.fileEnvMount |> lib.attrValues |> lib.map (v: "${v.sourcePath}:${v.destPath}"))
-              ++ (config.templateMount |> lib.map (m: "${mkTemplateMountSource m.destPath}:${m.destPath}"));
+                volumes =
+                  (config.fileEnvMount |> lib.attrValues |> lib.map (v: "${v.sourcePath}:${v.destPath}"))
+                  ++ (config.templateMount |> lib.map (m: "${mkTemplateMountSource m.destPath}:${m.destPath}"));
 
-            extraConfig = {
-              Unit = {
-                Requires = config.dependsOn ++ config.dependsOnContainer;
-                After = config.dependsOn ++ config.dependsOnContainer;
+                extraConfig = {
+                  Unit = {
+                    Requires = config.dependsOn ++ config.dependsOnContainer;
+                    After = config.dependsOn ++ config.dependsOnContainer;
 
-                StartLimitIntervalSec = lib.mkDefault "60";
-                StartLimitBurst = lib.mkDefault 5;
-              };
-              Service = {
-                # Try restarting every 5 seconds for a max 5 times
-                RestartSec = lib.mkDefault "5s";
-              };
+                    StartLimitIntervalSec = lib.mkDefault "60";
+                    StartLimitBurst = lib.mkDefault 5;
+                  };
+                  Service = {
+                    # Try restarting every 5 seconds for a max 5 times
+                    RestartSec = lib.mkDefault "5s";
+                  };
 
-              # Automatically create host directories for volumes if they don't exist
-              Service.ExecStartPre = let
-                volumes = map (v: lib.head (lib.splitString ":" v)) (config.volumes or []);
-                volumeDirs = lib.filter (v: lib.hasInfix "/" v && !lib.hasPrefix "/run" v) volumes;
-              in
-                [
-                  (lib.getExe (
-                    pkgs.writeShellApplication {
-                      name = "setup-volumes";
-                      runtimeInputs = [pkgs.coreutils];
-                      text = (map (v: "[ -e ${v} ] || mkdir -p ${v}") volumeDirs) |> lib.concatStringsSep "\n";
-                    }
-                  ))
-                ]
-                ++ lib.optional (extraFileContentEnv != {} || extraTemplateEnv != {} || config.templateMount != [])
-                (
-                  lib.getExe (
-                    pkgs.writeShellApplication {
-                      name = "create-extra-files";
-                      runtimeInputs = [
-                        pkgs.coreutils
-                        pkgs.envsubst
-                      ];
-                      text = let
-                        literalEnvFile = pkgs.writeText "${name}-literal-env" (
-                          config.environment
-                          |> lib.mapAttrsToList (name: value: ''${name}=${toString value}'')
-                          |> lib.concatStringsSep "\n"
+                  # Automatically create host directories for volumes if they don't exist
+                  Service.ExecStartPre =
+                    let
+                      volumes = map (v: lib.head (lib.splitString ":" v)) (config.volumes or [ ]);
+                      volumeDirs = lib.filter (v: lib.hasInfix "/" v && !lib.hasPrefix "/run" v) volumes;
+                    in
+                    [
+                      (lib.getExe (
+                        pkgs.writeShellApplication {
+                          name = "setup-volumes";
+                          runtimeInputs = [ pkgs.coreutils ];
+                          text = (map (v: "[ -e ${v} ] || mkdir -p ${v}") volumeDirs) |> lib.concatStringsSep "\n";
+                        }
+                      ))
+                    ]
+                    ++
+                      lib.optional (extraFileContentEnv != { } || extraTemplateEnv != { } || config.templateMount != [ ])
+                        (
+                          lib.getExe (
+                            pkgs.writeShellApplication {
+                              name = "create-extra-files";
+                              runtimeInputs = [
+                                pkgs.coreutils
+                                pkgs.envsubst
+                              ];
+                              text =
+                                let
+                                  literalEnvFile = pkgs.writeText "${name}-literal-env" (
+                                    config.environment
+                                    |> lib.mapAttrsToList (name: value: ''${name}=${toString value}'')
+                                    |> lib.concatStringsSep "\n"
+                                  );
+                                in
+                                ''
+                                  # Podman/Docker retain quotes etc. in .env files, so parse them specially to match that behavior
+                                  # See <https://github.com/containers/podman/issues/19565>
+                                  load_env_file() {
+                                    local file="$1"
+                                    [ -f "$file" ] || return 0
+
+                                    while IFS= read -r line || [[ -n "$line" ]]; do
+                                      # skip empty lines and comments
+                                      [ -z "$line" ] && continue
+                                      case "$line" in
+                                        \#*) continue ;;
+                                      esac
+
+                                      # skip lines without '='
+                                      [[ "$line" == *"="* ]] || continue
+
+                                      local name="''${line%%=*}";
+                                      local value="''${line#*=}";
+
+                                      export "$name=$value"
+                                    done < "$file"
+                                  }
+
+                                ''
+                                + lib.optionalString (extraFileContentEnv != { }) ''
+                                  # Write file-based envs to file
+                                  install -D -m 600 /dev/null ${envFromFileContentLocation}
+                                  {
+                                  ${
+                                    extraFileContentEnv
+                                    |> lib.mapAttrsToList (name: path: ''echo "${name}=$(<${path})"'')
+                                    |> lib.concatStringsSep "\n"
+                                  }
+                                  } >> "${envFromFileContentLocation}"
+                                ''
+                                + lib.optionalString (extraTemplateEnv != { }) ''
+                                  # Export all env vars so envsubst can use them for the template
+                                  load_env_file ${literalEnvFile}
+                                  load_env_file ${envFromFileContentLocation}
+
+                                  # Write template-based env variables to a new file using envsubst
+                                  install -D -m 600 /dev/null ${envFromTemplateLocation}
+                                  envsubst < "${
+                                    pkgs.writeText "env-template-${name}" (
+                                      extraTemplateEnv
+                                      |> lib.mapAttrsToList (name: template: ''${name}=${template}'')
+                                      |> lib.concatStringsSep "\n"
+                                    )
+                                  }" >> "${envFromTemplateLocation}"
+                                ''
+                                + lib.optionalString (config.templateMount != [ ]) ''
+                                  # Export all env vars so envsubst can use them for the template
+                                  load_env_file ${literalEnvFile}
+                                  load_env_file ${envFromFileContentLocation}
+                                  load_env_file ${envFromTemplateLocation}
+
+                                  ${
+                                    config.templateMount
+                                    |> lib.map (m: ''
+                                      install -D -m 600 /dev/null ${mkTemplateMountSource m.destPath}
+                                      envsubst < "${m.templatePath}" >> ${mkTemplateMountSource m.destPath}
+                                    '')
+                                    |> lib.concatStringsSep "\n"
+                                  }
+                                '';
+                            }
+                          )
                         );
-                      in
-                        ''
-                          # Podman/Docker retain quotes etc. in .env files, so parse them specially to match that behavior
-                          # See <https://github.com/containers/podman/issues/19565>
-                          load_env_file() {
-                            local file="$1"
-                            [ -f "$file" ] || return 0
-
-                            while IFS= read -r line || [[ -n "$line" ]]; do
-                              # skip empty lines and comments
-                              [ -z "$line" ] && continue
-                              case "$line" in
-                                \#*) continue ;;
-                              esac
-
-                              # skip lines without '='
-                              [[ "$line" == *"="* ]] || continue
-
-                              local name="''${line%%=*}";
-                              local value="''${line#*=}";
-
-                              export "$name=$value"
-                            done < "$file"
-                          }
-
-                        ''
-                        + lib.optionalString (extraFileContentEnv != {}) ''
-                          # Write file-based envs to file
-                          install -D -m 600 /dev/null ${envFromFileContentLocation}
-                          {
-                          ${
-                            extraFileContentEnv
-                            |> lib.mapAttrsToList (name: path: ''echo "${name}=$(<${path})"'')
-                            |> lib.concatStringsSep "\n"
-                          }
-                          } >> "${envFromFileContentLocation}"
-                        ''
-                        + lib.optionalString (extraTemplateEnv != {}) ''
-                          # Export all env vars so envsubst can use them for the template
-                          load_env_file ${literalEnvFile}
-                          load_env_file ${envFromFileContentLocation}
-
-                          # Write template-based env variables to a new file using envsubst
-                          install -D -m 600 /dev/null ${envFromTemplateLocation}
-                          envsubst < "${
-                            pkgs.writeText "env-template-${name}" (
-                              extraTemplateEnv
-                              |> lib.mapAttrsToList (name: template: ''${name}=${template}'')
-                              |> lib.concatStringsSep "\n"
-                            )
-                          }" >> "${envFromTemplateLocation}"
-                        ''
-                        + lib.optionalString (config.templateMount != []) ''
-                          # Export all env vars so envsubst can use them for the template
-                          load_env_file ${literalEnvFile}
-                          load_env_file ${envFromFileContentLocation}
-                          load_env_file ${envFromTemplateLocation}
-
-                          ${
-                            config.templateMount
-                            |> lib.map (m: ''
-                              install -D -m 600 /dev/null ${mkTemplateMountSource m.destPath}
-                              envsubst < "${m.templatePath}" >> ${mkTemplateMountSource m.destPath}
-                            '')
-                            |> lib.concatStringsSep "\n"
-                          }
-                        '';
-                    }
-                  )
-                );
-            };
-          };
+                };
+              })
+            ];
         }
       )
     );
@@ -387,45 +401,47 @@ in {
           |> lib.attrValues
           |> lib.all (
             c:
-              c.extraEnv
-              |> lib.attrValues
-              |> lib.all (v: (!lib.isAttrs v) || (v.fromFile != null) != (v.fromTemplate != null))
+            c.extraEnv
+            |> lib.attrValues
+            |> lib.all (v: (!lib.isAttrs v) || (v.fromFile != null) != (v.fromTemplate != null))
           );
       }
     ];
     # For every stack, define a default network.
-    services.podman.networks = let
-      stacks =
-        config.services.podman.containers
-        |> builtins.attrValues
-        |> builtins.filter (c: c.stack != null)
-        |> builtins.map (c: c.stack);
-    in
-      lib.genAttrs stacks (s: lib.mkDefault {driver = "bridge";});
+    services.podman.networks =
+      let
+        stacks =
+          config.services.podman.containers
+          |> builtins.attrValues
+          |> builtins.filter (c: c.stack != null)
+          |> builtins.map (c: c.stack);
+      in
+      lib.genAttrs stacks (s: lib.mkDefault { driver = "bridge"; });
 
     # Create sockets for socketActivated containers
-    systemd.user.sockets = let
-      containers = lib.filterAttrs (n: v: v.socketActivation != []) config.services.podman.containers;
-      mkSockets = name: container:
-        map (
-          sa:
+    systemd.user.sockets =
+      let
+        containers = lib.filterAttrs (n: v: v.socketActivation != [ ]) config.services.podman.containers;
+        mkSockets =
+          name: container:
+          map (
+            sa:
             lib.nameValuePair
-            (mkSocketName {
-              inherit name;
-              port = sa.port;
-              suffix = "";
-            })
-            {
-              Socket.ListenStream = "${toString sa.port}";
-              Socket.ListenDatagram = "${toString sa.port}";
-              Socket.Service = "podman-${name}.service";
-              Socket.FileDescriptorName = lib.mkIf (sa.fileDescriptorName != null) sa.fileDescriptorName;
-              Install.WantedBy = ["sockets.target"];
-            }
-        )
-        container.socketActivation;
-      sockets = (lib.mapAttrsToList mkSockets containers) |> lib.flatten |> lib.listToAttrs;
-    in
+              (mkSocketName {
+                inherit name;
+                port = sa.port;
+                suffix = "";
+              })
+              {
+                Socket.ListenStream = "${toString sa.port}";
+                Socket.ListenDatagram = "${toString sa.port}";
+                Socket.Service = "podman-${name}.service";
+                Socket.FileDescriptorName = lib.mkIf (sa.fileDescriptorName != null) sa.fileDescriptorName;
+                Install.WantedBy = [ "sockets.target" ];
+              }
+          ) container.socketActivation;
+        sockets = (lib.mapAttrsToList mkSockets containers) |> lib.flatten |> lib.listToAttrs;
+      in
       sockets;
   };
 }

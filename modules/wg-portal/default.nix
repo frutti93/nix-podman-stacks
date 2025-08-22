@@ -3,15 +3,13 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "wg-portal";
   storage = "${config.nps.storageBaseDir}/${name}";
   cfg = config.nps.stacks.${name};
-  yaml = pkgs.formats.yaml { };
-in
-{
-  imports = import ../mkAliases.nix config lib name [ name ];
+  yaml = pkgs.formats.yaml {};
+in {
+  imports = import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -36,7 +34,7 @@ in
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
-      default = { };
+      default = {};
       description = ''
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
@@ -88,13 +86,12 @@ in
     };
   };
 
-  config =
-    let
-      wgAdminGroupName = "wg_portal_admin";
-    in
+  config = let
+    wgAdminGroupName = "wg_portal_admin";
+  in
     lib.mkIf cfg.enable {
       nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.authelia.enable) {
-        ${wgAdminGroupName} = { };
+        ${wgAdminGroupName} = {};
       };
 
       nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
@@ -119,39 +116,40 @@ in
         ];
       };
 
-      nps.stacks.${name}.settings = {
-        web.external_url = cfg.containers.${name}.traefik.serviceDomain;
-        advanced.start_listen_port = cfg.port;
-      }
-      // lib.optionalAttrs cfg.authelia.enable {
-        auth.oidc = [
-          {
-            id = "authelia";
-            provider_name = "authelia";
-            display_name = "Login with</br>Authelia";
-            base_url = config.nps.containers.authelia.traefik.serviceDomain;
-            client_id = name;
-            client_secret = "\${AUTHELIA_CLIENT_SECRET}";
-            extra_scopes = [
-              "openid"
-              "email"
-              "profile"
-              "groups"
-            ];
-            field_map = {
-              user_identifier = "preferred_username";
-              email = "email";
-              firstname = "given_name";
-              lastname = "family_name";
-              user_groups = "groups";
-            };
-            admin_mapping = {
-              admin_group_regex = "^${wgAdminGroupName}$";
-            };
-            registration_enabled = true;
-          }
-        ];
-      };
+      nps.stacks.${name}.settings =
+        {
+          web.external_url = cfg.containers.${name}.traefik.serviceDomain;
+          advanced.start_listen_port = cfg.port;
+        }
+        // lib.optionalAttrs cfg.authelia.enable {
+          auth.oidc = [
+            {
+              id = "authelia";
+              provider_name = "authelia";
+              display_name = "Login with</br>Authelia";
+              base_url = config.nps.containers.authelia.traefik.serviceDomain;
+              client_id = name;
+              client_secret = "\${AUTHELIA_CLIENT_SECRET}";
+              extra_scopes = [
+                "openid"
+                "email"
+                "profile"
+                "groups"
+              ];
+              field_map = {
+                user_identifier = "preferred_username";
+                email = "email";
+                firstname = "given_name";
+                lastname = "family_name";
+                user_groups = "groups";
+              };
+              admin_mapping = {
+                admin_group_regex = "^${wgAdminGroupName}$";
+              };
+              registration_enabled = true;
+            }
+          ];
+        };
 
       services.podman.containers.${name} = {
         image = "ghcr.io/h44z/wg-portal:v2.0.4";
@@ -159,7 +157,7 @@ in
           "${storage}/data:/app/data"
           "${cfg.settings}:/app/config/config.yaml"
         ];
-        ports = [ "${toString cfg.port}:${toString cfg.port}/udp" ];
+        ports = ["${toString cfg.port}:${toString cfg.port}/udp"];
         addCapabilities = [
           "NET_ADMIN"
           "NET_RAW"

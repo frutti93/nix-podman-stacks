@@ -345,7 +345,7 @@ in {
                                 |> lib.mapAttrsToList (name: path: ''echo "${name}=$(<${path})"'')
                                 |> lib.concatStringsSep "\n"
                               }
-                              } >> "${envFromFileContentLocation}"
+                              } > ${envFromFileContentLocation}
                             ''
                             + lib.optionalString (extraTemplateEnv != {}) ''
                               # Export all env vars so gomplate can use them for the template

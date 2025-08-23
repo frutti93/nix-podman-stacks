@@ -15,9 +15,6 @@ let
   mediaStorage = "${config.nps.mediaStorageBaseDir}";
   cfg = config.nps.stacks.${name};
 
-  patchedConfigLocation = "/run/user/${toString config.nps.hostUid}/immmich/config_patched.json";
-  configSource = if cfg.authelia.enable then patchedConfigLocation else cfg.settings;
-
   env = {
     DB_HOSTNAME = dbName;
     DB_USERNAME = "postgres";
@@ -101,7 +98,6 @@ in
       };
       nps.stacks.lldap.bootstrap.userSchemas = {
         immich-quota.attributeType = "INTEGER";
-        immich-role.attributeType = "STRING";
       };
 
       nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
@@ -165,7 +161,7 @@ in
             autoRegister = true;
             buttonText = "Login with Authelia";
             clientId = name;
-            clientSecret = "";
+            clientSecret = "\${AUTHELIA_CLIENT_SECRET}";
             defaultStorageQuota = 0;
             issuerUrl = config.nps.stacks.authelia.containers.authelia.traefik.serviceDomain;
             mobileOverrideEnabled = false;
@@ -185,30 +181,18 @@ in
           volumes = [
             "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
           ]
-          ++ lib.optional (cfg.settings != null) "${configSource}:${env.IMMICH_CONFIG_FILE}";
+          ++ lib.optional (
+            cfg.settings != null && (!cfg.authelia.enable)
+          ) "${cfg.settings}:${env.IMMICH_CONFIG_FILE}";
+          templateMount = lib.optional cfg.authelia.enable {
+            templatePath = cfg.settings;
+            destPath = env.IMMICH_CONFIG_FILE;
+          };
+          extraEnv.AUTHELIA_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
 
           environment = env;
           extraEnv.DB_PASSWORD.fromFile = cfg.dbPasswordFile;
           devices = [ "/dev/dri:/dev/dri" ];
-
-          extraConfig.Service.ExecStartPre = lib.mkIf cfg.authelia.enable [
-            (lib.getExe (
-              pkgs.writeShellApplication {
-                name = "patch_immich_config";
-                runtimeInputs = [
-                  pkgs.jq
-                ];
-                text = ''
-                  install -D -m 600 /dev/null ${patchedConfigLocation}
-                  oauthClientSecret="$(<${cfg.authelia.clientSecretFile})"
-                  jq -c \
-                    --arg oauthClientSecret "$oauthClientSecret" \
-                    '.oauth.clientSecret = $oauthClientSecret' \
-                    ${cfg.settings} > ${patchedConfigLocation}
-                '';
-              }
-            ))
-          ];
 
           dependsOnContainer = [
             redisName

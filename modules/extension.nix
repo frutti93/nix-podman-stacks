@@ -62,7 +62,7 @@ in
                   fromFile = "/some/path/secrets/db-password";
                 };
                 DB_URL = {
-                  fromTemplate = ''postgresql://user:{{ file.Read "/run/secrets/db_password" }}@localhost:5432/mydb'';
+                  fromTemplate = ''postgresql://user:{{ file.Read `/run/secrets/db_password` }}@localhost:5432/mydb'';
                 };
                 API_KEY = {
                   fromFile = "/home/user/api-key";

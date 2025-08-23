@@ -166,10 +166,9 @@ in {
           }
           // lib.optionalAttrs cfg.authelia.enable {
             PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
-            AUTHELIA_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
             PAPERLESS_SOCIALACCOUNT_PROVIDERS.fromTemplate = let
               autheliaUrl = config.nps.containers.authelia.traefik.serviceDomain;
-            in ''{"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"${name}","secret":"''${AUTHELIA_CLIENT_SECRET}","settings":{"server_url":"${autheliaUrl}","token_auth_method":"client_secret_basic"}}]}}'';
+            in ''{"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"${name}","secret":"{{ file.Read "${cfg.authelia.clientSecretFile}" }}","settings":{"server_url":"${autheliaUrl}","token_auth_method":"client_secret_basic"}}]}}'';
           }
           // cfg.extraEnv;
 

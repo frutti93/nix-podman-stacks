@@ -3,8 +3,7 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   name = "immich";
 
   dbName = "${name}-db";
@@ -15,21 +14,21 @@ let
   mediaStorage = "${config.nps.mediaStorageBaseDir}";
   cfg = config.nps.stacks.${name};
 
-  env = {
-    DB_HOSTNAME = dbName;
-    DB_USERNAME = "postgres";
-    DB_DATABASE_NAME = "immich";
-    REDIS_HOSTNAME = redisName;
-    NODE_ENV = "production";
-    UPLOAD_LOCATION = "/usr/src/app/upload";
-  }
-  // lib.optionalAttrs (cfg.settings != null) {
-    IMMICH_CONFIG_FILE = "/usr/src/app/config/config.json";
-  };
+  env =
+    {
+      DB_HOSTNAME = dbName;
+      DB_USERNAME = "postgres";
+      DB_DATABASE_NAME = "immich";
+      REDIS_HOSTNAME = redisName;
+      NODE_ENV = "production";
+      UPLOAD_LOCATION = "/usr/src/app/upload";
+    }
+    // lib.optionalAttrs (cfg.settings != null) {
+      IMMICH_CONFIG_FILE = "/usr/src/app/config/config.json";
+    };
 
-  json = pkgs.formats.json { };
-in
-{
+  json = pkgs.formats.json {};
+in {
   imports = import ../mkAliases.nix config lib name [
     name
     redisName
@@ -48,7 +47,10 @@ in
 
         For details to the config file see <https://immich.app/docs/install/config-file/>
       '';
-      apply = settings: if (settings != null) then (json.generate "config.json" settings) else null;
+      apply = settings:
+        if (settings != null)
+        then (json.generate "config.json" settings)
+        else null;
     };
     authelia = {
       enable = lib.mkOption {
@@ -88,13 +90,12 @@ in
     };
   };
 
-  config =
-    let
-      adminGroupName = "immich_admin";
-    in
+  config = let
+    adminGroupName = "immich_admin";
+  in
     lib.mkIf cfg.enable {
       nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.authelia.enable) {
-        ${adminGroupName} = { };
+        ${adminGroupName} = {};
       };
       nps.stacks.lldap.bootstrap.userSchemas = {
         immich-quota.attributeType = "INTEGER";
@@ -125,8 +126,7 @@ in
             "immich_role"
           ];
         };
-        settings.definitions.user_attributes."immich_role".expression =
-          ''"${adminGroupName}" in groups ? "admin" :"user"'';
+        settings.definitions.user_attributes."immich_role".expression = ''"${adminGroupName}" in groups ? "admin" :"user"'';
 
         oidc.clients.${name} = {
           client_name = "Immich";
@@ -152,16 +152,25 @@ in
         };
       };
 
-      nps.stacks.${name}.settings =
-        import ./config.nix
-        // (lib.optionalAttrs cfg.authelia.enable {
+      nps.stacks.${name}.settings = lib.mkMerge [
+        (import ./config.nix)
+        # If Authelia is enabled, config will be templated with gomplate. Avoid rendering issues due to double curly braces
+        {
+          storageTemplate.template = let
+            template = "{{y}}/{{y}}-{{MM}}-{{dd}}/{{filename}}";
+          in
+            if (!cfg.authelia.enable)
+            then template
+            else "{{`${template}`}}";
+        }
+        (lib.optionalAttrs cfg.authelia.enable {
           oauth = {
             enabled = true;
             autoLaunch = false;
             autoRegister = true;
             buttonText = "Login with Authelia";
             clientId = name;
-            clientSecret = "\${AUTHELIA_CLIENT_SECRET}";
+            clientSecret = ''{{ file.Read `${cfg.authelia.clientSecretFile}`}}'';
             defaultStorageQuota = 0;
             issuerUrl = config.nps.stacks.authelia.containers.authelia.traefik.serviceDomain;
             mobileOverrideEnabled = false;
@@ -173,26 +182,27 @@ in
             timeout = 30000;
             tokenEndpointAuthMethod = "client_secret_post";
           };
-        });
+        })
+      ];
 
       services.podman.containers = {
         ${name} = {
           image = "ghcr.io/immich-app/immich-server:v1.139.2";
-          volumes = [
-            "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
-          ]
-          ++ lib.optional (
-            cfg.settings != null && (!cfg.authelia.enable)
-          ) "${cfg.settings}:${env.IMMICH_CONFIG_FILE}";
+          volumes =
+            [
+              "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
+            ]
+            ++ lib.optional (
+              cfg.settings != null && (!cfg.authelia.enable)
+            ) "${cfg.settings}:${env.IMMICH_CONFIG_FILE}";
           templateMount = lib.optional cfg.authelia.enable {
             templatePath = cfg.settings;
             destPath = env.IMMICH_CONFIG_FILE;
           };
-          extraEnv.AUTHELIA_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
 
           environment = env;
           extraEnv.DB_PASSWORD.fromFile = cfg.dbPasswordFile;
-          devices = [ "/dev/dri:/dev/dri" ];
+          devices = ["/dev/dri:/dev/dri"];
 
           dependsOnContainer = [
             redisName
@@ -220,7 +230,7 @@ in
 
         ${dbName} = {
           image = "docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0";
-          volumes = [ "${storage}/pgdata:/var/lib/postgresql/data" ];
+          volumes = ["${storage}/pgdata:/var/lib/postgresql/data"];
 
           extraEnv = {
             POSTGRES_USER = env.DB_USERNAME;
@@ -233,7 +243,7 @@ in
 
         ${mlName} = {
           image = "ghcr.io/immich-app/immich-machine-learning:v1.139.2";
-          volumes = [ "${storage}/model-cache:/cache" ];
+          volumes = ["${storage}/model-cache:/cache"];
 
           stack = name;
         };

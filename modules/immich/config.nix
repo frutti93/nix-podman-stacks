@@ -182,7 +182,6 @@
   storageTemplate = {
     enabled = true;
     hashVerificationEnabled = true;
-    template = "{{y}}/{{y}}-{{MM}}-{{dd}}/{{filename}}";
   };
 
   templates = {

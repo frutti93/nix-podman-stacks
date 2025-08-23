@@ -16,11 +16,16 @@ with types; rec {
             default = null;
             description = ''
               Template string to be used with the file content.
-              The template will be processed with `envsubst`, allowing you to use environment variables.
+              The template will be processed with `gomplate`, which allows you to access environment variables, read file contents and more.
 
-              See <https://github.com/a8m/envsubst>
+              When used in the `extraEnv` option to set environment variables, make sure the templated value results in a single line.
+
+              See
+
+              - <https://docs.gomplate.ca/>
+              - <https://github.com/hairyhenderson/gomplate>
             '';
-            example = "DB_URL=\${DB_USERNAME}:\${DB_PASSWORD}@localhost:5432/mydb";
+            example = ''DB_URL={{ env.getEnv "DB_USERNAME" }}:{{ file.Read "/run/secrets/db_password" }}@localhost:5432/mydb'';
           };
         };
       }

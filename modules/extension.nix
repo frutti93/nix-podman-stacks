@@ -57,7 +57,7 @@ in {
                   fromFile = "/some/path/secrets/db-password";
                 };
                 DB_URL = {
-                  fromTemplate = "postgresql://user:\${DB_PASSWORD}@localhost:5432/mydb";
+                  fromTemplate = ''postgresql://user:{{ file.Read "/run/secrets/db_password" }}@localhost:5432/mydb'';
                 };
                 API_KEY = {
                   fromFile = "/home/user/api-key";
@@ -80,7 +80,7 @@ in {
                     options = {
                       sourcePath = mkOption {
                         type = lib.types.str;
-                        description = "Source path on host.";
+                        description = "Source path on host";
                       };
                       destPath = mkOption {
                         type = lib.types.str;
@@ -144,7 +144,7 @@ in {
                   options = {
                     templatePath = lib.mkOption {
                       type = lib.types.path;
-                      description = "Path to the template. Environment variables within this file will be substituted.";
+                      description = "Path to the template. The file will be templated with `gomplate` before being mounted.";
                     };
                     destPath = lib.mkOption {
                       type = lib.types.path;
@@ -155,15 +155,23 @@ in {
               );
               default = [];
               description = ''
-                Bind mount that will replace environment variables in a source file.
-                The resulting templated file will be mounted into the container.
+                Bind mount that will render the template with `gomplate`.
+                The resulting file will be mounted into the container.
 
                 All environment variables from the `environment` and `extraEnv` options will be available for
                 substitution.
+
+                See
+
+                - <https://docs.gomplate.ca/>
+                - <https://github.com/hairyhenderson/gomplate>
               '';
               example = [
                 {
-                  templatePath = "/path/to/template";
+                  templatePath = pkgs.writeText "some-template" ''
+                    Hello {{ env.GetEnv "USER" "you" }}
+                    Secret Password is: {{ file.ReadFile "/run/secrets/some_secret" }}
+                  '';
                   destPath = "/run/secrets/templated_file";
                 }
               ];
@@ -294,7 +302,7 @@ in {
                           name = "create-extra-files";
                           runtimeInputs = [
                             pkgs.coreutils
-                            pkgs.envsubst
+                            pkgs.gomplate
                           ];
                           text = let
                             literalEnvFile = pkgs.writeText "${name}-literal-env" (
@@ -340,22 +348,22 @@ in {
                               } >> "${envFromFileContentLocation}"
                             ''
                             + lib.optionalString (extraTemplateEnv != {}) ''
-                              # Export all env vars so envsubst can use them for the template
+                              # Export all env vars so gomplate can use them for the template
                               load_env_file ${literalEnvFile}
                               load_env_file ${envFromFileContentLocation}
 
-                              # Write template-based env variables to a new file using envsubst
+                              # Write template-based env variables to a new file using gomplate
                               install -D -m 600 /dev/null ${envFromTemplateLocation}
-                              envsubst < "${
+                              gomplate -f ${
                                 pkgs.writeText "env-template-${name}" (
                                   extraTemplateEnv
                                   |> lib.mapAttrsToList (name: template: ''${name}=${template}'')
                                   |> lib.concatStringsSep "\n"
                                 )
-                              }" >> "${envFromTemplateLocation}"
+                              } > ${envFromTemplateLocation}
                             ''
                             + lib.optionalString (config.templateMount != []) ''
-                              # Export all env vars so envsubst can use them for the template
+                              # Export all env vars so gomplate can use them for the template
                               load_env_file ${literalEnvFile}
                               load_env_file ${envFromFileContentLocation}
                               load_env_file ${envFromTemplateLocation}
@@ -364,7 +372,7 @@ in {
                                 config.templateMount
                                 |> lib.map (m: ''
                                   install -D -m 600 /dev/null ${mkTemplateMountSource m.destPath}
-                                  envsubst < "${m.templatePath}" >> ${mkTemplateMountSource m.destPath}
+                                  gomplate -f ${m.templatePath} > ${mkTemplateMountSource m.destPath}
                                 '')
                                 |> lib.concatStringsSep "\n"
                               }

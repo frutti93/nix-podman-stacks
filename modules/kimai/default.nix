@@ -62,8 +62,7 @@ in {
           ADMINMAIL = cfg.adminEmail;
           ADMINPASS.fromFile = cfg.adminPasswordFile;
 
-          DATABASE_PASSWORD.fromFile = cfg.db.userPasswordFile;
-          DATABASE_URL.fromTemplate = "mysql://${cfg.db.username}:\${DATABASE_PASSWORD}@${dbName}/${cfg.db.databaseName}?charset=utf8mb4";
+          DATABASE_URL.fromTemplate = ''mysql://${cfg.db.username}:{{file.Read "${cfg.db.userPasswordFile}"}}@${dbName}/${cfg.db.databaseName}?charset=utf8mb4'';
         };
 
         dependsOnContainer = [dbName];

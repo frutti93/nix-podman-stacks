@@ -3,7 +3,7 @@
   clientId,
   adminGroup,
   userGroup,
-  clientSecretEnvName,
+  clientSecretFile,
 }: ''
   <?xml version="1.0" encoding="utf-8"?>
   <PluginConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -17,7 +17,7 @@
           <PluginConfiguration>
             <OidEndpoint>${autheliaUri}</OidEndpoint>
             <OidClientId>${clientId}</OidClientId>
-            <OidSecret>''${${clientSecretEnvName}}</OidSecret>
+            <OidSecret>{{ file.Read "${clientSecretFile}" }}</OidSecret>
             <Enabled>true</Enabled>
             <EnableAuthorization>true</EnableAuthorization>
             <EnableAllFolders>true</EnableAllFolders>

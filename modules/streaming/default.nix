@@ -184,7 +184,6 @@ in {
   config = let
     jellyfinAdminGroupName = "jellyfin_admin";
     jellyfinUserGroupName = "jellyfin_user";
-    jellyfinClientSecretEnvName = "JELLYFIN_AUTHELIA_CLIENT_SECRET";
   in
     lib.mkIf cfg.enable {
       nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.jellyfin.authelia.enable {
@@ -321,16 +320,10 @@ in {
                   clientId = jellyfinName;
                   adminGroup = jellyfinAdminGroupName;
                   userGroup = jellyfinUserGroupName;
-                  clientSecretEnvName = jellyfinClientSecretEnvName;
+                  clientSecretFile = cfg.jellyfin.authelia.clientSecretFile;
                 }
               );
               destPath = "/config/data/plugins/configurations/SSO-Auth.xml";
-            };
-
-            extraEnv = lib.optionalAttrs cfg.jellyfin.authelia.enable {
-              ${jellyfinClientSecretEnvName} = {
-                fromFile = cfg.jellyfin.authelia.clientSecretFile;
-              };
             };
 
             devices = ["/dev/dri:/dev/dri"];

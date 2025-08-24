@@ -100,6 +100,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     nps.containers.traefik = lib.mkIf cfg.traefikIntegration.enable {
+      wantsContainer = [name];
       environment = {
         POCKET_ID_CLIENT_ID = cfg.traefikIntegration.clientId;
       };

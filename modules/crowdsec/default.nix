@@ -123,6 +123,7 @@ in {
         containers.traefik.extraEnv = lib.mkIf (cfg.traefikIntegration.bouncerKeyFile != null) {
           BOUNCER_KEY_TRAEFIK.fromFile = cfg.traefikIntegration.bouncerKeyFile;
         };
+        containers.traefik.wantsContainer = [name];
         staticConfig.experimental.plugins.bouncer = {
           moduleName = "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin";
           version = "v1.4.4";

@@ -314,6 +314,7 @@ in {
     };
 
     nps.stacks.traefik = lib.mkIf cfg.enableTraefikMiddleware {
+      containers.traefik.wantsContainer = [name];
       dynamicConfig.http.middlewares.authelia.forwardAuth = {
         address = "http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2F${
           cfg.containers.${name}.traefik.serviceHost

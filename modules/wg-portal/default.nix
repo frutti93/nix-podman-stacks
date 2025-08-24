@@ -55,7 +55,7 @@ in {
       '';
       default = 51820;
     };
-    authelia = {
+    oidc = {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -90,14 +90,14 @@ in {
     wgAdminGroupName = "wg_portal_admin";
   in
     lib.mkIf cfg.enable {
-      nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.authelia.enable) {
+      nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.oidc.enable) {
         ${wgAdminGroupName} = {};
       };
 
-      nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
+      nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
         oidc.clients.${name} = {
           client_name = "WG-Portal";
-          client_secret = cfg.authelia.clientSecretHash;
+          client_secret = cfg.oidc.clientSecretHash;
           public = false;
           authorization_policy = "one_factor";
           claims_policy = name;
@@ -121,7 +121,7 @@ in {
           web.external_url = cfg.containers.${name}.traefik.serviceDomain;
           advanced.start_listen_port = cfg.port;
         }
-        // lib.optionalAttrs cfg.authelia.enable {
+        // lib.optionalAttrs cfg.oidc.enable {
           auth.oidc = [
             {
               id = "authelia";
@@ -172,8 +172,8 @@ in {
         ];
         extraEnv =
           cfg.extraEnv
-          // lib.optionalAttrs cfg.authelia.enable {
-            AUTHELIA_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
+          // lib.optionalAttrs cfg.oidc.enable {
+            AUTHELIA_CLIENT_SECRET.fromFile = cfg.oidc.clientSecretFile;
           };
 
         port = 8888;

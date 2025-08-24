@@ -113,7 +113,7 @@ in {
           // {
             default = true;
           };
-        authelia = {
+        oidc = {
           enable = lib.mkOption {
             type = lib.types.bool;
             default = false;
@@ -186,14 +186,14 @@ in {
     jellyfinUserGroupName = "jellyfin_user";
   in
     lib.mkIf cfg.enable {
-      nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.jellyfin.authelia.enable {
+      nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.jellyfin.oidc.enable {
         ${jellyfinAdminGroupName} = {};
         ${jellyfinUserGroupName} = {};
       };
-      nps.stacks.authelia = lib.mkIf cfg.jellyfin.authelia.enable {
+      nps.stacks.authelia = lib.mkIf cfg.jellyfin.oidc.enable {
         oidc.clients.${jellyfinName} = {
           client_name = "Jellyfin";
-          client_secret = cfg.jellyfin.authelia.clientSecretHash;
+          client_secret = cfg.jellyfin.oidc.clientSecretHash;
           public = false;
           authorization_policy = "one_factor";
           require_pkce = true;
@@ -311,16 +311,16 @@ in {
                 "${storage}/${jellyfinName}:/config"
                 "${mediaStorage}:/media"
               ]
-              ++ lib.optional (cfg.jellyfin.authelia.enable) "${brandingXml}:/config/branding.xml";
+              ++ lib.optional (cfg.jellyfin.oidc.enable) "${brandingXml}:/config/branding.xml";
 
-            templateMount = lib.optional cfg.jellyfin.authelia.enable {
+            templateMount = lib.optional cfg.jellyfin.oidc.enable {
               templatePath = pkgs.writeText "oidc-template" (
                 import ./jellyfin_sso_config.nix {
                   autheliaUri = config.nps.containers.authelia.traefik.serviceDomain;
                   clientId = jellyfinName;
                   adminGroup = jellyfinAdminGroupName;
                   userGroup = jellyfinUserGroupName;
-                  clientSecretFile = cfg.jellyfin.authelia.clientSecretFile;
+                  clientSecretFile = cfg.jellyfin.oidc.clientSecretFile;
                 }
               );
               destPath = "/config/data/plugins/configurations/SSO-Auth.xml";

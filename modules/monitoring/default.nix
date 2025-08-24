@@ -104,7 +104,7 @@ in {
           See <https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#configure-grafana>
         '';
       };
-      authelia = {
+      oidc = {
         enable = lib.mkOption {
           type = lib.types.bool;
           default = false;
@@ -217,14 +217,14 @@ in {
     grafanaAdminGroupName = "grafana_admin";
   in
     lib.mkIf cfg.enable {
-      nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.grafana.authelia.enable) {
+      nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.grafana.oidc.enable) {
         ${grafanaAdminGroupName} = {};
       };
 
-      nps.stacks.authelia = lib.mkIf cfg.grafana.authelia.enable {
+      nps.stacks.authelia = lib.mkIf cfg.grafana.oidc.enable {
         oidc.clients.${grafanaName} = {
           client_name = "Grafana";
-          client_secret = cfg.grafana.authelia.clientSecretHash;
+          client_secret = cfg.grafana.oidc.clientSecretHash;
           public = false;
           authorization_policy = "one_factor";
           claims_policy = grafanaName;
@@ -282,7 +282,7 @@ in {
             "${dashboards}:${dashboardPath}"
           ];
 
-          environment = lib.optionalAttrs (!cfg.grafana.authelia.enable) {
+          environment = lib.optionalAttrs (!cfg.grafana.oidc.enable) {
             GF_AUTH_ANONYMOUS_ENABLED = "true";
             GF_AUTH_ANONYMOUS_ORG_ROLE = "Admin";
             GF_AUTH_DISABLE_LOGIN_FORM = "true";
@@ -291,13 +291,13 @@ in {
           extraEnv = let
             autheliaUrl = config.nps.containers.authelia.traefik.serviceDomain;
           in
-            lib.optionalAttrs (cfg.grafana.authelia.enable) {
+            lib.optionalAttrs (cfg.grafana.oidc.enable) {
               GF_SERVER_ROOT_URL = cfg.containers.${grafanaName}.traefik.serviceDomain;
               GF_AUTH_GENERIC_OAUTH_ENABLED = true;
               GF_AUTH_GENERIC_OAUTH_NAME = "Authelia";
               GF_AUTH_GENERIC_OAUTH_ICON = "signin";
               GF_AUTH_GENERIC_OAUTH_CLIENT_ID = grafanaName;
-              GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET.fromFile = cfg.grafana.authelia.clientSecretFile;
+              GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET.fromFile = cfg.grafana.oidc.clientSecretFile;
               GF_AUTH_GENERIC_OAUTH_SCOPES = "openid,profile,email,groups";
               GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES = false;
               GF_AUTH_GENERIC_OAUTH_AUTH_URL = "${autheliaUrl}/api/oidc/authorization";

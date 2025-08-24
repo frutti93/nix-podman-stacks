@@ -35,7 +35,7 @@ in {
         See <https://docs.karakeep.app/configuration/>
       '';
     };
-    authelia = {
+    oidc = {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -68,10 +68,10 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
+    nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
       oidc.clients.${name} = {
         client_name = "Karakeep";
-        client_secret = cfg.authelia.clientSecretHash;
+        client_secret = cfg.oidc.clientSecretHash;
         public = false;
         authorization_policy = "one_factor";
         claims_policy = name;
@@ -110,10 +110,10 @@ in {
             NEXTAUTH_SECRET.fromFile = cfg.nextauthSecretFile;
             MEILI_MASTER_KEY.fromFile = cfg.meiliMasterKeyFile;
           }
-          // lib.optionalAttrs cfg.authelia.enable {
+          // lib.optionalAttrs cfg.oidc.enable {
             OAUTH_WELLKNOWN_URL = "${config.nps.containers.authelia.traefik.serviceDomain}/.well-known/openid-configuration";
             OAUTH_CLIENT_ID = name;
-            OAUTH_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
+            OAUTH_CLIENT_SECRET.fromFile = cfg.oidc.clientSecretFile;
             OAUTH_PROVIDER_NAME = "Authelia";
           };
 

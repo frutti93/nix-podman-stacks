@@ -83,7 +83,7 @@ in {
         description = "Path to the file containing the FTP password";
       };
     };
-    authelia = {
+    oidc = {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -117,9 +117,9 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.authelia.oidc.clients.${name} = lib.mkIf cfg.authelia.enable {
+    nps.stacks.authelia.oidc.clients.${name} = lib.mkIf cfg.oidc.enable {
       client_name = "Paperless";
-      client_secret = cfg.authelia.clientSecretHash;
+      client_secret = cfg.oidc.clientSecretHash;
       public = false;
       authorization_policy = "one_factor";
       require_pkce = true;
@@ -164,11 +164,11 @@ in {
             PAPERLESS_ADMIN_MAIL = cfg.adminProvisioning.email;
             PAPERLESS_ADMIN_PASSWORD.fromFile = cfg.adminProvisioning.passwordFile;
           }
-          // lib.optionalAttrs cfg.authelia.enable {
+          // lib.optionalAttrs cfg.oidc.enable {
             PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
             PAPERLESS_SOCIALACCOUNT_PROVIDERS.fromTemplate = let
               autheliaUrl = config.nps.containers.authelia.traefik.serviceDomain;
-            in ''{"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"${name}","secret":"{{ file.Read "${cfg.authelia.clientSecretFile}" }}","settings":{"server_url":"${autheliaUrl}","token_auth_method":"client_secret_basic"}}]}}'';
+            in ''{"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"${name}","secret":"{{ file.Read "${cfg.oidc.clientSecretFile}" }}","settings":{"server_url":"${autheliaUrl}","token_auth_method":"client_secret_basic"}}]}}'';
           }
           // cfg.extraEnv;
 

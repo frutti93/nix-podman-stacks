@@ -53,7 +53,7 @@ in {
         enable = true;
         ed25519PrivateKeyFile = dummySecretFile;
         ed25519PublicKeyFile = dummySecretFile;
-        authelia = {
+        oidc = {
           registerClient = true;
           clientSecretHash = dummyHash;
         };
@@ -160,7 +160,7 @@ in {
           postgresPasswordFile = dummySecretFile;
         };
 
-        authelia = {
+        oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
           clientSecretHash = dummyHash;
@@ -192,7 +192,7 @@ in {
 
       immich = {
         enable = true;
-        authelia = {
+        oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
           clientSecretHash = dummyHash;
@@ -204,7 +204,7 @@ in {
 
       karakeep = {
         enable = true;
-        authelia = {
+        oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
           clientSecretHash = dummyHash;
@@ -242,7 +242,7 @@ in {
 
       mealie = {
         enable = true;
-        authelia = {
+        oidc = {
           enable = true;
           clientSecretHash = dummyHash;
           clientSecretFile = dummySecretFile;
@@ -282,7 +282,7 @@ in {
           email = dummyEmail;
           passwordFile = dummySecretFile;
         };
-        authelia = {
+        oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
           clientSecretHash = dummyHash;
@@ -325,7 +325,7 @@ in {
           IGDB_CLIENT_ID.fromFile = dummySecretFile;
           IGDB_CLIENT_SECRET.fromFile = dummySecretFile;
         };
-        authelia = {
+        oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
           clientSecretHash = dummyHash;
@@ -357,7 +357,7 @@ in {
             TORRENTING_PORT.fromFile = dummySecretFile;
           };
           jellyfin = {
-            authelia = {
+            oidc = {
               enable = true;
               clientSecretFile = dummySecretFile;
               clientSecretHash = dummyHash;
@@ -399,7 +399,7 @@ in {
         extraEnv.ADMIN_PASSWORD.fromFile = dummySecretFile;
         settings.advanved.use_ip_v6 = false;
 
-        authelia = {
+        oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
           clientSecretHash = dummyHash;

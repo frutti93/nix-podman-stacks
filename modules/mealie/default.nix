@@ -11,7 +11,7 @@ in {
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
-    authelia = {
+    oidc = {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -48,7 +48,7 @@ in {
     nps.stacks.lldap.bootstrap.groups = let
       env = cfg.containers.${name}.environment;
     in
-      lib.mkIf cfg.authelia.enable {
+      lib.mkIf cfg.oidc.enable {
         mealie-admin = lib.mkIf (builtins.hasAttr "OIDC_ADMIN_GROUP" env) {
           name = env.OIDC_ADMIN_GROUP;
         };
@@ -56,10 +56,10 @@ in {
           name = env.OIDC_USER_GROUP;
         };
       };
-    nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
+    nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
       oidc.clients.${name} = {
         client_name = "Mealie";
-        client_secret = cfg.authelia.clientSecretHash;
+        client_secret = cfg.oidc.clientSecretHash;
         public = false;
         authorization_policy = "one_factor";
         require_pkce = false;
@@ -84,13 +84,13 @@ in {
           #ALLOW_PASSWORD_LOGIN = false;
         };
 
-        extraEnv = lib.optionalAttrs cfg.authelia.enable {
+        extraEnv = lib.optionalAttrs cfg.oidc.enable {
           OIDC_AUTH_ENABLED = true;
           OIDC_PROVIDER_NAME = "Authelia";
           OIDC_SIGNUP_ENABLED = true;
           OIDC_CONFIGURATION_URL = "${config.nps.containers.authelia.traefik.serviceDomain}/.well-known/openid-configuration";
           OIDC_CLIENT_ID = name;
-          OIDC_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
+          OIDC_CLIENT_SECRET.fromFile = cfg.oidc.clientSecretFile;
           OIDC_AUTO_REDIRECT = false;
           OIDC_ADMIN_GROUP = "mealie_admin";
           OIDC_USER_GROUP = "mealie_user";

@@ -70,7 +70,7 @@ in {
         ];
       };
     };
-    authelia = {
+    oidc = {
       registerClient = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -97,9 +97,9 @@ in {
     };
   };
   config = lib.mkIf cfg.enable {
-    nps.stacks.authelia.oidc.clients.${name} = lib.mkIf cfg.authelia.registerClient {
+    nps.stacks.authelia.oidc.clients.${name} = lib.mkIf cfg.oidc.registerClient {
       client_name = "Beszel";
-      client_secret = cfg.authelia.clientSecretHash;
+      client_secret = cfg.oidc.clientSecretHash;
       public = false;
       authorization_policy = "one_factor";
       require_pkce = true;
@@ -129,7 +129,7 @@ in {
         environment = {
           SHARE_ALL_SYSTEMS = true;
           # If Authelia is enabled, allow automatic user creation on OIDC login.
-          USER_CREATION = cfg.authelia.registerClient;
+          USER_CREATION = cfg.oidc.registerClient;
         };
 
         port = 8090;

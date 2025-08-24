@@ -96,7 +96,7 @@ in {
       };
     };
 
-    authelia = {
+    oidc = {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -139,10 +139,10 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
+    nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
       oidc.clients.${name} = {
         client_name = "Rom Manager";
-        client_secret = cfg.authelia.clientSecretHash;
+        client_secret = cfg.oidc.clientSecretHash;
         public = false;
         authorization_policy = "one_factor";
         require_pkce = false;
@@ -190,7 +190,7 @@ in {
             ADMIN_PASSWORD.fromFile = cfg.adminProvisioning.passwordFile;
             ADMIN_EMAIL = cfg.adminProvisioning.email;
           }
-          // lib.optionalAttrs (cfg.authelia.enable) (
+          // lib.optionalAttrs (cfg.oidc.enable) (
             let
               authelia = config.nps.stacks.authelia;
               oidcClient = authelia.oidc.clients.${name};
@@ -203,7 +203,7 @@ in {
             }
           )
           // cfg.extraEnv;
-        fileEnvMount.OIDC_CLIENT_SECRET_FILE = lib.mkIf cfg.authelia.enable cfg.authelia.clientSecretFile;
+        fileEnvMount.OIDC_CLIENT_SECRET_FILE = lib.mkIf cfg.oidc.enable cfg.oidc.clientSecretFile;
 
         extraConfig = {
           Container = {

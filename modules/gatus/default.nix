@@ -64,7 +64,7 @@ in {
         Only applies if endpoint does not override the default endpoint settings.
       '';
     };
-    authelia = {
+    oidc = {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -148,10 +148,10 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
+    nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
       oidc.clients.${name} = {
         client_name = "Gatus";
-        client_secret = cfg.authelia.clientSecretHash;
+        client_secret = cfg.oidc.clientSecretHash;
         public = false;
         authorization_policy = "one_factor";
         require_pkce = false;
@@ -173,7 +173,7 @@ in {
             cfg.containers.${dbName}.environment.POSTGRES_DB
           }?sslmode=disable";
       };
-      security = lib.mkIf cfg.authelia.enable {
+      security = lib.mkIf cfg.oidc.enable {
         oidc = let
           authelia = config.nps.stacks.authelia;
           oidcClient = authelia.oidc.clients.${name};
@@ -187,7 +187,7 @@ in {
             "profile"
             "email"
           ];
-          allowed-subjects = cfg.authelia.allowedSubjects;
+          allowed-subjects = cfg.oidc.allowedSubjects;
         };
       };
     };
@@ -213,7 +213,7 @@ in {
         };
         extraEnv =
           {
-            AUTHELIA_CLIENT_SECRET.fromFile = cfg.authelia.clientSecretFile;
+            AUTHELIA_CLIENT_SECRET.fromFile = cfg.oidc.clientSecretFile;
           }
           // lib.optionalAttrs (cfg.db.type == "postgres") {
             POSTGRES_USER = cfg.db.postgresUser;

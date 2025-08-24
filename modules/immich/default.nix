@@ -52,7 +52,7 @@ in {
         then (json.generate "config.json" settings)
         else null;
     };
-    authelia = {
+    oidc = {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -94,14 +94,14 @@ in {
     adminGroupName = "immich_admin";
   in
     lib.mkIf cfg.enable {
-      nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.authelia.enable) {
+      nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.oidc.enable) {
         ${adminGroupName} = {};
       };
       nps.stacks.lldap.bootstrap.userSchemas = {
         immich-quota.attributeType = "INTEGER";
       };
 
-      nps.stacks.authelia = lib.mkIf cfg.authelia.enable {
+      nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
         settings.authentication_backend = {
           ldap.attributes.extra = {
             immich-quota = {
@@ -130,7 +130,7 @@ in {
 
         oidc.clients.${name} = {
           client_name = "Immich";
-          client_secret = cfg.authelia.clientSecretHash;
+          client_secret = cfg.oidc.clientSecretHash;
           public = false;
           authorization_policy = "one_factor";
           require_pkce = false;
@@ -159,18 +159,18 @@ in {
           storageTemplate.template = let
             template = "{{y}}/{{y}}-{{MM}}-{{dd}}/{{filename}}";
           in
-            if (!cfg.authelia.enable)
+            if (!cfg.oidc.enable)
             then template
             else "{{`${template}`}}";
         }
-        (lib.optionalAttrs cfg.authelia.enable {
+        (lib.optionalAttrs cfg.oidc.enable {
           oauth = {
             enabled = true;
             autoLaunch = false;
             autoRegister = true;
             buttonText = "Login with Authelia";
             clientId = name;
-            clientSecret = ''{{ file.Read `${cfg.authelia.clientSecretFile}`}}'';
+            clientSecret = ''{{ file.Read `${cfg.oidc.clientSecretFile}`}}'';
             defaultStorageQuota = 0;
             issuerUrl = config.nps.stacks.authelia.containers.authelia.traefik.serviceDomain;
             mobileOverrideEnabled = false;
@@ -193,9 +193,9 @@ in {
               "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
             ]
             ++ lib.optional (
-              cfg.settings != null && (!cfg.authelia.enable)
+              cfg.settings != null && (!cfg.oidc.enable)
             ) "${cfg.settings}:${env.IMMICH_CONFIG_FILE}";
-          templateMount = lib.optional cfg.authelia.enable {
+          templateMount = lib.optional cfg.oidc.enable {
             templatePath = cfg.settings;
             destPath = env.IMMICH_CONFIG_FILE;
           };

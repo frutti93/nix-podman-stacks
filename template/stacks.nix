@@ -46,7 +46,7 @@
 
       immich = {
         enable = true;
-        authelia = {
+        oidc = {
           enable = true;
           clientSecretFile = config.sops.secrets."immich/authelia_client_secret".path;
           clientSecretHash = "$pbkdf2-sha512$310000$CmFYHZTQ0aMd9P/RaFJjrw$7Mht0oY97PDzdLP6GbEKB1dZ1ZQeL66TjrfhjyV0sWOtGKDxkyTcUFfIEh/bzPKM2Bs4.BCmZZWkYiKZ2E0T5Q";
@@ -80,7 +80,7 @@
           email = "admin@example.com";
           passwordFile = config.sops.secrets."paperless/admin_password".path;
         };
-        authelia = {
+        oidc = {
           enable = true;
           clientSecretFile = config.sops.secrets."paperless/authelia_client_secret".path;
           clientSecretHash = "$pbkdf2-sha512$310000$wUGniL1V/2bHarMRgE4GQQ$NeJhO.8afkZ7aYJQ5l9f5FfDwFp8dE8PWevkUYdvxP69zieO1kdEIX4xe2UCQvLsAd7pWmwwQgyypbkXQya7FQ";

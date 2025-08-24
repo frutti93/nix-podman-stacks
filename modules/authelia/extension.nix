@@ -6,10 +6,10 @@
   forwardAuthContainers =
     lib.filterAttrs (k: c: c.forwardAuth.enable && c.forwardAuth.rules != [])
     config.services.podman.containers;
-  forwardAuthRules = lib.mapAttrs (name: c: c.forwardAuth.rules) forwardAuthContainers |> lib.attrValues;
+  forwardAuthCfg = lib.mapAttrs (name: c: c.forwardAuth) forwardAuthContainers |> lib.attrValues;
 in {
   config = lib.mkIf (forwardAuthContainers != {}) {
-    nps.stacks.authelia.settings.access_control.rules = lib.mkMerge forwardAuthRules;
+    nps.stacks.authelia.settings.access_control.rules = lib.mkMerge (forwardAuthCfg |> map (e: lib.mkOrder e.order e.rules));
   };
 
   options.services.podman.containers = lib.mkOption {
@@ -31,6 +31,17 @@ in {
             They will be added to the Authelia settings.
 
             See <https://www.authelia.com/configuration/security/access-control/>
+          '';
+        };
+        order = lib.mkOption {
+          type = lib.types.int;
+          default = 1000;
+          description = ''
+            Order of rules when merged into the authelia settings.
+            The order will be applied using `lib.mkOrder <order>` when applying the rules in the Authelia settings.
+            Lower numbers mean the rules will appear earlier in the `access_control.rules` list, which give them a higher priority.
+
+            See <https://www.authelia.com/configuration/security/access-control/#rule-matching-concept-1-sequential-order>
           '';
         };
         rules = mkOption {

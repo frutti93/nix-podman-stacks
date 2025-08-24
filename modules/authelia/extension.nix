@@ -79,6 +79,42 @@ in {
                     See <https://www.authelia.com/configuration/security/access-control/#policy>
                   '';
                 };
+                subject = mkOption {
+                  type = listOf (either str (listOf str));
+                  default = [];
+                  description = ''
+                    Criteria that matches the subject.
+
+                    See <https://www.authelia.com/configuration/security/access-control/#subject>
+                  '';
+                };
+                methods = mkOption {
+                  type = listOf str;
+                  default = [];
+                  description = ''
+                    Critera matching the HTTP request method.
+
+                    See <https://www.authelia.com/configuration/security/access-control/#methods>
+                  '';
+                };
+                networks = mkOption {
+                  type = listOf str;
+                  default = [];
+                  description = ''
+                    Critera matching the network. Can be a list of IP addresses, CIDR ranges or named network definitions.
+
+                    See <https://www.authelia.com/configuration/security/access-control/#networks>
+                  '';
+                };
+                resources = mkOption {
+                  type = listOf str;
+                  default = [];
+                  description = ''
+                    Critera matching the path and query parameter using regular expressions.
+
+                    See <https://www.authelia.com/configuration/security/access-control/#resources>
+                  '';
+                };
               };
             });
           default = [];

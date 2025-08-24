@@ -1,11 +1,9 @@
 lib:
 with lib;
-with types;
-rec {
+with types; rec {
   fromFileOrTemplateSubmodule = (
     submodule (
-      { config, ... }:
-      {
+      {config, ...}: {
         options = {
           fromFile = mkOption {
             type = nullOr path;
@@ -27,7 +25,7 @@ rec {
               - <https://docs.gomplate.ca/>
               - <https://github.com/hairyhenderson/gomplate>
             '';
-            example = ''DB_URL={{ env.getEnv "DB_USERNAME" }}:{{ file.Read `/run/secrets/db_password` }}@localhost:5432/mydb'';
+            example = ''DB_URL={{ env.getEnv `DB_USERNAME` }}:{{ file.Read `/run/secrets/db_password` }}@localhost:5432/mydb'';
           };
         };
       }

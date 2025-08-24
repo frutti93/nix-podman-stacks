@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  options,
   ...
 }: let
   name = "authelia";
@@ -33,7 +32,7 @@
 
   useLdap = cfg.authenticationBackend.type == "ldap";
 in {
-  imports = import ../mkAliases.nix config lib name [name];
+  imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;

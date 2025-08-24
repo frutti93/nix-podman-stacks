@@ -4,7 +4,7 @@ You can override the DNS challenge provider by modifying the static config.
 Keep in mind, that depending on the used provider, you have to provide the necessary environment variables.
 Refer to https://doc.traefik.io/traefik/https/acme/#providers for details
 */
-{lib, ...}: {
+{
   nps.stacks = {
     traefik.staticConfig.certificatesResolvers.letsencrypt.acme.dnsChallenge.provider = "porkbun";
   };

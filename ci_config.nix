@@ -47,6 +47,15 @@ in {
             redirect_uris = [];
           };
         };
+        settings.access_control.rules = [
+          {
+            domain = "private.example.com";
+            subject = [
+              "group:guest"
+            ];
+            policy = "deny";
+          }
+        ];
       };
 
       beszel = {
@@ -121,7 +130,17 @@ in {
 
       docker-socket-proxy.enable = true;
 
-      dozzle.enable = true;
+      dozzle = {
+        enable = true;
+        containers.dozzle.forwardAuth = {
+          enable = true;
+          rules = [
+            {
+              policy = "one_factor";
+            }
+          ];
+        };
+      };
 
       filebrowser = {
         enable = true;

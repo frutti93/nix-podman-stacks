@@ -99,10 +99,10 @@ in {
               then "${ip4Address}"
               else "${ip4Address}:${hostPort}";
           };
-          serviceDomain = mkOption {
+          serviceUrl = mkOption {
             type = lib.types.str;
             description = ''
-              The full domain of the service as it will be registered in Traefik.
+              The full URL of the service as it will be registered in Traefik.
               This will be the serviceHost including the "https://" prefix.
             '';
             default = traefikCfg.serviceHost;

@@ -143,7 +143,7 @@ in {
           PUID = config.nps.defaultUid;
           PGID = config.nps.defaultGid;
           TRUST_PROXY = true;
-          APP_URL = cfg.containers.${name}.traefik.serviceDomain;
+          APP_URL = cfg.containers.${name}.traefik.serviceUrl;
           ANALYTICS_DISABLED = true;
         }
         // lib.optionalAttrs cfg.ldap.enableSynchronisation (

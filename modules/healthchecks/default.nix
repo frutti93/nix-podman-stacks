@@ -39,7 +39,7 @@ in {
         environment = {
           PUID = config.nps.defaultUid;
           PGID = config.nps.defaultGid;
-          SITE_ROOT = config.services.podman.containers.${name}.traefik.serviceDomain;
+          SITE_ROOT = config.services.podman.containers.${name}.traefik.serviceUrl;
           SITE_NAME = "Healthchecks";
           REGISTRATION_OPEN = "False";
           INTEGRATIONS_ALLOW_PRIVATE_IPS = "True";

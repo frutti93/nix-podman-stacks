@@ -66,7 +66,7 @@ in {
         pkce_challenge_method = "";
         pre_configured_consent_duration = "1 month";
         redirect_uris = [
-          "${cfg.containers.${name}.traefik.serviceDomain}/login"
+          "${cfg.containers.${name}.traefik.serviceUrl}/login"
         ];
       };
     };
@@ -79,7 +79,7 @@ in {
           ALLOW_SIGNUP = false;
           PUID = config.nps.defaultUid;
           PGID = config.nps.defaultGid;
-          BASE_URL = config.services.podman.containers.${name}.traefik.serviceDomain;
+          BASE_URL = config.services.podman.containers.${name}.traefik.serviceUrl;
           DB_ENGINE = "sqlite";
           #ALLOW_PASSWORD_LOGIN = false;
         };
@@ -88,7 +88,7 @@ in {
           OIDC_AUTH_ENABLED = true;
           OIDC_PROVIDER_NAME = "Authelia";
           OIDC_SIGNUP_ENABLED = true;
-          OIDC_CONFIGURATION_URL = "${config.nps.containers.authelia.traefik.serviceDomain}/.well-known/openid-configuration";
+          OIDC_CONFIGURATION_URL = "${config.nps.containers.authelia.traefik.serviceUrl}/.well-known/openid-configuration";
           OIDC_CLIENT_ID = name;
           OIDC_CLIENT_SECRET.fromFile = cfg.oidc.clientSecretFile;
           OIDC_AUTO_REDIRECT = false;

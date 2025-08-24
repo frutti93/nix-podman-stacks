@@ -105,7 +105,7 @@ in {
           pkce_challenge_method = "";
           pre_configured_consent_duration = "1 month";
           redirect_uris = [
-            "${cfg.containers.${name}.traefik.serviceDomain}/api/v0/auth/login/authelia/callback"
+            "${cfg.containers.${name}.traefik.serviceUrl}/api/v0/auth/login/authelia/callback"
           ];
         };
         settings.identity_providers.oidc.claims_policies.${name}.id_token = [
@@ -118,7 +118,7 @@ in {
 
       nps.stacks.${name}.settings =
         {
-          web.external_url = cfg.containers.${name}.traefik.serviceDomain;
+          web.external_url = cfg.containers.${name}.traefik.serviceUrl;
           advanced.start_listen_port = cfg.port;
         }
         // lib.optionalAttrs cfg.oidc.enable {
@@ -127,7 +127,7 @@ in {
               id = "authelia";
               provider_name = "authelia";
               display_name = "Login with</br>Authelia";
-              base_url = config.nps.containers.authelia.traefik.serviceDomain;
+              base_url = config.nps.containers.authelia.traefik.serviceUrl;
               client_id = name;
               client_secret = "\${AUTHELIA_CLIENT_SECRET}";
               extra_scopes = [

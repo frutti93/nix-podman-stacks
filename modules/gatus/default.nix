@@ -158,7 +158,7 @@ in {
         pkce_challenge_method = "";
         pre_configured_consent_duration = "1 month";
         redirect_uris = [
-          "${cfg.containers.${name}.traefik.serviceDomain}/authorization-code/callback"
+          "${cfg.containers.${name}.traefik.serviceUrl}/authorization-code/callback"
         ];
       };
     };
@@ -178,7 +178,7 @@ in {
           authelia = config.nps.stacks.authelia;
           oidcClient = authelia.oidc.clients.${name};
         in {
-          issuer-url = authelia.containers.authelia.traefik.serviceDomain;
+          issuer-url = authelia.containers.authelia.traefik.serviceUrl;
           client-id = oidcClient.client_id;
           client-secret = "\${AUTHELIA_CLIENT_SECRET}";
           redirect-url = lib.elemAt oidcClient.redirect_uris 0;

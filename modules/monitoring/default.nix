@@ -232,7 +232,7 @@ in {
           pkce_challenge_method = "S256";
           pre_configured_consent_duration = "1 month";
           redirect_uris = [
-            "${cfg.containers.${grafanaName}.traefik.serviceDomain}/login/generic_oauth"
+            "${cfg.containers.${grafanaName}.traefik.serviceUrl}/login/generic_oauth"
           ];
         };
 
@@ -289,10 +289,10 @@ in {
           };
 
           extraEnv = let
-            autheliaUrl = config.nps.containers.authelia.traefik.serviceDomain;
+            autheliaUrl = config.nps.containers.authelia.traefik.serviceUrl;
           in
             lib.optionalAttrs (cfg.grafana.oidc.enable) {
-              GF_SERVER_ROOT_URL = cfg.containers.${grafanaName}.traefik.serviceDomain;
+              GF_SERVER_ROOT_URL = cfg.containers.${grafanaName}.traefik.serviceUrl;
               GF_AUTH_GENERIC_OAUTH_ENABLED = true;
               GF_AUTH_GENERIC_OAUTH_NAME = "Authelia";
               GF_AUTH_GENERIC_OAUTH_ICON = "signin";

@@ -30,7 +30,7 @@ in {
         "${storage}/data:/app/microbin_data"
       ];
       environment = {
-        MICROBIN_PUBLIC_PATH = cfg.containers.${name}.traefik.serviceDomain;
+        MICROBIN_PUBLIC_PATH = cfg.containers.${name}.traefik.serviceUrl;
         MICROBIN_ENABLE_BURN_AFTER = true;
         MICROBIN_QR = true;
         MICROBIN_ENCRYPTION_CLIENT_SIDE = true;

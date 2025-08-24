@@ -37,7 +37,7 @@ in {
         "${storage}/data:/data"
       ];
       environment = {
-        DOMAIN = cfg.containers.${name}.traefik.serviceDomain;
+        DOMAIN = cfg.containers.${name}.traefik.serviceUrl;
       };
       extraEnv = cfg.extraEnv;
 

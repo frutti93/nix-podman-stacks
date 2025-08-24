@@ -86,7 +86,7 @@ in {
           FRESHRSS_INSTALL = "'${
             lib.concatStringsSep " " [
               "--api-enabled"
-              "--base-url ${cfg.containers.${name}.traefik.serviceDomain}"
+              "--base-url ${cfg.containers.${name}.traefik.serviceUrl}"
               "--default-user \\$\\$\{ADMIN_USERNAME\}"
               "--language en"
             ]

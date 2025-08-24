@@ -36,7 +36,7 @@ in {
       config = lib.mkIf (config.gatus.enable) {
         gatus.settings = {
           name = lib.mkDefault name;
-          url = lib.mkDefault config.traefik.serviceDomain;
+          url = lib.mkDefault config.traefik.serviceUrl;
         };
       };
     }));

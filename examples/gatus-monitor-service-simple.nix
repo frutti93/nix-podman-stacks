@@ -19,7 +19,7 @@ The most basic example to enable Gatus monitoring:
     in [
       {
         name = sonarrCfg.traefik.name;
-        url = sonarrCfg.traefik.serviceDomain;
+        url = sonarrCfg.traefik.serviceUrl;
       }
     ];
   };

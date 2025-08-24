@@ -106,7 +106,7 @@ in {
       pkce_challenge_method = "S256";
       pre_configured_consent_duration = "1 month";
       redirect_uris = [
-        "${cfg.containers.${name}.traefik.serviceDomain}/api/oauth2-redirect"
+        "${cfg.containers.${name}.traefik.serviceUrl}/api/oauth2-redirect"
       ];
     };
 

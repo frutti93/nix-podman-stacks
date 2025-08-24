@@ -19,7 +19,7 @@ in {
       environment = {
         DB_TYPE = "sqlite";
         GENERIC_TIMEZONE = config.nps.defaultTz;
-        N8N_EDITOR_BASE_URL = cfg.containers.${name}.traefik.serviceDomain;
+        N8N_EDITOR_BASE_URL = cfg.containers.${name}.traefik.serviceUrl;
         N8N_DIAGNOSTICS_ENABLED = false;
       };
 

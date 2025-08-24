@@ -126,7 +126,7 @@ in {
       pkce_challenge_method = "S256";
       pre_configured_consent_duration = "1 month";
       redirect_uris = [
-        "${cfg.containers.${name}.traefik.serviceDomain}/accounts/oidc/authelia/login/callback/"
+        "${cfg.containers.${name}.traefik.serviceUrl}/accounts/oidc/authelia/login/callback/"
       ];
     };
 
@@ -150,7 +150,7 @@ in {
           USERMAP_GID = config.nps.defaultGid;
           PAPERLESS_TIME_ZONE = config.nps.defaultTz;
           PAPERLESS_FILENAME_FORMAT = "{{created_year}}/{{correspondent}}/{{title}}";
-          PAPERLESS_URL = config.services.podman.containers.${name}.traefik.serviceDomain;
+          PAPERLESS_URL = config.services.podman.containers.${name}.traefik.serviceUrl;
         };
 
         extraEnv =
@@ -167,7 +167,7 @@ in {
           // lib.optionalAttrs cfg.oidc.enable {
             PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
             PAPERLESS_SOCIALACCOUNT_PROVIDERS.fromTemplate = let
-              autheliaUrl = config.nps.containers.authelia.traefik.serviceDomain;
+              autheliaUrl = config.nps.containers.authelia.traefik.serviceUrl;
             in ''{"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"${name}","secret":"{{ file.Read "${cfg.oidc.clientSecretFile}" }}","settings":{"server_url":"${autheliaUrl}","token_auth_method":"client_secret_basic"}}]}}'';
           }
           // cfg.extraEnv;

@@ -54,7 +54,7 @@ in {
         category = "Network & Administration";
         name = "Docker Socket Proxy";
         settings = {
-          href = "${cfg.containers.${name}.traefik.serviceDomain}/version";
+          href = "${cfg.containers.${name}.traefik.serviceUrl}/version";
           description = "Security Proxy for the Docker Socket";
           icon = "haproxy";
         };

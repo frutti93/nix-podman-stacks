@@ -149,7 +149,7 @@ in {
         pkce_challenge_method = "";
         pre_configured_consent_duration = "1 month";
         redirect_uris = [
-          "${cfg.containers.${name}.traefik.serviceDomain}/api/oauth/openid"
+          "${cfg.containers.${name}.traefik.serviceUrl}/api/oauth/openid"
         ];
         claims_policy = "romm";
       };
@@ -199,7 +199,7 @@ in {
               OIDC_PROVIDER = "authelia";
               OIDC_CLIENT_ID = oidcClient.client_id;
               OIDC_REDIRECT_URI = lib.elemAt oidcClient.redirect_uris 0;
-              OIDC_SERVER_APPLICATION_URL = authelia.containers.authelia.traefik.serviceDomain;
+              OIDC_SERVER_APPLICATION_URL = authelia.containers.authelia.traefik.serviceUrl;
             }
           )
           // cfg.extraEnv;

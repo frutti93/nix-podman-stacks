@@ -46,7 +46,7 @@ in {
         "${storage}:/var/lib/ntfy"
       ];
       environment = {
-        NTFY_BASE_URL = cfg.containers.${name}.traefik.serviceDomain;
+        NTFY_BASE_URL = cfg.containers.${name}.traefik.serviceUrl;
         NTFY_CACHE_FILE = "/var/lib/ntfy/cache.db";
         NTFY_AUTH_FILE = "/var/lib/ntfy/auth.db";
         NTFY_AUTH_DEFAULT_ACCESS = "deny-all";

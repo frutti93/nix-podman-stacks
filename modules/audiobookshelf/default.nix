@@ -49,8 +49,8 @@ in {
       pkce_challenge_method = "S256";
       pre_configured_consent_duration = "1 month";
       redirect_uris = [
-        "${cfg.containers.${name}.traefik.serviceDomain}/auth/openid/callback"
-        "${cfg.containers.${name}.traefik.serviceDomain}/auth/openid/mobile-redirect"
+        "${cfg.containers.${name}.traefik.serviceUrl}/auth/openid/callback"
+        "${cfg.containers.${name}.traefik.serviceUrl}/auth/openid/mobile-redirect"
         "audiobookshelf://oauth"
       ];
     };

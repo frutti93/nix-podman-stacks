@@ -31,9 +31,7 @@ in {
             Optionally, access control rules for this container can be specified in the settings.
             They will be added to the Authelia settings.
 
-            See
-
-            <https://www.authelia.com/configuration/security/access-control/>
+            See <https://www.authelia.com/configuration/security/access-control/>
           '';
         };
         rules = mkOption {
@@ -42,8 +40,8 @@ in {
               options = {
                 domain = mkOption {
                   type = listOf str;
-                  default = [config.traefik.serviceDomain];
-                  defaultText = lib.literalExpression ''[ containerCfg.traefik.serviceDomain ]'';
+                  default = [config.traefik.serviceHost];
+                  defaultText = lib.literalExpression ''[ containerCfg.traefik.serviceUrl ]'';
                   description = ''
                     Domain(s) that will be matched for the rule. Defaults to the servie domain registered in Traefik.
                     Either this, or the `domain_regex` options has to be set.

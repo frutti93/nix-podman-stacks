@@ -301,7 +301,7 @@ in {
         cookies = [
           {
             domain = config.nps.stacks.traefik.domain;
-            authelia_url = container.traefik.serviceDomain;
+            authelia_url = container.traefik.serviceUrl;
             name = "authelia_session";
           }
         ];

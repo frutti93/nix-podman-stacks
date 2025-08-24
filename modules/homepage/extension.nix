@@ -73,7 +73,7 @@ in {
 
       config = lib.mkIf (config.homepage.enable && config.homepage.category != null) {
         homepage.settings = {
-          href = lib.mkIf (config.traefik.name != null) (lib.mkDefault config.traefik.serviceDomain);
+          href = lib.mkIf (config.traefik.name != null) (lib.mkDefault config.traefik.serviceUrl);
           server = lib.mkDefault "local";
           container = lib.mkDefault name;
           widget = {

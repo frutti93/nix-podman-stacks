@@ -85,10 +85,11 @@ in {
       default = {};
       description = ''
         Dynamic configuration for Traefik.
-        By default, the module will setup two middlewares: private & public.
+        By default, the module will setup two middlewares: `private` & `public`.
         The private middleware (applied by default to all services) will only allow access from internal networks.
-        The public middleware (applied by default to all services) will allow access from the internet. It will be configured
-        with a rate limit, security headers and a geoblock plugin (if enabled).
+        The public middleware will allow access from the internet. It will be configured
+        with a rate limit, security headers and a geoblock plugin (if enabled). If enabled, Crowdsec will also
+        be added to the `public` middleware chain.
       '';
     };
     extraEnv = lib.mkOption {
@@ -113,7 +114,7 @@ in {
           Enable the geoblock plugin for Traefik.
           This will block access to the services based on the country code of the request.
           The plugin uses the IP2Location database to determine the country code.
-          If enabled, the geoblock will be used in the 'public' middleware,
+          If enabled, the geoblock will be used in the `public` middleware,
           allowing only requests from the allowed countries.
         '';
       };

@@ -18,13 +18,13 @@ in {
       config,
       ...
     }: {
-      config.traefik.middlewares = lib.mkIf config.forwardAuth.enable ["authelia"];
+      config.traefik.middleware.authelia.enable = config.forwardAuth.enable;
       options.forwardAuth = with lib; {
         enable = mkOption {
           type = types.bool;
           default = false;
           description = ''
-            Whether to enable forward auth. This will enable the 'authelia' Traefik middleware for this container.
+            Whether to enable forward auth. This will enable the `authelia` Traefik middleware for this container.
             Every request will be forwarded to be authorized by Authelia first.
 
             Optionally, access control rules for this container can be specified in the settings.

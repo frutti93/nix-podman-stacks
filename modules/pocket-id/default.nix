@@ -42,7 +42,7 @@ in {
         default = config.nps.stacks.traefik.enable;
         defaultText = lib.literalExpression ''config.nps.stacks.traefik.enable'';
         description = ''
-          Whether to setup a 'pocketid' middleware in Traefik.
+          Whether to setup a `pocketid` middleware in Traefik.
           The middleware will use the <https://github.com/sevensolutions/traefik-oidc-auth> plugin to secure upstream services.
         '';
       };

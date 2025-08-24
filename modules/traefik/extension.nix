@@ -113,12 +113,27 @@ in {
               then "https://${d}"
               else "http://${d}";
           };
-          middlewares = mkOption {
-            type = types.listOf (types.enum (lib.attrNames stackCfg.dynamicConfig.http.middlewares or {}));
-            default = ["private"];
+          middleware = mkOption {
+            type = types.attrsOf (types.submodule {
+              options = {
+                enable = mkOption {
+                  type = types.bool;
+                  default = false;
+                  description = "Whether the middleware should be applied to the service";
+                };
+                order = lib.mkOption {
+                  type = types.int;
+                  default = 1000;
+                  description = ''
+                    Order of the middleware. Middlewares will be called in order by Traefik.
+                    Lower number means higher priority.
+                  '';
+                };
+              };
+            });
+            default = {};
             description = ''
-              A list of middlewares to apply to the service.
-              These will be applied in the order they are listed.
+              A mapping of middleware name to a boolean that indicated if the middleware should be applied to the service.
             '';
           };
         };
@@ -128,7 +143,16 @@ in {
         enableTraefik = stackCfg.enable && traefikCfg.name != null;
         hostPort = getPort port 0;
         containerPort = getPort port 1;
+        enabledMiddlewares =
+          traefikCfg.middleware
+          |> lib.filterAttrs (_: v: v.enable)
+          |> lib.attrsToList
+          |> lib.sortOn (m: m.value.order)
+          |> map (m: m.name);
       in {
+        # By default, don't expose any service (private middleware), unless public middleware was enabled
+        traefik.middleware.private.enable = !(config.traefik.middleware.public.enable or false);
+
         labels = lib.optionalAttrs enableTraefik ({
             "traefik.enable" = "true";
             "traefik.http.routers.${name}.rule" = ''Host(\`${traefikCfg.serviceHost}\`)'';
@@ -139,11 +163,27 @@ in {
             "traefik.http.services.${name}.loadbalancer.server.port" = containerPort;
           }
           // {
-            "traefik.http.routers.${name}.middlewares" = builtins.concatStringsSep "," (map (m: "${m}@file") traefikCfg.middlewares);
+            "traefik.http.routers.${name}.middlewares" = builtins.concatStringsSep "," (map (m: "${m}@file") enabledMiddlewares);
           });
         network = lib.mkIf enableTraefik [stackCfg.network.name];
         ports = lib.optional (!enableTraefik && (port != null)) "${hostPort}:${containerPort}";
       };
     }));
+  };
+  config = let
+    validMiddlewares = lib.attrNames stackCfg.dynamicConfig.http.middlewares;
+    containersWithMiddleware =
+      config.services.podman.containers
+      |> lib.attrValues
+      |> lib.filter (c: c.traefik.name != null && c.traefik.middleware != {});
+  in {
+    assertions = [
+      {
+        message = "A Traefik middleware was referenced that is not registered";
+        assertion =
+          containersWithMiddleware
+          |> builtins.all (c: c.traefik.middleware |> lib.attrNames |> builtins.all (m: builtins.elem m validMiddlewares));
+      }
+    ];
   };
 }

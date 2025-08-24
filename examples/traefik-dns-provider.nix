@@ -6,6 +6,6 @@ Refer to https://doc.traefik.io/traefik/https/acme/#providers for details
 */
 {lib, ...}: {
   nps.stacks = {
-    traefik.staticConfig.certificatesResolvers.letsencrypt.acme.dnsChallenge.provider = lib.mkForce "porkbun";
+    traefik.staticConfig.certificatesResolvers.letsencrypt.acme.dnsChallenge.provider = "porkbun";
   };
 }

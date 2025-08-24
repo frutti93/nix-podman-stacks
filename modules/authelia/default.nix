@@ -223,7 +223,7 @@ in {
       default = config.nps.stacks.traefik.enable;
       defaultText = lib.literalExpression ''config.nps.stacks.traefik.enable'';
       description = ''
-        Wheter to setup an `authelia` middleware for Traefik.
+        Wheter to register an `authelia` middleware for Traefik.
         The middleware will utilize the ForwardAuth Authz implementation.
 
         See <https://www.authelia.com/integration/proxies/traefik/#implementation>

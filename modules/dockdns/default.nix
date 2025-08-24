@@ -21,8 +21,8 @@ in {
       // {
         description = ''
           Whether to enable DockDNS. This will run a Cloudflare DNS client that updates DNS records based on Docker labels.
-          The module contains an extension that will automatically create DNS records for services with the 'public' Traefik middleware,
-          so they are accessible from the internet. It will also automatically delete DNS records for services, that are no longer exposed (e.g. 'private' middleware)
+          The module contains an extension that will automatically create DNS records for services with the `public` Traefik middleware,
+          so they are accessible from the internet. Optionally it will also automatically delete DNS records for services, that are no longer exposed (e.g. `private` middleware)
         '';
       };
     settings = lib.mkOption {
@@ -31,7 +31,7 @@ in {
         Settings for DockDNS.
         For details, refer to the [DockDNS documentation](https://github.com/Tarow/dockdns?tab=readme-ov-file#configuration)
         The module will provide a default configuration, that updates DNS records every 10 minutes.
-        DockDNS labels will be automatically added to services with the 'public' Traefik middleware.
+        DockDNS labels will be automatically added to services with the `public` Traefik middleware.
       '';
       apply = yaml.generate "dockdns_config.yaml";
     };

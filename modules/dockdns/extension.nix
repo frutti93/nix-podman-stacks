@@ -11,7 +11,7 @@ in {
     type = lib.types.attrsOf (lib.types.submodule ({config, ...}: {
       config = let
         traefikCfg = config.traefik;
-        isPublic = builtins.elem "public" traefikCfg.middlewares;
+        isPublic = traefikCfg.middleware.public.enable or false;
       in
         lib.mkIf (dockdnsEnabled && traefikEnabled && isPublic) {
           labels."dockdns.name" = traefikCfg.serviceHost;

@@ -7,12 +7,12 @@ For example, the following two configurations are equivalent:
 
 ```nix
 nps.stacks = {
-    streaming.containers.jellyfin.traefik.middlewares = ["public"];
+    streaming.containers.jellyfin.traefik.middleware.public.enable = true;
 };
 ```
 
 ```nix
-services.podman.containers.jellyfin.traefik.middlewares = ["public"];
+services.podman.containers.jellyfin.traefik.middleware.public.enable = true;
 ```
 
 The following lists all extension options that will be added by this project.

@@ -19,7 +19,7 @@ in {
       config,
       ...
     }: {
-      config.traefik.middlewares = lib.optional config.forwardAuth.enable "authelia";
+      config.traefik.middlewares = lib.mkIf config.forwardAuth.enable ["authelia"];
       options.forwardAuth = with lib; {
         enable = mkOption {
           type = types.bool;

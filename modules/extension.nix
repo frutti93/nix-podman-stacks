@@ -131,7 +131,7 @@ in {
               default = {};
               example = {
                 # Short form: just give the source path, destPath is inferred
-                DB_PASSWORD_FILE = ./secrets/db-password.txt;
+                DB_PASSWORD_FILE = "/run/secrets/db-password.txt";
 
                 # Long form: explicitly set sourcePath and destPath
                 API_KEY_FILE = {

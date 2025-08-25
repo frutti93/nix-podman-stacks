@@ -27,16 +27,16 @@ in {
         default = "admin";
         description = "Username for the admin user";
       };
-      adminEmail = lib.mkOption {
+      email = lib.mkOption {
         type = lib.types.str;
         description = "Email address for the admin user ";
       };
-      adminPasswordFile = lib.mkOption {
+      passwordFile = lib.mkOption {
         type = lib.types.path;
         default = null;
         description = "Path to a file containing the admin user password";
       };
-      adminApiPasswordFile = lib.mkOption {
+      apiPasswordFile = lib.mkOption {
         type = lib.types.path;
         default = null;
         description = "Path to a file containing the admin API password";
@@ -79,9 +79,9 @@ in {
         }
         // lib.optionalAttrs (cfg.adminProvisioning.enable) {
           ADMIN_USERNAME = cfg.adminProvisioning.username;
-          ADMIN_EMAIL = cfg.adminProvisioning.adminEmail;
-          ADMIN_PASSWORD.fromFile = cfg.adminProvisioning.adminPasswordFile;
-          ADMIN_API_PASSWORD.fromFile = cfg.adminProvisioning.adminApiPasswordFile;
+          ADMIN_EMAIL = cfg.adminProvisioning.email;
+          ADMIN_PASSWORD.fromFile = cfg.adminProvisioning.passwordFile;
+          ADMIN_API_PASSWORD.fromFile = cfg.adminProvisioning.apiPasswordFile;
 
           FRESHRSS_INSTALL = "'${
             lib.concatStringsSep " " [

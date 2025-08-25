@@ -166,9 +166,9 @@ in {
         adminProvisioning = {
           enable = true;
           username = dummyUser;
-          adminEmail = dummyEmail;
-          adminPasswordFile = dummySecretFile;
-          adminApiPasswordFile = dummySecretFile;
+          email = dummyEmail;
+          passwordFile = dummySecretFile;
+          apiPasswordFile = dummySecretFile;
         };
       };
 

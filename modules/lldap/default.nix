@@ -213,7 +213,7 @@ in {
                 groups = lib.mkOption {
                   type = lib.types.listOf lib.types.str;
                   default = [];
-                  description = "An array of groups the user would be a member of (all the groups must be specified in the `group` option)";
+                  description = "An array of groups the user will be a member of (all the groups must be specified in the `bootstrap.groups` option)";
                 };
               };
             }

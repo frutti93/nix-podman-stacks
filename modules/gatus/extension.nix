@@ -29,6 +29,8 @@ in {
           description = ''
             Endpoint Settings for the container.
             Will be added to the Gatus endpoint configuration.
+
+            See <https://github.com/TwiN/gatus?tab=readme-ov-file#endpoints>
           '';
         };
       };

@@ -43,23 +43,23 @@ in {
       };
       adminGroup = lib.mkOption {
         type = lib.types.str;
-        default = config.nps.stacks.lldap.defaultAdminGroup;
+        default = "mealie_admin";
+        description = "Users that are in this group will be made an admin. The group will be automatically added to LLDAP.";
       };
       userGroup = lib.mkOption {
         type = lib.types.str;
-        default = config.nps.stacks.lldap.defaultUserGroup;
+        default = "mealie_user";
+        description = "Users must be a part of this group to be able to log in. The group will be automatically added to LLDAP.";
       };
     };
   };
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.lldap.bootstrap.groups = let
-      env = cfg.containers.${name}.environment;
-    in
-      lib.mkIf cfg.oidc.enable {
-        ${cfg.oidc.adminGroup} = {name = cfg.oidc.adminGroup;};
-        ${cfg.oidc.userGroup} = {name = cfg.oidc.userGroup;};
-      };
+    nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.oidc.enable {
+      ${cfg.oidc.adminGroup} = {};
+      ${cfg.oidc.userGroup} = {};
+    };
+
     nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
       oidc.clients.${name} = {
         client_name = "Mealie";

@@ -165,7 +165,7 @@ in {
           address = lldap.address;
           implementation = "lldap";
           base_dn = lldap.baseDn;
-          user = "CN=${cfg.authenticationBackend.ldap.user},OU=people," + lldap.baseDn;
+          user = "CN=${cfg.ldap.user},OU=people," + lldap.baseDn;
         };
 
         refresh_interval = "1m";
@@ -224,7 +224,7 @@ in {
           AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE = cfg.jwtSecretFile;
           AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE = cfg.storageEncryptionKeyFile;
           AUTHELIA_SESSION_SECRET_FILE = cfg.sessionSecretFile;
-          AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = cfg.authenticationBackend.ldap.passwordFile;
+          AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = cfg.ldap.passwordFile;
         }
         // lib.optionalAttrs oidcEnabled {
           IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE = cfg.oidc.hmacSecretFile;

@@ -280,30 +280,10 @@ in {
       readOnly = true;
       visible = false;
     };
-    defaultAdminGroup = lib.mkOption {
-      type = lib.types.str;
-      default = "homeserver_admin";
-      description = ''
-        Groupname that will be used by other applications such as Jellyfin or Mealie to assign admin role.
-        If you prefer individual groups per application, you can override the group name in the application-specific oidc settings.
-      '';
-    };
-    defaultUserGroup = lib.mkOption {
-      type = lib.types.str;
-      default = "homeserver_user";
-      description = ''
-        Groupname that will be used by other applications such as Jellyfin or Mealie to assign user role.
-        If you prefer individual groups per application, you can override the group name in the application-specific oidc settings.
-      '';
-    };
   };
 
   config = lib.mkIf cfg.enable {
     nps.stacks.${name} = {
-      bootstrap.groups = {
-        ${cfg.defaultAdminGroup} = {name = cfg.defaultAdminGroup;};
-        ${cfg.defaultUserGroup} = {name = cfg.defaultUserGroup;};
-      };
       settings = {
         ldap_base_dn = cfg.baseDn;
         ldap_user_dn = cfg.adminUsername;

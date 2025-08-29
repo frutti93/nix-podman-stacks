@@ -41,6 +41,14 @@ in {
           <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
         '';
       };
+      adminGroup = lib.mkOption {
+        type = lib.types.str;
+        default = config.nps.stacks.lldap.defaultAdminGroup;
+      };
+      userGroup = lib.mkOption {
+        type = lib.types.str;
+        default = config.nps.stacks.lldap.defaultUserGroup;
+      };
     };
   };
 
@@ -49,12 +57,8 @@ in {
       env = cfg.containers.${name}.environment;
     in
       lib.mkIf cfg.oidc.enable {
-        mealie-admin = lib.mkIf (builtins.hasAttr "OIDC_ADMIN_GROUP" env) {
-          name = env.OIDC_ADMIN_GROUP;
-        };
-        mealie-user = lib.mkIf (builtins.hasAttr "OIDC_USER_GROUP" env) {
-          name = env.OIDC_USER_GROUP;
-        };
+        ${cfg.oidc.adminGroup} = {name = cfg.oidc.adminGroup;};
+        ${cfg.oidc.userGroup} = {name = cfg.oidc.userGroup;};
       };
     nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
       oidc.clients.${name} = {
@@ -92,8 +96,8 @@ in {
           OIDC_CLIENT_ID = name;
           OIDC_CLIENT_SECRET.fromFile = cfg.oidc.clientSecretFile;
           OIDC_AUTO_REDIRECT = false;
-          OIDC_ADMIN_GROUP = "mealie_admin";
-          OIDC_USER_GROUP = "mealie_user";
+          OIDC_ADMIN_GROUP = cfg.oidc.adminGroup;
+          OIDC_USER_GROUP = cfg.oidc.userGroup;
         };
 
         port = 9000;

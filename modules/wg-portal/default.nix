@@ -99,7 +99,7 @@ in {
           client_name = "WG-Portal";
           client_secret = cfg.oidc.clientSecretHash;
           public = false;
-          authorization_policy = "one_factor";
+          authorization_policy = config.nps.stacks.authelia.defaultAllowPolicy;
           claims_policy = name;
           require_pkce = false;
           pkce_challenge_method = "";

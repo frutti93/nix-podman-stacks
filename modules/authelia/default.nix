@@ -49,6 +49,17 @@ in {
         See <https://www.authelia.com/configuration/storage/introduction/#encryption_key>
       '';
     };
+    defaultAllowPolicy = lib.mkOption {
+      type = lib.types.enum ["one_factor" "two_factor"];
+      default = "one_factor";
+      description = ''
+        Default policy to apply for allowed access. Will be used as a default for Access Control Rules as well as OIDC Authorization Policies if no rules apply.
+
+        See
+        - <https://www.authelia.com/configuration/identity-providers/openid-connect/clients/#authorization_policy>
+        - <https://www.authelia.com/configuration/security/access-control/#rules>
+      '';
+    };
     oidc = {
       enable = lib.mkEnableOption "OIDC Support";
       hmacSecretFile = lib.mkOption {
@@ -174,7 +185,7 @@ in {
         password_reset.disable = config.nps.stacks.lldap.bootstrap.cleanUp;
         password_change.disable = config.nps.stacks.lldap.bootstrap.cleanUp;
       };
-      access_control.default_policy = "one_factor";
+      access_control.default_policy = config.nps.stacks.${name}.defaultAllowPolicy;
       notifier.filesystem.filename = "/notifier/notification.txt";
       session = {
         name = "authelia_session";

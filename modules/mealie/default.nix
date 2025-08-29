@@ -65,7 +65,7 @@ in {
         client_name = "Mealie";
         client_secret = cfg.oidc.clientSecretHash;
         public = false;
-        authorization_policy = "one_factor";
+        authorization_policy = config.nps.stacks.authelia.defaultAllowPolicy;
         require_pkce = false;
         pkce_challenge_method = "";
         pre_configured_consent_duration = "1 month";

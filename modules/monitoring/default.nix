@@ -234,7 +234,7 @@ in {
         client_name = "Grafana";
         client_secret = cfg.grafana.oidc.clientSecretHash;
         public = false;
-        authorization_policy = "one_factor";
+        authorization_policy = config.nps.stacks.authelia.defaultAllowPolicy;
         claims_policy = grafanaName;
         require_pkce = true;
         pkce_challenge_method = "S256";

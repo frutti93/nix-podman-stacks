@@ -135,7 +135,7 @@ in {
           default_policy = "deny";
           rules = [
             {
-              policy = "one_factor";
+              policy = config.nps.stacks.authelia.defaultAllowPolicy;
               subject = [
                 "group:${cfg.oidc.adminGroup}"
                 "group:${cfg.oidc.userGroup}"

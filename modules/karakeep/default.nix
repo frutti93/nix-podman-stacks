@@ -73,7 +73,7 @@ in {
         client_name = "Karakeep";
         client_secret = cfg.oidc.clientSecretHash;
         public = false;
-        authorization_policy = "one_factor";
+        authorization_policy = config.nps.stacks.authelia.defaultAllowPolicy;
         claims_policy = name;
         require_pkce = false;
         pkce_challenge_method = "";

@@ -280,6 +280,27 @@ in {
       readOnly = true;
       visible = false;
     };
+    adminGroup = lib.mkOption {
+      type = lib.types.str;
+      default = "lldap_admin";
+      readOnly = true;
+      description = "Name of the built-in admin group";
+      visible = false;
+    };
+    readOnlyGroup = lib.mkOption {
+      type = lib.types.str;
+      default = "lldap_strict_readonly";
+      readOnly = true;
+      description = "Name of the built-in read-only group";
+      visible = false;
+    };
+    passwordManagerGroup = lib.mkOption {
+      type = lib.types.str;
+      default = "lldap_password_manager";
+      readOnly = true;
+      description = "Name of the built-in password manager group";
+      visible = false;
+    };
   };
 
   config = lib.mkIf cfg.enable {

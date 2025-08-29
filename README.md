@@ -25,7 +25,7 @@ The goal is to easily deploy various self-hosted projects, including a reverse p
 The projects also contains integrations with Traefik, Homepage, Grafana and more. Some examples include:
 
 - Enabling a stack will add the respective containers to Traefik and Homepage
-- Enabling CrowdSec or PocketID will automatically configure necessary Traefik plugins and middlewares
+- Enabling CrowdSec or Authelia will automatically configure necessary Traefik plugins and middlewares
 - When stacks support exporting metrics, scrape configs for Prometheus can be automatically set up
 - Similariy, Grafana dashboards for Traefik, Blocky & others can be automatically added
 - and more ...

@@ -15,6 +15,7 @@ let
     dozzle = ./dozzle;
     docker-socket-proxy = ./docker-socket-proxy;
     filebrowser = ./filebrowser;
+    filebrowser-quantum = ./filebrowser-quantum;
     forgejo = ./forgejo;
     freshrss = ./freshrss;
     gatus = ./gatus;

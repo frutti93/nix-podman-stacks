@@ -12,6 +12,7 @@ let
     changedetection = ./changedetection;
     crowdsec = ./crowdsec;
     dockdns = ./dockdns;
+    donetick = ./donetick;
     dozzle = ./dozzle;
     docker-socket-proxy = ./docker-socket-proxy;
     filebrowser = ./filebrowser;

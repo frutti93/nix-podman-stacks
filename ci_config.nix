@@ -130,6 +130,16 @@ in {
 
       docker-socket-proxy.enable = true;
 
+      donetick = {
+        jwtSecretFile = dummySecretFile;
+        oidc = {
+          enable = true;
+          clientSecretFile = dummySecretFile;
+          clientSecretHash = dummyHash;
+        };
+        settings.is_user_creation_disabled = true;
+      };
+
       dozzle = {
         enable = true;
         containers.dozzle.forwardAuth = {

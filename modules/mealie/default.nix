@@ -44,12 +44,12 @@ in {
       adminGroup = lib.mkOption {
         type = lib.types.str;
         default = "mealie_admin";
-        description = "Users that are in this group will be made an admin. The group will be automatically added to LLDAP.";
+        description = "Users that are in this group will be made an admin.";
       };
       userGroup = lib.mkOption {
         type = lib.types.str;
         default = "mealie_user";
-        description = "Users must be a part of this group to be able to log in. The group will be automatically added to LLDAP.";
+        description = "Users must be a part of this group to be able to log in.";
       };
     };
   };

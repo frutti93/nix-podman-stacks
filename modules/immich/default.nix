@@ -109,12 +109,6 @@ in {
               value_type = "integer";
             };
           };
-          file.extraAttributes = {
-            immich_quota = {
-              multi_valued = false;
-              value_type = "integer";
-            };
-          };
         };
         settings.identity_providers.oidc = {
           claims_policies.${name}.custom_claims = {

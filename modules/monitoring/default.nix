@@ -134,6 +134,16 @@ in {
             <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
           '';
         };
+        adminGroup = lib.mkOption {
+          type = lib.types.str;
+          default = "grafana_admin";
+          description = "Users of this group will be be assigned the Grafana 'Admin' role.";
+        };
+        userGroup = lib.mkOption {
+          type = lib.types.str;
+          default = "grafana_user";
+          description = "Users of this group will be be assigned the Grafana 'Viewer' role.";
+        };
       };
     };
     loki = {
@@ -213,200 +223,198 @@ in {
       };
   };
 
-  config = let
-    grafanaAdminGroupName = "grafana_admin";
-  in
-    lib.mkIf cfg.enable {
-      nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.grafana.oidc.enable) {
-        ${grafanaAdminGroupName} = {};
-      };
+  config = lib.mkIf cfg.enable {
+    nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.grafana.oidc.enable) {
+      ${cfg.grafana.oidc.adminGroup} = {};
+      ${cfg.grafana.oidc.userGroup} = {};
+    };
 
-      nps.stacks.authelia = lib.mkIf cfg.grafana.oidc.enable {
-        oidc.clients.${grafanaName} = {
-          client_name = "Grafana";
-          client_secret = cfg.grafana.oidc.clientSecretHash;
-          public = false;
-          authorization_policy = "one_factor";
-          claims_policy = grafanaName;
-          require_pkce = true;
-          pkce_challenge_method = "S256";
-          pre_configured_consent_duration = "1 month";
-          redirect_uris = [
-            "${cfg.containers.${grafanaName}.traefik.serviceUrl}/login/generic_oauth"
-          ];
-        };
-
-        # See <https://www.authelia.com/integration/openid-connect/openid-connect-1.0-claims/#restore-functionality-prior-to-claims-parameter>
-        settings.identity_providers.oidc.claims_policies.${grafanaName}.id_token = [
-          "email"
-          "name"
-          "groups"
-          "preferred_username"
+    nps.stacks.authelia = lib.mkIf cfg.grafana.oidc.enable {
+      oidc.clients.${grafanaName} = {
+        client_name = "Grafana";
+        client_secret = cfg.grafana.oidc.clientSecretHash;
+        public = false;
+        authorization_policy = "one_factor";
+        claims_policy = grafanaName;
+        require_pkce = true;
+        pkce_challenge_method = "S256";
+        pre_configured_consent_duration = "1 month";
+        redirect_uris = [
+          "${cfg.containers.${grafanaName}.traefik.serviceUrl}/login/generic_oauth"
         ];
       };
 
-      nps.stacks.${stackName} = {
-        grafana = {
-          dashboards = lib.optional cfg.podmanExporter.enable ./dashboards/podman-exporter.json;
-          datasources = import ./grafana_datasources.nix lokiUrl prometheusUrl;
-        };
+      # See <https://www.authelia.com/integration/openid-connect/openid-connect-1.0-claims/#restore-functionality-prior-to-claims-parameter>
+      settings.identity_providers.oidc.claims_policies.${grafanaName}.id_token = [
+        "email"
+        "name"
+        "groups"
+        "preferred_username"
+      ];
+    };
 
-        loki.config = import ./loki_local_config.nix cfg.loki.port;
-        alloy.config = import ./alloy_config.nix lokiUrl dockerHost;
-
-        prometheus.config = lib.mkMerge [
-          (import ./prometheus_config.nix)
-          (lib.mkIf cfg.podmanExporter.enable {
-            scrape_configs = [
-              {
-                job_name = "podman";
-                honor_timestamps = true;
-                metrics_path = "/metrics";
-                scheme = "http";
-                static_configs = [{targets = ["${podmanExporterName}:9882"];}];
-              }
-            ];
-          })
-        ];
+    nps.stacks.${stackName} = {
+      grafana = {
+        dashboards = lib.optional cfg.podmanExporter.enable ./dashboards/podman-exporter.json;
+        datasources = import ./grafana_datasources.nix lokiUrl prometheusUrl;
       };
 
-      services.podman.containers = {
-        ${grafanaName} = lib.mkIf cfg.grafana.enable {
-          image = "docker.io/grafana/grafana:12.1.1";
-          user = config.nps.defaultUid;
-          volumes = [
-            "${storage}/grafana/data:/var/lib/grafana"
-            "${cfg.grafana.settings}:/etc/grafana/grafana.ini"
-            "${cfg.grafana.datasources}:/etc/grafana/provisioning/datasources/datasources.yaml"
-            "${cfg.grafana.dashboardProvider}:/etc/grafana/provisioning/dashboards/provider.yml"
-            "${dashboards}:${dashboardPath}"
-          ];
+      loki.config = import ./loki_local_config.nix cfg.loki.port;
+      alloy.config = import ./alloy_config.nix lokiUrl dockerHost;
 
-          environment = lib.optionalAttrs (!cfg.grafana.oidc.enable) {
-            GF_AUTH_ANONYMOUS_ENABLED = "true";
-            GF_AUTH_ANONYMOUS_ORG_ROLE = "Admin";
-            GF_AUTH_DISABLE_LOGIN_FORM = "true";
+      prometheus.config = lib.mkMerge [
+        (import ./prometheus_config.nix)
+        (lib.mkIf cfg.podmanExporter.enable {
+          scrape_configs = [
+            {
+              job_name = "podman";
+              honor_timestamps = true;
+              metrics_path = "/metrics";
+              scheme = "http";
+              static_configs = [{targets = ["${podmanExporterName}:9882"];}];
+            }
+          ];
+        })
+      ];
+    };
+
+    services.podman.containers = {
+      ${grafanaName} = lib.mkIf cfg.grafana.enable {
+        image = "docker.io/grafana/grafana:12.1.1";
+        user = config.nps.defaultUid;
+        volumes = [
+          "${storage}/grafana/data:/var/lib/grafana"
+          "${cfg.grafana.settings}:/etc/grafana/grafana.ini"
+          "${cfg.grafana.datasources}:/etc/grafana/provisioning/datasources/datasources.yaml"
+          "${cfg.grafana.dashboardProvider}:/etc/grafana/provisioning/dashboards/provider.yml"
+          "${dashboards}:${dashboardPath}"
+        ];
+
+        environment = lib.optionalAttrs (!cfg.grafana.oidc.enable) {
+          GF_AUTH_ANONYMOUS_ENABLED = "true";
+          GF_AUTH_ANONYMOUS_ORG_ROLE = "Admin";
+          GF_AUTH_DISABLE_LOGIN_FORM = "true";
+        };
+
+        extraEnv = let
+          autheliaUrl = config.nps.containers.authelia.traefik.serviceUrl;
+        in
+          lib.optionalAttrs (cfg.grafana.oidc.enable) {
+            GF_SERVER_ROOT_URL = cfg.containers.${grafanaName}.traefik.serviceUrl;
+            GF_AUTH_GENERIC_OAUTH_ENABLED = true;
+            GF_AUTH_GENERIC_OAUTH_NAME = "Authelia";
+            GF_AUTH_GENERIC_OAUTH_ICON = "signin";
+            GF_AUTH_GENERIC_OAUTH_CLIENT_ID = grafanaName;
+            GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET.fromFile = cfg.grafana.oidc.clientSecretFile;
+            GF_AUTH_GENERIC_OAUTH_SCOPES = "openid,profile,email,groups";
+            GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES = false;
+            GF_AUTH_GENERIC_OAUTH_AUTH_URL = "${autheliaUrl}/api/oidc/authorization";
+            GF_AUTH_GENERIC_OAUTH_TOKEN_URL = "${autheliaUrl}/api/oidc/token";
+            GF_AUTH_GENERIC_OAUTH_API_URL = "${autheliaUrl}/api/oidc/userinfo";
+            GF_AUTH_GENERIC_OAUTH_USE_PKCE = true;
+            GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH = "preferred_username";
+            GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH = "groups";
+            GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_NAME = "email";
+            GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH = "name";
+            GF_AUTH_GENERIC_OAUTH_ALLOW_ASSIGN_GRAFANA_ADMIN = true;
+            # Quadlet Generator seems to not handle the single quotes too well, pass fromFile instead
+            GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH.fromFile = pkgs.writeText "role_attribute_path" ''contains(groups[*], '${cfg.grafana.oidc.adminGroup}') && 'Admin' ||  contains(groups[*], '${cfg.grafana.oidc.userGroup}') && 'Viewer' || 'None' '';
           };
 
-          extraEnv = let
-            autheliaUrl = config.nps.containers.authelia.traefik.serviceUrl;
-          in
-            lib.optionalAttrs (cfg.grafana.oidc.enable) {
-              GF_SERVER_ROOT_URL = cfg.containers.${grafanaName}.traefik.serviceUrl;
-              GF_AUTH_GENERIC_OAUTH_ENABLED = true;
-              GF_AUTH_GENERIC_OAUTH_NAME = "Authelia";
-              GF_AUTH_GENERIC_OAUTH_ICON = "signin";
-              GF_AUTH_GENERIC_OAUTH_CLIENT_ID = grafanaName;
-              GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET.fromFile = cfg.grafana.oidc.clientSecretFile;
-              GF_AUTH_GENERIC_OAUTH_SCOPES = "openid,profile,email,groups";
-              GF_AUTH_GENERIC_OAUTH_EMPTY_SCOPES = false;
-              GF_AUTH_GENERIC_OAUTH_AUTH_URL = "${autheliaUrl}/api/oidc/authorization";
-              GF_AUTH_GENERIC_OAUTH_TOKEN_URL = "${autheliaUrl}/api/oidc/token";
-              GF_AUTH_GENERIC_OAUTH_API_URL = "${autheliaUrl}/api/oidc/userinfo";
-              GF_AUTH_GENERIC_OAUTH_USE_PKCE = true;
-              GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH = "preferred_username";
-              GF_AUTH_GENERIC_OAUTH_GROUPS_ATTRIBUTE_PATH = "groups";
-              GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_NAME = "email";
-              GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH = "name";
-              GF_AUTH_GENERIC_OAUTH_ALLOW_ASSIGN_GRAFANA_ADMIN = true;
-              # Quadlet Generator seems to not handle the single quotes too well, pass fromFile instead
-              GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH.fromFile = pkgs.writeText "role_attribute_path" ''contains(groups[*], '${grafanaAdminGroupName}') && 'Admin' || 'Viewer' '';
-            };
+        port = 3000;
+        stack = stackName;
+        traefik.name = grafanaName;
+        homepage = {
+          category = "Monitoring";
+          name = "Grafana";
+          settings = {
+            description = "Monitoring & Observability Platform";
+            icon = "grafana";
+            widget.type = "grafana";
+          };
+        };
+      };
 
-          port = 3000;
+      ${lokiName} = lib.mkIf cfg.loki.enable {
+        image = "docker.io/grafana/loki:3.5.3";
+        exec = "-config.file=/etc/loki/local-config.yaml";
+        user = config.nps.defaultUid;
+        volumes = [
+          "${storage}/loki/data:/loki"
+          "${cfg.loki.config}:/etc/loki/local-config.yaml"
+        ];
+
+        stack = stackName;
+        homepage = {
+          category = "Monitoring";
+          name = "Loki";
+          settings = {
+            description = "Log Aggregation";
+            icon = "loki";
+          };
+        };
+      };
+
+      ${alloyName} = let
+        configDst = "/etc/alloy/config.alloy";
+      in
+        lib.mkIf cfg.alloy.enable {
+          image = "docker.io/grafana/alloy:v1.10.2";
+          volumes = [
+            "${cfg.alloy.config}:${configDst}"
+          ];
+          exec = "run --server.http.listen-addr=0.0.0.0:${toString cfg.alloy.port} --storage.path=/var/lib/alloy/data ${configDst}";
+
           stack = stackName;
-          traefik.name = grafanaName;
+          inherit (cfg.alloy) port;
+          traefik.name = alloyName;
           homepage = {
             category = "Monitoring";
-            name = "Grafana";
+            name = "Alloy";
             settings = {
-              description = "Monitoring & Observability Platform";
-              icon = "grafana";
-              widget.type = "grafana";
+              description = "Telemetry Collector";
+              icon = "alloy";
             };
           };
         };
 
-        ${lokiName} = lib.mkIf cfg.loki.enable {
-          image = "docker.io/grafana/loki:3.5.3";
-          exec = "-config.file=/etc/loki/local-config.yaml";
+      ${prometheusName} = let
+        configDst = "/etc/prometheus/prometheus.yml";
+      in
+        lib.mkIf cfg.prometheus.enable {
+          image = "docker.io/prom/prometheus:v3.5.0";
+          exec = "--config.file=${configDst}";
           user = config.nps.defaultUid;
           volumes = [
-            "${storage}/loki/data:/loki"
-            "${cfg.loki.config}:/etc/loki/local-config.yaml"
+            "${storage}/prometheus/data:/prometheus"
+            "${cfg.prometheus.config}:${configDst}"
           ];
 
+          port = cfg.prometheus.port;
           stack = stackName;
+          traefik.name = "prometheus";
           homepage = {
             category = "Monitoring";
-            name = "Loki";
+            name = "Prometheus";
             settings = {
-              description = "Log Aggregation";
-              icon = "loki";
+              description = "Metrics & Monitoring";
+              icon = "prometheus";
+              widget.type = "prometheus";
             };
           };
         };
 
-        ${alloyName} = let
-          configDst = "/etc/alloy/config.alloy";
-        in
-          lib.mkIf cfg.alloy.enable {
-            image = "docker.io/grafana/alloy:v1.10.2";
-            volumes = [
-              "${cfg.alloy.config}:${configDst}"
-            ];
-            exec = "run --server.http.listen-addr=0.0.0.0:${toString cfg.alloy.port} --storage.path=/var/lib/alloy/data ${configDst}";
+      ${podmanExporterName} = lib.mkIf cfg.podmanExporter.enable {
+        image = "quay.io/navidys/prometheus-podman-exporter:v1.18.0";
+        volumes = [
+          "${config.nps.socketLocation}:/var/run/podman/podman.sock"
+        ];
+        environment.CONTAINER_HOST = "unix:///var/run/podman/podman.sock";
+        user = config.nps.defaultUid;
+        extraPodmanArgs = ["--security-opt=label=disable"];
 
-            stack = stackName;
-            inherit (cfg.alloy) port;
-            traefik.name = alloyName;
-            homepage = {
-              category = "Monitoring";
-              name = "Alloy";
-              settings = {
-                description = "Telemetry Collector";
-                icon = "alloy";
-              };
-            };
-          };
-
-        ${prometheusName} = let
-          configDst = "/etc/prometheus/prometheus.yml";
-        in
-          lib.mkIf cfg.prometheus.enable {
-            image = "docker.io/prom/prometheus:v3.5.0";
-            exec = "--config.file=${configDst}";
-            user = config.nps.defaultUid;
-            volumes = [
-              "${storage}/prometheus/data:/prometheus"
-              "${cfg.prometheus.config}:${configDst}"
-            ];
-
-            port = cfg.prometheus.port;
-            stack = stackName;
-            traefik.name = "prometheus";
-            homepage = {
-              category = "Monitoring";
-              name = "Prometheus";
-              settings = {
-                description = "Metrics & Monitoring";
-                icon = "prometheus";
-                widget.type = "prometheus";
-              };
-            };
-          };
-
-        ${podmanExporterName} = lib.mkIf cfg.podmanExporter.enable {
-          image = "quay.io/navidys/prometheus-podman-exporter:v1.18.0";
-          volumes = [
-            "${config.nps.socketLocation}:/var/run/podman/podman.sock"
-          ];
-          environment.CONTAINER_HOST = "unix:///var/run/podman/podman.sock";
-          user = config.nps.defaultUid;
-          extraPodmanArgs = ["--security-opt=label=disable"];
-
-          stack = stackName;
-        };
+        stack = stackName;
       };
     };
+  };
 }

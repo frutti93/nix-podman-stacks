@@ -77,18 +77,74 @@ in {
         See <https://github.com/gtsteffaniak/filebrowser/wiki/Configuration-And-Examples#configuring-your-application>
       '';
     };
+    oidc = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Whether to enable OIDC login with Authelia. This will register an OIDC client in Authelia
+          and setup the necessary configuration.
+
+          For details, see:
+
+          - <https://www.authelia.com/integration/openid-connect/clients/filebrowser-quantum/>
+          - <https://github.com/gtsteffaniak/filebrowser/wiki/Configuration-And-Examples#openid-connect-configuration-oidc>
+        '';
+      };
+      clientSecretFile = lib.mkOption {
+        type = lib.types.str;
+        description = ''
+          The file containing the client secret for the OIDC client that will be registered in Authelia.
+        '';
+      };
+      clientSecretHash = lib.mkOption {
+        type = lib.types.str;
+        description = ''
+          The hashed client_secret. Will be set in the Authelia client config.
+          For examples on how to generate a client secret, see
+
+          <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
+        '';
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
+    nps.stacks.lldap.bootstrap.groups = let
+      oidcSettings = cfg.settings.auth.methods.oidc or {};
+    in
+      lib.mkIf cfg.oidc.enable {
+        filebrowser_quantum_admin = lib.mkIf (builtins.hasAttr "adminGroup" oidcSettings) {
+          name = oidcSettings.adminGroup;
+        };
+      };
+
+    nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
+      oidc.clients.${name} = {
+        client_name = "Filebrowser Quantum";
+        client_secret = cfg.oidc.clientSecretHash;
+        public = false;
+        authorization_policy = "one_factor";
+        require_pkce = false;
+        pkce_challenge_method = "";
+        pre_configured_consent_duration = "1 month";
+        redirect_uris = [
+          "${cfg.containers.${name}.traefik.serviceUrl}/api/auth/oidc/callback"
+        ];
+      };
+    };
+
     nps.stacks.filebrowser-quantum.settings = {
       server = {
         port = 80;
         baseURL = "/";
+        externalUrl = config.nps.containers.${name}.traefik.serviceUrl;
         logging = [
           {levels = "warning";}
         ];
         sources = lib.attrValues cfg.mounts;
       };
+
       userDefaults = {
         preview = {
           image = true;
@@ -107,6 +163,18 @@ in {
           api = false;
         };
       };
+      auth.methods.oidc = {
+        enabled = cfg.oidc.enable;
+        clientId = name;
+        issuerUrl = config.nps.containers.authelia.traefik.serviceUrl;
+        scopes = "email openid profile groups";
+        userIdentifier = "preferred_username";
+        disableVerifyTLS = false;
+        logoutRedirectUrl = "";
+        createUser = true;
+        adminGroup = "filebrowser_quantum_admin";
+        groupsClaim = "groups";
+      };
     };
 
     services.podman.containers.${name} = {
@@ -118,9 +186,10 @@ in {
         ]
         ++ lib.mapAttrsToList (k: v: "${k}:${v.path}") cfg.mounts;
 
-      environment = {
+      extraEnv = {
         FILEBROWSER_CONFIG = "/home/filebrowser/config.yml";
         FILEBROWSER_DATABASE = "/home/filebrowser/db/database.db";
+        FILEBROWSER_OIDC_CLIENT_SECRET.fromFile = cfg.oidc.clientSecretFile;
       };
       port = 80;
       traefik.name = name;

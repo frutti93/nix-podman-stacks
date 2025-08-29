@@ -149,6 +149,26 @@ in {
         };
       };
 
+      filebrowser-quantum = {
+        enable = true;
+        mounts = {
+          ${config.nps.externalStorageBaseDir} = {
+            path = "/hdd";
+            name = "hdd";
+            config = {
+              denyByDefault = true;
+              disableIndexing = false;
+            };
+          };
+        };
+        oidc = {
+          enable = true;
+          clientSecretHash = dummyHash;
+          clientSecretFile = dummySecretFile;
+        };
+        settings.auth.methods.password.enabled = false;
+      };
+
       forgejo = {
         enable = true;
         settings = {

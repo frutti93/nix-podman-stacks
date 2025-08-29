@@ -81,6 +81,16 @@ in {
           <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
         '';
       };
+      adminGroup = lib.mkOption {
+        type = lib.types.str;
+        default = "immich_admin";
+        description = "Users of this group will be assigned admin rights in Immich. The role is only used on user creation and not synchronized after that.";
+      };
+      userGroup = lib.mkOption {
+        type = lib.types.str;
+        default = "immich_user";
+        description = "Users of this group will be able to log in to Immich";
+      };
     };
     dbPasswordFile = lib.mkOption {
       type = lib.types.path;
@@ -90,157 +100,171 @@ in {
     };
   };
 
-  config = let
-    adminGroupName = "immich_admin";
-  in
-    lib.mkIf cfg.enable {
-      nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.oidc.enable) {
-        ${adminGroupName} = {};
+  config = lib.mkIf cfg.enable {
+    nps.stacks.lldap.bootstrap = lib.mkIf (cfg.oidc.enable) {
+      groups = {
+        ${cfg.oidc.adminGroup} = {};
+        ${cfg.oidc.userGroup} = {};
       };
-      nps.stacks.lldap.bootstrap.userSchemas = {
+      userSchemas = {
         immich-quota.attributeType = "INTEGER";
       };
+    };
 
-      nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
-        settings.authentication_backend = {
-          ldap.attributes.extra = {
-            immich-quota = {
-              name = "immich_quota";
-              value_type = "integer";
-            };
+    nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
+      settings.authentication_backend = {
+        ldap.attributes.extra = {
+          immich-quota = {
+            name = "immich_quota";
+            value_type = "integer";
           };
-        };
-        settings.identity_providers.oidc = {
-          claims_policies.${name}.custom_claims = {
-            immich_quota.attribute = "immich_quota";
-            immich_role.attribute = "immich_role";
-          };
-          scopes.${name}.claims = [
-            "immich_quota"
-            "immich_role"
-          ];
-        };
-        settings.definitions.user_attributes."immich_role".expression = ''"${adminGroupName}" in groups ? "admin" :"user"'';
-
-        oidc.clients.${name} = {
-          client_name = "Immich";
-          client_secret = cfg.oidc.clientSecretHash;
-          public = false;
-          authorization_policy = "one_factor";
-          require_pkce = false;
-          pkce_challenge_method = "";
-          pre_configured_consent_duration = "1 month";
-          redirect_uris = [
-            "${cfg.containers.${name}.traefik.serviceUrl}/auth/login"
-            "${cfg.containers.${name}.traefik.serviceUrl}/user-settings"
-            "app.immich:///oauth-callback"
-          ];
-          token_endpoint_auth_method = "client_secret_post";
-          scopes = [
-            "openid"
-            "profile"
-            "email"
-            name
-          ];
-          claims_policy = name;
         };
       };
+      settings.identity_providers.oidc = {
+        claims_policies.${name}.custom_claims = {
+          immich_quota.attribute = "immich_quota";
+          immich_role.attribute = "immich_role";
+        };
+        scopes.${name}.claims = [
+          "immich_quota"
+          "immich_role"
+        ];
 
-      nps.stacks.${name}.settings = lib.mkMerge [
-        (import ./config.nix)
-        # If Authelia is enabled, config will be templated with gomplate. Avoid rendering issues due to double curly braces
-        {
-          storageTemplate.template = let
-            template = "{{y}}/{{y}}-{{MM}}-{{dd}}/{{filename}}";
-          in
-            if (!cfg.oidc.enable)
-            then template
-            else "{{`${template}`}}";
-        }
-        (lib.optionalAttrs cfg.oidc.enable {
-          oauth = {
-            enabled = true;
-            autoLaunch = false;
-            autoRegister = true;
-            buttonText = "Login with Authelia";
-            clientId = name;
-            clientSecret = ''{{ file.Read `${cfg.oidc.clientSecretFile}`}}'';
-            defaultStorageQuota = 0;
-            issuerUrl = config.nps.stacks.authelia.containers.authelia.traefik.serviceUrl;
-            mobileOverrideEnabled = false;
-            mobileRedirectUri = "";
-            scope = "openid profile email ${name}";
-            storageLabelClaim = "preferred_username";
-            storageQuotaClaim = "immich_quota";
-            roleClaim = "immich_role";
-            timeout = 30000;
-            tokenEndpointAuthMethod = "client_secret_post";
-          };
-        })
-      ];
-
-      services.podman.containers = {
-        ${name} = {
-          image = "ghcr.io/immich-app/immich-server:v1.139.4";
-          volumes =
-            [
-              "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
-            ]
-            ++ lib.optional (
-              cfg.settings != null && (!cfg.oidc.enable)
-            ) "${cfg.settings}:${env.IMMICH_CONFIG_FILE}";
-          templateMount = lib.optional cfg.oidc.enable {
-            templatePath = cfg.settings;
-            destPath = env.IMMICH_CONFIG_FILE;
-          };
-
-          environment = env;
-          extraEnv.DB_PASSWORD.fromFile = cfg.dbPasswordFile;
-          devices = ["/dev/dri:/dev/dri"];
-
-          dependsOnContainer = [
-            redisName
-            dbName
+        # Immich doesn't support blocking access to users that aren't part of a group, so we have to do it on Authelia level
+        authorization_policies.${name} = {
+          default_policy = "deny";
+          rules = [
+            {
+              policy = "one_factor";
+              subject = [
+                "group:${cfg.oidc.adminGroup}"
+                "group:${cfg.oidc.userGroup}"
+              ];
+            }
           ];
-          port = 2283;
-
-          stack = name;
-          traefik.name = name;
-          homepage = {
-            category = "Media & Downloads";
-            name = "Immich";
-            settings = {
-              description = "Photo & Video Management";
-              icon = "immich";
-              widget.type = "immich";
-            };
-          };
         };
+      };
+      settings.definitions.user_attributes."immich_role".expression = ''"${cfg.oidc.adminGroup}" in groups ? "admin" : "user" '';
 
-        ${redisName} = {
-          image = "docker.io/redis:8.0";
-          stack = name;
-        };
-
-        ${dbName} = {
-          image = "docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0";
-          volumes = ["${storage}/pgdata:/var/lib/postgresql/data"];
-
-          extraEnv = {
-            POSTGRES_USER = env.DB_USERNAME;
-            POSTGRES_DB = env.DB_DATABASE_NAME;
-            POSTGRES_PASSWORD.fromFile = cfg.dbPasswordFile;
-          };
-
-          stack = name;
-        };
-
-        ${mlName} = {
-          image = "ghcr.io/immich-app/immich-machine-learning:v1.139.4";
-          volumes = ["${storage}/model-cache:/cache"];
-
-          stack = name;
-        };
+      oidc.clients.${name} = {
+        client_name = "Immich";
+        client_secret = cfg.oidc.clientSecretHash;
+        public = false;
+        authorization_policy = name;
+        require_pkce = false;
+        pkce_challenge_method = "";
+        pre_configured_consent_duration = "1 month";
+        redirect_uris = [
+          "${cfg.containers.${name}.traefik.serviceUrl}/auth/login"
+          "${cfg.containers.${name}.traefik.serviceUrl}/user-settings"
+          "app.immich:///oauth-callback"
+        ];
+        token_endpoint_auth_method = "client_secret_post";
+        scopes = [
+          "openid"
+          "profile"
+          "email"
+          name
+        ];
+        claims_policy = name;
       };
     };
+
+    nps.stacks.${name}.settings = lib.mkMerge [
+      (import ./config.nix)
+      # If Authelia is enabled, config will be templated with gomplate. Avoid rendering issues due to double curly braces
+      {
+        storageTemplate.template = let
+          template = "{{y}}/{{y}}-{{MM}}-{{dd}}/{{filename}}";
+        in
+          if (!cfg.oidc.enable)
+          then template
+          else "{{`${template}`}}";
+      }
+      (lib.optionalAttrs cfg.oidc.enable {
+        oauth = {
+          enabled = true;
+          autoLaunch = false;
+          autoRegister = true;
+          buttonText = "Login with Authelia";
+          clientId = name;
+          clientSecret = ''{{ file.Read `${cfg.oidc.clientSecretFile}`}}'';
+          defaultStorageQuota = 0;
+          issuerUrl = config.nps.stacks.authelia.containers.authelia.traefik.serviceUrl;
+          mobileOverrideEnabled = false;
+          mobileRedirectUri = "";
+          scope = "openid profile email ${name}";
+          storageLabelClaim = "preferred_username";
+          storageQuotaClaim = "immich_quota";
+          roleClaim = "immich_role";
+          timeout = 30000;
+          tokenEndpointAuthMethod = "client_secret_post";
+        };
+      })
+    ];
+
+    services.podman.containers = {
+      ${name} = {
+        image = "ghcr.io/immich-app/immich-server:v1.139.4";
+        volumes =
+          [
+            "${mediaStorage}/pictures/immich:${env.UPLOAD_LOCATION}"
+          ]
+          ++ lib.optional (
+            cfg.settings != null && (!cfg.oidc.enable)
+          ) "${cfg.settings}:${env.IMMICH_CONFIG_FILE}";
+        templateMount = lib.optional cfg.oidc.enable {
+          templatePath = cfg.settings;
+          destPath = env.IMMICH_CONFIG_FILE;
+        };
+
+        environment = env;
+        extraEnv.DB_PASSWORD.fromFile = cfg.dbPasswordFile;
+        devices = ["/dev/dri:/dev/dri"];
+
+        dependsOnContainer = [
+          redisName
+          dbName
+        ];
+        port = 2283;
+
+        stack = name;
+        traefik.name = name;
+        homepage = {
+          category = "Media & Downloads";
+          name = "Immich";
+          settings = {
+            description = "Photo & Video Management";
+            icon = "immich";
+            widget.type = "immich";
+          };
+        };
+      };
+
+      ${redisName} = {
+        image = "docker.io/redis:8.0";
+        stack = name;
+      };
+
+      ${dbName} = {
+        image = "docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0";
+        volumes = ["${storage}/pgdata:/var/lib/postgresql/data"];
+
+        extraEnv = {
+          POSTGRES_USER = env.DB_USERNAME;
+          POSTGRES_DB = env.DB_DATABASE_NAME;
+          POSTGRES_PASSWORD.fromFile = cfg.dbPasswordFile;
+        };
+
+        stack = name;
+      };
+
+      ${mlName} = {
+        image = "ghcr.io/immich-app/immich-machine-learning:v1.139.4";
+        volumes = ["${storage}/model-cache:/cache"];
+
+        stack = name;
+      };
+    };
+  };
 }

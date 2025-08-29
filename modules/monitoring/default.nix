@@ -137,12 +137,12 @@ in {
         adminGroup = lib.mkOption {
           type = lib.types.str;
           default = "grafana_admin";
-          description = "Users of this group will be be assigned the Grafana 'Admin' role.";
+          description = "Users of this group will be assigned the Grafana 'Admin' role.";
         };
         userGroup = lib.mkOption {
           type = lib.types.str;
           default = "grafana_user";
-          description = "Users of this group will be be assigned the Grafana 'Viewer' role.";
+          description = "Users of this group will be assigned the Grafana 'Viewer' role.";
         };
       };
     };

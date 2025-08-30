@@ -153,7 +153,7 @@ in {
         authorization_policy = name;
         require_pkce = false;
         pkce_challenge_method = "";
-        pre_configured_consent_duration = "1 month";
+        pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
         redirect_uris = [
           "${cfg.containers.${name}.traefik.serviceUrl}/auth/login"
           "${cfg.containers.${name}.traefik.serviceUrl}/user-settings"

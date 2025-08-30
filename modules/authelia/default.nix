@@ -102,6 +102,17 @@ in {
           )
         );
       };
+      defaultConsentDuration = lib.mkOption {
+        type = lib.types.str;
+        default = "1 month";
+        description = ''
+          Default period of how long a users choice to remember the pre-configured consent lasts.
+          Only has an effect for OIDC clients using the consent_mode `pre-configured` or `auto`.
+
+          See
+          - <https://www.authelia.com/configuration/identity-providers/openid-connect/clients/#pre_configured_consent_duration>
+        '';
+      };
     };
     settings = lib.mkOption {
       type = yaml.type;

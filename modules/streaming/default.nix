@@ -198,7 +198,7 @@ in {
           authorization_policy = config.nps.stacks.authelia.defaultAllowPolicy;
           require_pkce = true;
           pkce_challenge_method = "S256";
-          pre_configured_consent_duration = "1 month";
+          pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
           token_endpoint_auth_method = "client_secret_post";
           redirect_uris = [
             "${cfg.containers.${jellyfinName}.traefik.serviceUrl}/sso/OID/redirect/authelia"

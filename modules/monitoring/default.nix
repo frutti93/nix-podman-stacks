@@ -238,7 +238,7 @@ in {
         claims_policy = grafanaName;
         require_pkce = true;
         pkce_challenge_method = "S256";
-        pre_configured_consent_duration = "1 month";
+        pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
         redirect_uris = [
           "${cfg.containers.${grafanaName}.traefik.serviceUrl}/login/generic_oauth"
         ];

@@ -124,7 +124,7 @@ in {
       authorization_policy = config.nps.stacks.authelia.defaultAllowPolicy;
       require_pkce = true;
       pkce_challenge_method = "S256";
-      pre_configured_consent_duration = "1 month";
+      pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
       redirect_uris = [
         "${cfg.containers.${name}.traefik.serviceUrl}/accounts/oidc/authelia/login/callback/"
       ];

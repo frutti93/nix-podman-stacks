@@ -94,12 +94,10 @@ in {
           <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
         '';
       };
-      allowedSubjects = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [];
-        description = ''
-          List of allowed subjects. If not set, all subjects will be allowed.
-        '';
+      userGroup = lib.mkOption {
+        type = lib.types.str;
+        default = "${name}_user";
+        description = "Users of this group will be able to log in";
       };
     };
     extraEnv = lib.mkOption {
@@ -149,17 +147,32 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.oidc.enable {
+      ${cfg.oidc.userGroup} = {};
+    };
     nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
       oidc.clients.${name} = {
         client_name = "Gatus";
         client_secret = cfg.oidc.clientSecretHash;
         public = false;
-        authorization_policy = config.nps.stacks.authelia.defaultAllowPolicy;
+        authorization_policy = name;
         require_pkce = false;
         pkce_challenge_method = "";
         pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
         redirect_uris = [
           "${cfg.containers.${name}.traefik.serviceUrl}/authorization-code/callback"
+        ];
+      };
+
+      # No real RBAC control based on custom claims / groups yet. Restrict user-access on Authelia level for now
+      # See <https://github.com/TwiN/gatus/issues/638>
+      settings.identity_providers.oidc.authorization_policies.${name} = {
+        default_policy = "deny";
+        rules = [
+          {
+            policy = config.nps.stacks.authelia.defaultAllowPolicy;
+            subject = "group:${cfg.oidc.userGroup}";
+          }
         ];
       };
     };
@@ -188,7 +201,6 @@ in {
             "profile"
             "email"
           ];
-          allowed-subjects = cfg.oidc.allowedSubjects;
         };
       };
     };

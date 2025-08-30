@@ -173,6 +173,7 @@ in {
       ];
 
       # RomM doesn't have any Group/Claim based RBAC yet, so we have to do in on Authelia level
+      # See <https://github.com/rommapp/romm/issues/2346>
       settings.identity_providers.oidc.authorization_policies.${name} = {
         default_policy = "deny";
         rules = [

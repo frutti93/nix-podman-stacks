@@ -106,30 +106,50 @@ in {
           <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
         '';
       };
+      adminGroup = lib.mkOption {
+        type = lib.types.str;
+        default = "filebrowser_quantum_admin";
+        description = "Users of this group will be assigned admin rights";
+      };
+      userGroup = lib.mkOption {
+        type = lib.types.str;
+        default = "filebrowser_quantum_user";
+        description = "Users of this group will be able to log in";
+      };
     };
   };
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.lldap.bootstrap.groups = let
-      oidcSettings = cfg.settings.auth.methods.oidc or {};
-    in
-      lib.mkIf cfg.oidc.enable {
-        filebrowser_quantum_admin = lib.mkIf (builtins.hasAttr "adminGroup" oidcSettings) {
-          name = oidcSettings.adminGroup;
-        };
-      };
+    nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.oidc.enable {
+      ${cfg.oidc.adminGroup} = {};
+      ${cfg.oidc.userGroup} = {};
+    };
 
     nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
       oidc.clients.${name} = {
         client_name = "Filebrowser Quantum";
         client_secret = cfg.oidc.clientSecretHash;
         public = false;
-        authorization_policy = config.nps.stacks.authelia.defaultAllowPolicy;
+        authorization_policy = name;
         require_pkce = false;
         pkce_challenge_method = "";
         pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
         redirect_uris = [
           "${cfg.containers.${name}.traefik.serviceUrl}/api/auth/oidc/callback"
+        ];
+      };
+
+      # Filebrowser-Quantum doesn't support blocking access to users that aren't part of a group, so we have to do it on Authelia level
+      settings.identity_providers.oidc.authorization_policies.${name} = {
+        default_policy = "deny";
+        rules = [
+          {
+            policy = config.nps.stacks.authelia.defaultAllowPolicy;
+            subject = [
+              "group:${cfg.oidc.adminGroup}"
+              "group:${cfg.oidc.userGroup}"
+            ];
+          }
         ];
       };
     };

@@ -83,12 +83,17 @@ in {
       };
       adminGroup = lib.mkOption {
         type = lib.types.str;
-        default = "immich_admin";
-        description = "Users of this group will be assigned admin rights in Immich. The role is only used on user creation and not synchronized after that.";
+        default = "${name}_admin";
+        description = ''
+          Users of this group will be assigned admin rights in Immich.
+          The role is only used on user creation and not synchronized after that.
+
+          See <https://immich.app/docs/administration/oauth/>
+        '';
       };
       userGroup = lib.mkOption {
         type = lib.types.str;
-        default = "immich_user";
+        default = "${name}_user";
         description = "Users of this group will be able to log in to Immich";
       };
     };
@@ -129,6 +134,7 @@ in {
           "immich_quota"
           "immich_role"
         ];
+        settings.definitions.user_attributes."immich_role".expression = ''"${cfg.oidc.adminGroup}" in groups ? "admin" : "user" '';
 
         # Immich doesn't support blocking access to users that aren't part of a group, so we have to do it on Authelia level
         authorization_policies.${name} = {
@@ -144,7 +150,6 @@ in {
           ];
         };
       };
-      settings.definitions.user_attributes."immich_role".expression = ''"${cfg.oidc.adminGroup}" in groups ? "admin" : "user" '';
 
       oidc.clients.${name} = {
         client_name = "Immich";

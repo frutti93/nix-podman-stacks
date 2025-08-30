@@ -43,8 +43,8 @@ in {
       };
       adminGroup = lib.mkOption {
         type = lib.types.str;
-        default = "mealie_admin";
-        description = "Users that are in this group will be made an admin.";
+        default = "${name}_admin";
+        description = "Users of this group will be assigned admin rights";
       };
       userGroup = lib.mkOption {
         type = lib.types.str;

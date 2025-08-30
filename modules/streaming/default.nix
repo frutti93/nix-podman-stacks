@@ -147,12 +147,12 @@ in {
           };
           adminGroup = lib.mkOption {
             type = lib.types.str;
-            default = "jellyfin_admin";
+            default = "${jellyfinName}_admin";
             description = "Users of this group will be assigned admin rights in Jellyfin";
           };
           userGroup = lib.mkOption {
             type = lib.types.str;
-            default = "jellyfin_user";
+            default = "${jellyfinName}_user";
             description = "Users of this group will be able to log in";
           };
         };

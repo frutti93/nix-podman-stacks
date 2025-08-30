@@ -108,12 +108,12 @@ in {
       };
       adminGroup = lib.mkOption {
         type = lib.types.str;
-        default = "filebrowser_quantum_admin";
+        default = "${name}_admin";
         description = "Users of this group will be assigned admin rights";
       };
       userGroup = lib.mkOption {
         type = lib.types.str;
-        default = "filebrowser_quantum_user";
+        default = "${name}_user";
         description = "Users of this group will be able to log in";
       };
     };
@@ -192,7 +192,7 @@ in {
         disableVerifyTLS = false;
         logoutRedirectUrl = "";
         createUser = true;
-        adminGroup = "filebrowser_quantum_admin";
+        adminGroup = cfg.oidc.adminGroup;
         groupsClaim = "groups";
       };
     };

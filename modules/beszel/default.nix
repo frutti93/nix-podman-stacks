@@ -94,20 +94,40 @@ in {
           <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
         '';
       };
+      userGroup = lib.mkOption {
+        type = lib.types.str;
+        default = "${name}_user";
+        description = "Users of this group will be able to log in";
+      };
     };
   };
   config = lib.mkIf cfg.enable {
-    nps.stacks.authelia.oidc.clients.${name} = lib.mkIf cfg.oidc.registerClient {
-      client_name = "Beszel";
-      client_secret = cfg.oidc.clientSecretHash;
-      public = false;
-      authorization_policy = config.nps.stacks.authelia.defaultAllowPolicy;
-      require_pkce = true;
-      pkce_challenge_method = "S256";
-      pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
-      redirect_uris = [
-        "${cfg.containers.${name}.traefik.serviceUrl}/api/oauth2-redirect"
-      ];
+    nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.oidc.registerClient {
+      ${cfg.oidc.userGroup} = {};
+    };
+    nps.stacks.authelia = lib.mkIf cfg.oidc.registerClient {
+      oidc.clients.${name} = {
+        client_name = "Beszel";
+        client_secret = cfg.oidc.clientSecretHash;
+        public = false;
+        authorization_policy = name;
+        require_pkce = true;
+        pkce_challenge_method = "S256";
+        pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
+        redirect_uris = [
+          "${cfg.containers.${name}.traefik.serviceUrl}/api/oauth2-redirect"
+        ];
+      };
+      # No real RBAC control based on custom claims / groups yet. Restrict user-access on Authelia level
+      settings.identity_providers.oidc.authorization_policies.${name} = {
+        default_policy = "deny";
+        rules = [
+          {
+            policy = config.nps.stacks.authelia.defaultAllowPolicy;
+            subject = "group:${cfg.oidc.userGroup}";
+          }
+        ];
+      };
     };
 
     services.podman.containers = {

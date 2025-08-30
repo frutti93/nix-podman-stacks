@@ -35,7 +35,7 @@ in {
         jwtSecretFile = dummySecretFile;
         sessionSecretFile = dummySecretFile;
         storageEncryptionKeyFile = dummySecretFile;
-        authenticationBackend.type = "ldap";
+
         oidc = {
           enable = true;
           hmacSecretFile = dummySecretFile;
@@ -213,7 +213,6 @@ in {
           enable = true;
           clientSecretFile = dummySecretFile;
           clientSecretHash = dummyHash;
-          allowedSubjects = [];
         };
       };
 

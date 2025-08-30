@@ -70,7 +70,7 @@ in {
                   '';
                 };
                 policy = mkOption {
-                  type = enum ["" "deny" "bypass" config.nps.stacks.authelia.defaultAllowPolicy "two_factor"];
+                  type = enum ["" "deny" "bypass" "one_factor" "two_factor"];
                   default = "";
                   description = ''
                     The specific policy to apply to the selected rule.

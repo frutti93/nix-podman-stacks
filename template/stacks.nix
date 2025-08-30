@@ -15,7 +15,6 @@
         jwtSecretFile = config.sops.secrets."authelia/jwt_secret".path;
         sessionSecretFile = config.sops.secrets."authelia/session_secret".path;
         storageEncryptionKeyFile = config.sops.secrets."authelia/encryption_key".path;
-        authenticationBackend.type = "ldap";
         oidc = {
           enable = true;
           hmacSecretFile = config.sops.secrets."authelia/oidc_hmac_secret".path;

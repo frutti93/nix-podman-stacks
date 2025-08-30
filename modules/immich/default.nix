@@ -134,7 +134,6 @@ in {
           "immich_quota"
           "immich_role"
         ];
-        settings.definitions.user_attributes."immich_role".expression = ''"${cfg.oidc.adminGroup}" in groups ? "admin" : "user" '';
 
         # Immich doesn't support blocking access to users that aren't part of a group, so we have to do it on Authelia level
         authorization_policies.${name} = {
@@ -150,6 +149,7 @@ in {
           ];
         };
       };
+      settings.definitions.user_attributes."immich_role".expression = ''"${cfg.oidc.adminGroup}" in groups ? "admin" : "user" '';
 
       oidc.clients.${name} = {
         client_name = "Immich";

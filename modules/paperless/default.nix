@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  options,
   ...
 }: let
   name = "paperless";
@@ -113,21 +112,41 @@ in {
           <https://www.authelia.com/integration/openid-connect/frequently-asked-questions/#client-secret>
         '';
       };
+      userGroup = lib.mkOption {
+        type = lib.types.str;
+        default = "${name}_user";
+        description = "Users of this group will be able to log in";
+      };
     };
   };
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.authelia.oidc.clients.${name} = lib.mkIf cfg.oidc.enable {
-      client_name = "Paperless";
-      client_secret = cfg.oidc.clientSecretHash;
-      public = false;
-      authorization_policy = config.nps.stacks.authelia.defaultAllowPolicy;
-      require_pkce = true;
-      pkce_challenge_method = "S256";
-      pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
-      redirect_uris = [
-        "${cfg.containers.${name}.traefik.serviceUrl}/accounts/oidc/authelia/login/callback/"
-      ];
+    nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.oidc.enable {
+      ${cfg.oidc.userGroup} = {};
+    };
+
+    nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
+      oidc.clients.${name} = {
+        client_name = "Paperless";
+        client_secret = cfg.oidc.clientSecretHash;
+        public = false;
+        authorization_policy = name;
+        require_pkce = true;
+        pkce_challenge_method = "S256";
+        pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
+        redirect_uris = [
+          "${cfg.containers.${name}.traefik.serviceUrl}/accounts/oidc/authelia/login/callback/"
+        ];
+      };
+      settings.identity_providers.oidc.authorization_policies.${name} = {
+        default_policy = "deny";
+        rules = [
+          {
+            policy = config.nps.stacks.authelia.defaultAllowPolicy;
+            subject = "group:${cfg.oidc.userGroup}";
+          }
+        ];
+      };
     };
 
     services.podman.containers = {

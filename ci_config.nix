@@ -430,6 +430,22 @@ in {
 
       vaultwarden.enable = true;
 
+      vikunja = {
+        enable = true;
+        db.type = "postgres";
+        db.postgresPasswordFile = dummySecretFile;
+        jwtSecretFile = dummySecretFile;
+        oidc = {
+          enable = true;
+          clientSecretFile = dummySecretFile;
+          clientSecretHash = dummyHash;
+        };
+        settings = {
+          service.enableregistration = false;
+          auth.local.enabled = false;
+        };
+      };
+
       wg-easy = {
         enable = true;
         extraEnv = {

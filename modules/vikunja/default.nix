@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  name = "gatus";
+  name = "vikunja";
   dbName = "${name}-db";
   cfg = config.nps.stacks.${name};
   storage = "${config.nps.storageBaseDir}/${name}";
@@ -25,7 +25,7 @@ in {
         See <https://vikunja.io/docs/config-options/#1-service-JWTSecret>
       '';
     };
-    settings = lib.mkOptipn {
+    settings = lib.mkOption {
       type = yaml.type;
       default = {};
       description = ''
@@ -44,14 +44,14 @@ in {
 
           For details, see:
 
-          - <https://www.authelia.com/integration/openid-connect/clients/gatus/>
-          - <https://github.com/TwiN/gatus?tab=readme-ov-file#oidc>
+          - <https://www.authelia.com/integration/openid-connect/clients/vikunja/>
+          - <https://vikunja.io/docs/openid/>
         '';
       };
       clientSecretFile = lib.mkOption {
         type = lib.types.str;
         description = ''
-          The file containing the client secret for the Gatus OIDC client that will be registered in Authelia.
+          The file containing the client secret for the OIDC client that will be registered in Authelia.
         '';
       };
       clientSecretHash = lib.mkOption {
@@ -76,6 +76,7 @@ in {
           "sqlite"
           "postgres"
         ];
+        default = "sqlite";
         description = ''
           Type of the database to use.
           Can be set to "sqlite" or "postgres".
@@ -84,7 +85,7 @@ in {
       };
       postgresUser = lib.mkOption {
         type = lib.types.str;
-        default = "gatus";
+        default = "vikunja";
         description = ''
           The PostgreSQL user to use for the database.
           Only used if db.type is set to "postgres".
@@ -106,7 +107,7 @@ in {
     };
     nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
       oidc.clients.${name} = {
-        client_name = "Gatus";
+        client_name = "Vikunja";
         client_secret = cfg.oidc.clientSecretHash;
         public = false;
         authorization_policy = name;
@@ -114,12 +115,11 @@ in {
         pkce_challenge_method = "";
         pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
         redirect_uris = [
-          "${cfg.containers.${name}.traefik.serviceUrl}/authorization-code/callback"
+          "${cfg.containers.${name}.traefik.serviceUrl}/auth/openid/authelia"
         ];
       };
 
-      # No real RBAC control based on custom claims / groups yet. Restrict user-access on Authelia level for now
-      # See <https://github.com/TwiN/gatus/issues/638>
+      # No real RBAC control based on custom claims / groups yet. Restrict user-access on Authelia level.
       settings.identity_providers.oidc.authorization_policies.${name} = {
         default_policy = "deny";
         rules = [
@@ -131,37 +131,60 @@ in {
       };
     };
 
+    nps.stacks.${name}.settings = lib.mkIf cfg.oidc.enable {
+      auth.openid = {
+        enabled = true;
+        providers.authelia = {
+          name = "Authelia";
+          authurl = config.nps.containers.authelia.traefik.serviceUrl;
+          clientid = name;
+          scope = "openid profile email";
+          forceuserinfo = true;
+        };
+      };
+    };
+
     services.podman.containers = {
-      ${name} = let
-        settings =
-          cfg.settings
-          // {
-            endpoints = lib.map (e: lib.recursiveUpdate cfg.defaultEndpoint e) (cfg.settings.endpoints or []);
-          };
-        configDir = "/app/config";
-      in {
-        image = "ghcr.io/twin/gatus:v5.23.2";
+      ${name} = {
+        image = "docker.io/vikunja/vikunja:1.0.0-rc1";
+        user = config.nps.defaultUid;
         volumes =
           [
-            "${yaml.generate "config.yml" settings}:${configDir}/config.yml"
+            "${storage}/files:/app/vikunja/files"
+            "${yaml.generate "config.yml" cfg.settings}:/etc/vikunja/config.yml"
           ]
-          ++ (lib.map (f: "${f}:${configDir}/${builtins.baseNameOf f}") cfg.extraSettingsFiles)
-          ++ lib.optional (cfg.db.type == "sqlite") "${storage}/sqlite:/data";
-        
-        extraEnv = {
-          VIKUNJA_SERVICE_JWTSECRET
-        };
+          ++ lib.optional (cfg.db.type == "sqlite") "${storage}/sqlite:/db";
 
+        extraEnv =
+          {
+            VIKUNJA_SERVICE_PUBLICURL = cfg.containers.${name}.traefik.serviceUrl;
+            VIKUNJA_SERVICE_JWTSECRET.fromFile = cfg.jwtSecretFile;
+          }
+          // lib.optionalAttrs cfg.oidc.enable {
+            VIKUNJA_AUTH_OPENID_PROVIDERS_AUTHELIA_CLIENTSECRET.fromFile = cfg.oidc.clientSecretFile;
+          }
+          // lib.optionalAttrs (cfg.db.type == "sqlite") {
+            VIKUNJA_DATABASE_PATH = "/db/vikunja.db";
+          }
+          // lib.optionalAttrs (cfg.db.type == "postgres") {
+            VIKUNJA_DATABASE_HOST = dbName;
+            VIKUNJA_DATABASE_USER = cfg.db.postgresUser;
+            VIKUNJA_DATABASE_PASSWORD.fromFile = cfg.db.postgresPasswordFile;
+            VIKUNJA_DATABASE_TYPE = "postgres";
+            VIKUNJA_DATABASE_DATABASE = "vikunja";
+          };
+
+        dependsOnContainer = lib.optional (cfg.db.type == "postgres") dbName;
         stack = name;
-        port = 8080;
+        port = 3456;
         traefik.name = name;
         homepage = {
-          category = "Monitoring";
-          name = "Gatus";
+          category = "General";
+          name = "Vikunja";
           settings = {
-            description = "Health Monitoring";
-            icon = "gatus";
-            widget.type = "gatus";
+            description = "To-Dos";
+            icon = "vikunja";
+            widget.type = "vikunja";
           };
         };
       };
@@ -170,7 +193,7 @@ in {
         image = "docker.io/postgres:17";
         volumes = ["${storage}/postgres:/var/lib/postgresql/data"];
         extraEnv = {
-          POSTGRES_DB = "gatus";
+          POSTGRES_DB = "vikunja";
           POSTGRES_USER = cfg.db.postgresUser;
           POSTGRES_PASSWORD.fromFile = cfg.db.postgresPasswordFile;
         };

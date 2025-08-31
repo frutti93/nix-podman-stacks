@@ -187,7 +187,27 @@ in {
             PAPERLESS_APPS = "allauth.socialaccount.providers.openid_connect";
             PAPERLESS_SOCIALACCOUNT_PROVIDERS.fromTemplate = let
               autheliaUrl = config.nps.containers.authelia.traefik.serviceUrl;
-            in ''{"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"authelia","name":"Authelia","client_id":"${name}","secret":"{{ file.Read "${cfg.oidc.clientSecretFile}" }}","settings":{"server_url":"${autheliaUrl}","token_auth_method":"client_secret_basic"}}]}}'';
+            in
+              {
+                openid_connect = {
+                  SCOPE = ["openid" "profile" "email"];
+                  OAUTH_PKCE_ENABLED = true;
+                  APPS = [
+                    {
+                      provider_id = "authelia";
+                      name = "Authelia";
+                      client_id = name;
+                      secret = ''{{ file.Read `${cfg.oidc.clientSecretFile}` }}'';
+                      settings = {
+                        server_url = autheliaUrl;
+                        token_auth_method = "client_secret_basic";
+                      };
+                    }
+                  ];
+                };
+              }
+              |> builtins.toJSON
+              |> lib.replaceStrings ["\n"] [""];
           }
           // cfg.extraEnv;
 

@@ -12,7 +12,7 @@
     "automerge": true
   },
   "nix": {
-    "enabled": true
+    "enabled": false
   },
   "platformAutomerge": true,
   "packageRules": [

@@ -10,59 +10,28 @@
   storage = "${config.nps.storageBaseDir}/${name}";
   yaml = pkgs.formats.yaml {};
 in {
-  imports =
-    [
-      ./extension.nix
-    ]
-    ++ import ../mkAliases.nix config lib name [
-      name
-      dbName
-    ];
+  imports = import ../mkAliases.nix config lib name [
+    name
+    dbName
+  ];
 
   options.nps.stacks.${name} = {
-    enable =
-      lib.mkEnableOption name
-      // {
-        description = ''
-          Whether to enable Gatus.
-          The module also provides an extension that will add Gatus options to a container.
-          This allows services to be added to Gatus by settings container options.
-        '';
-      };
-    settings = lib.mkOption {
-      type = yaml.type;
+    enable = lib.mkEnableOption name;
+    jwtSecretFile = lib.mkOption {
+      type = lib.types.path;
       description = ''
-        Settings for the Gatus container.
-        Will be converted to YAML and passed to the container.
+        Path to the file containing the JWT secret.
 
-        See <https://github.com/TwiN/gatus>
+        See <https://vikunja.io/docs/config-options/#1-service-JWTSecret>
       '';
     };
-    extraSettingsFiles = lib.mkOption {
-      type = lib.types.listOf lib.types.path;
-      default = [];
-      description = ''
-        List of additional YAML files to include in the settings.
-        These files will be mounted as is. Can be used to directly provide YAML files containing secrets, e.g. from sops
-      '';
-    };
-    defaultEndpoint = lib.mkOption {
+    settings = lib.mkOptipn {
       type = yaml.type;
-      default = {
-        group = "core";
-        interval = "5m";
-        client = {
-          insecure = true;
-          timeout = "10s";
-        };
-        conditions = [
-          "[STATUS] >= 200"
-          "[STATUS] < 300"
-        ];
-      };
+      default = {};
       description = ''
-        Default endpoint settings. Will merged with each provided endpoint.
-        Only applies if endpoint does not override the default endpoint settings.
+        Extra settings being provided as the `/etc/vikunja/config.yml` file.
+
+        See <https://vikunja.io/docs/config-options>
       '';
     };
     oidc = {
@@ -100,22 +69,7 @@ in {
         description = "Users of this group will be able to log in";
       };
     };
-    extraEnv = lib.mkOption {
-      type = (import ../types.nix lib).extraEnv;
-      default = {};
-      description = ''
-        Extra environment variables to set for the container.
-        Variables can be either set directly or sourced from a file (e.g. for secrets).
 
-        See <https://github.com/TwiN/gatus?tab=readme-ov-file#configuration>
-      '';
-      example = {
-        SOME_SECRET = {
-          fromFile = "/run/secrets/secret_name";
-        };
-        FOO = "bar";
-      };
-    };
     db = {
       type = lib.mkOption {
         type = lib.types.enum [
@@ -177,34 +131,6 @@ in {
       };
     };
 
-    nps.stacks.${name}.settings = {
-      storage = {
-        type = cfg.db.type;
-        path =
-          if (cfg.db.type == "sqlite")
-          then "/data/data.db"
-          else "postgres://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@${dbName}:5432/${
-            cfg.containers.${dbName}.environment.POSTGRES_DB
-          }?sslmode=disable";
-      };
-      security = lib.mkIf cfg.oidc.enable {
-        oidc = let
-          authelia = config.nps.stacks.authelia;
-          oidcClient = authelia.oidc.clients.${name};
-        in {
-          issuer-url = authelia.containers.authelia.traefik.serviceUrl;
-          client-id = oidcClient.client_id;
-          client-secret = "\${AUTHELIA_CLIENT_SECRET}";
-          redirect-url = lib.elemAt oidcClient.redirect_uris 0;
-          scopes = [
-            "openid"
-            "profile"
-            "email"
-          ];
-        };
-      };
-    };
-
     services.podman.containers = {
       ${name} = let
         settings =
@@ -221,20 +147,11 @@ in {
           ]
           ++ (lib.map (f: "${f}:${configDir}/${builtins.baseNameOf f}") cfg.extraSettingsFiles)
           ++ lib.optional (cfg.db.type == "sqlite") "${storage}/sqlite:/data";
-        environment = {
-          GATUS_CONFIG_PATH = configDir;
+        
+        extraEnv = {
+          VIKUNJA_SERVICE_JWTSECRET
         };
-        extraEnv =
-          {
-            AUTHELIA_CLIENT_SECRET.fromFile = cfg.oidc.clientSecretFile;
-          }
-          // lib.optionalAttrs (cfg.db.type == "postgres") {
-            POSTGRES_USER = cfg.db.postgresUser;
-            POSTGRES_PASSWORD.fromFile = cfg.db.postgresPasswordFile;
-          }
-          // cfg.extraEnv;
 
-        dependsOnContainer = lib.optioal cfg.db.type == "postgres" dbName;
         stack = name;
         port = 8080;
         traefik.name = name;

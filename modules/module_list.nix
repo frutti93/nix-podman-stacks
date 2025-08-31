@@ -42,6 +42,7 @@ let
     traefik = ./traefik;
     uptime-kuma = ./uptime-kuma;
     vaultwarden = ./vaultwarden;
+    vikunja = ./vikunja;
     wg-easy = ./wg-easy;
     wg-portal = ./wg-portal;
   };

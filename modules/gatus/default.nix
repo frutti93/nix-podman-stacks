@@ -122,6 +122,7 @@ in {
           "sqlite"
           "postgres"
         ];
+        default = "sqlite";
         description = ''
           Type of the database to use.
           Can be set to "sqlite" or "postgres".
@@ -234,7 +235,7 @@ in {
           }
           // cfg.extraEnv;
 
-        dependsOnContainer = lib.optioal cfg.db.type == "postgres" dbName;
+        dependsOnContainer = lib.optional (cfg.db.type == "postgres") dbName;
         stack = name;
         port = 8080;
         traefik.name = name;

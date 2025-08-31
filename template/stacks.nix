@@ -64,7 +64,12 @@
           users = {
             john = {
               email = "john@example.com";
+              displayName = "John";
               password_file = config.sops.secrets."lldap/john_password".path;
+              groups = with config.nps.stacks; [
+                immich.oidc.adminGroup
+                paperless.oidc.userGroup
+              ];
             };
           };
         };

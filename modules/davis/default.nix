@@ -55,29 +55,27 @@ in {
       type = lib.mkOption {
         type = lib.types.enum [
           "sqlite"
-          "postgres"
+          "mysql"
         ];
-        default = "sqlite";
+        default = "mysql";
         description = ''
           Type of the database to use.
-          Can be set to "sqlite" or "postgres".
-          If set to "postgres", the `postgresPasswordFile` option must be set.
+          Can be set to "sqlite" or "mysql".
+          If set to "mysql", the `userPasswordFile` and `rootPasswordFile` options must be set.
         '';
       };
-      postgresUser = lib.mkOption {
+      username = lib.mkOption {
         type = lib.types.str;
         default = "davis";
-        description = ''
-          The PostgreSQL user to use for the database.
-          Only used if db.type is set to "postgres".
-        '';
+        description = "Username for the davis database user.";
       };
-      postgresPasswordFile = lib.mkOption {
+      userPasswordFile = lib.mkOption {
         type = lib.types.path;
-        description = ''
-          The file containing the PostgreSQL password for the database.
-          Only used if db.type is set to "postgres".
-        '';
+        description = "Path to the file containing the password for the davis database user.";
+      };
+      rootPasswordFile = lib.mkOption {
+        type = lib.types.path;
+        description = "Path to the file containing the password for the MySQL root user.";
       };
     };
   };
@@ -113,9 +111,9 @@ in {
             LDAP_AUTH_USER_AUTOCREATE = true;
             LDAP_CERTIFICATE_CHECKING_STRATEGY = "try";
           })
-          // lib.optionalAttrs (cfg.db.type == "postgres") {
-            DATABASE_DRIVER = "postgresql";
-            DATABASE_URL.fromTemplate = "postgresql://${cfg.db.postgresUser}:{{ file.Read `${cfg.db.postgresPasswordFile}` }}@${dbName}:5432/davis?charset=UTF-8";
+          // lib.optionalAttrs (cfg.db.type == "mysql") {
+            DATABASE_DRIVER = "mysql";
+            DATABASE_URL.fromTemplate = "mysql://${cfg.db.username}:{{ file.Read `${cfg.db.userPasswordFile}` }}@${dbName}/davis?charset=utf8mb4";
           };
 
         extraConfig.Service.ExecStartPost = [
@@ -126,7 +124,7 @@ in {
           ))
         ];
 
-        dependsOnContainer = lib.optional (cfg.db.type == "postgres") dbName;
+        dependsOnContainer = lib.optional (cfg.db.type == "mysql") dbName;
         stack = name;
         port = 9000;
         traefik.name = name;
@@ -140,22 +138,23 @@ in {
         };
       };
 
-      ${dbName} = lib.mkIf (cfg.db.type == "postgres") {
-        image = "docker.io/postgres:17";
-        volumes = ["${storage}/postgres:/var/lib/postgresql/data"];
+      ${dbName} = lib.mkIf (cfg.db.type == "mysql") {
+        image = "docker.io/mysql:9";
+        volumes = ["${storage}/db:/var/lib/mysql"];
         extraEnv = {
-          POSTGRES_DB = "davis";
-          POSTGRES_USER = cfg.db.postgresUser;
-          POSTGRES_PASSWORD.fromFile = cfg.db.postgresPasswordFile;
+          MYSQL_DATABASE = "davis";
+          MYSQL_USER = cfg.db.username;
+          MYSQL_PASSWORD.fromFile = cfg.db.userPasswordFile;
+          MYSQL_ROOT_PASSWORD.fromFile = cfg.db.rootPasswordFile;
         };
 
         extraConfig.Container = {
           Notify = "healthy";
-          HealthCmd = "pg_isready -U ${cfg.db.postgresUser} -d davis";
+          HealthCmd = "mysqladmin -p\\$MYSQL_ROOT_PASSWORD ping -h localhost";
           HealthInterval = "10s";
           HealthTimeout = "10s";
           HealthRetries = 5;
-          HealthStartPeriod = "5s";
+          HealthStartPeriod = "20s";
         };
 
         stack = name;

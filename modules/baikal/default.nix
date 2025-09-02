@@ -13,7 +13,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
-      image = "docker.io/ckulka/baikal:nginx";
+      image = "docker.io/ckulka/baikal:0.10.1-nginx";
       volumes = [
         "${storage}/config:/var/www/baikal/config"
         "${storage}/data:/var/www/baikal/Specific"

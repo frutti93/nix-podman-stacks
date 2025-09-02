@@ -12,6 +12,7 @@ let
     calibre = ./calibre;
     changedetection = ./changedetection;
     crowdsec = ./crowdsec;
+    davis = ./davis;
     dockdns = ./dockdns;
     donetick = ./donetick;
     dozzle = ./dozzle;

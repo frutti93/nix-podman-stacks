@@ -25,7 +25,7 @@ in {
         category = "General";
         name = "Baikal";
         settings = {
-          description = "Cal & CardDAV Server";
+          description = "DAV Server";
           icon = "baikal";
         };
       };

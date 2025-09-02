@@ -333,7 +333,7 @@ in {
           "${bootstrapWrapper}:/app/bootstrap_wrapper.sh"
         ];
 
-      extraConfig.Service.ExecStartPost = "${lib.getExe pkgs.podman} exec ${name} /app/bootstrap_wrapper.sh";
+      extraConfig.Service.ExecStartPost = ["${lib.getExe config.nps.package} exec ${name} /app/bootstrap_wrapper.sh"];
 
       environment = {
         LLDAP_KEY_FILE = "";

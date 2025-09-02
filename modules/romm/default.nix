@@ -236,7 +236,7 @@ in {
             HealthStartPeriod = "5s";
           };
           Service = {
-            ExecStartPost = lib.mkIf cfg.adminProvisioning.enable (
+            ExecStartPost = lib.optional cfg.adminProvisioning.enable (
               lib.getExe (
                 pkgs.writeShellScriptBin "user_provision" ''
                   ${lib.getExe pkgs.podman} exec ${name} bash -c "$(${pkgs.coreutils}/bin/cat ${./create_admin_user.sh})"

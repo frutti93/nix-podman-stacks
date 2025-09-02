@@ -5,6 +5,7 @@ let
     aiostreams = ./aiostreams;
     audiobookshelf = ./audiobookshelf;
     authelia = ./authelia;
+    baikal = ./baikal;
     beszel = ./beszel;
     blocky = ./blocky;
     bytestash = ./bytestash;

@@ -107,9 +107,6 @@ in {
           ENROLL_INSTANCE_NAME = "dummy";
           ENROLL_KEY.fromFile = dummySecretFile;
         };
-        traefikIntegration = {
-          bouncerKeyFile = dummySecretFile;
-        };
       };
 
       davis = {
@@ -218,7 +215,7 @@ in {
         enable = true;
         db = {
           type = "postgres";
-          postgresPasswordFile = dummySecretFile;
+          passwordFile = dummySecretFile;
         };
 
         oidc = {
@@ -436,6 +433,7 @@ in {
         enablePrometheusExport = true;
         enableGrafanaMetricsDashboard = true;
         enableGrafanaAccessLogDashboard = true;
+        crowdsec.middleware.bouncerKeyFile = dummySecretFile;
       };
 
       uptime-kuma.enable = true;
@@ -445,7 +443,7 @@ in {
       vikunja = {
         enable = true;
         db.type = "postgres";
-        db.postgresPasswordFile = dummySecretFile;
+        db.passwordFile = dummySecretFile;
         jwtSecretFile = dummySecretFile;
         oidc = {
           enable = true;

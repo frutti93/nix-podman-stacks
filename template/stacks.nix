@@ -34,9 +34,6 @@
 
       crowdsec = {
         enable = true;
-        traefikIntegration = {
-          bouncerKeyFile = config.sops.secrets."crowdsec/traefik_bouncer_key".path;
-        };
       };
 
       docker-socket-proxy.enable = true;
@@ -103,6 +100,7 @@
         enablePrometheusExport = true;
         enableGrafanaMetricsDashboard = true;
         enableGrafanaAccessLogDashboard = true;
+        crowdsec.middleware.bouncerKeyFile = config.sops.secrets."traefik/crowdsec_bouncer_key".path;
       };
     };
   };

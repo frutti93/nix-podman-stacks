@@ -126,10 +126,10 @@ in {
         description = ''
           Type of the database to use.
           Can be set to "sqlite" or "postgres".
-          If set to "postgres", the `postgresPasswordFile` option must be set.
+          If set to "postgres", the `passwordFile` option must be set.
         '';
       };
-      postgresUser = lib.mkOption {
+      username = lib.mkOption {
         type = lib.types.str;
         default = "gatus";
         description = ''
@@ -137,7 +137,7 @@ in {
           Only used if db.type is set to "postgres".
         '';
       };
-      postgresPasswordFile = lib.mkOption {
+      passwordFile = lib.mkOption {
         type = lib.types.path;
         description = ''
           The file containing the PostgreSQL password for the database.
@@ -230,8 +230,8 @@ in {
             AUTHELIA_CLIENT_SECRET.fromFile = cfg.oidc.clientSecretFile;
           }
           // lib.optionalAttrs (cfg.db.type == "postgres") {
-            POSTGRES_USER = cfg.db.postgresUser;
-            POSTGRES_PASSWORD.fromFile = cfg.db.postgresPasswordFile;
+            POSTGRES_USER = cfg.db.username;
+            POSTGRES_PASSWORD.fromFile = cfg.db.passwordFile;
           }
           // cfg.extraEnv;
 
@@ -255,8 +255,8 @@ in {
         volumes = ["${storage}/postgres:/var/lib/postgresql/data"];
         extraEnv = {
           POSTGRES_DB = "gatus";
-          POSTGRES_USER = cfg.db.postgresUser;
-          POSTGRES_PASSWORD.fromFile = cfg.db.postgresPasswordFile;
+          POSTGRES_USER = cfg.db.username;
+          POSTGRES_PASSWORD.fromFile = cfg.db.passwordFile;
         };
 
         stack = name;

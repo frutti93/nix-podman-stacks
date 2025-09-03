@@ -123,7 +123,7 @@ in {
     };
 
     ldap = {
-      user = lib.mkOption {
+      username = lib.mkOption {
         type = lib.types.str;
         default = config.nps.stacks.lldap.adminUsername;
         defaultText = lib.literalExpression ''config.nps.stacks.lldap.adminUsername'';
@@ -209,7 +209,7 @@ in {
           address = lldap.address;
           implementation = "lldap";
           base_dn = lldap.baseDn;
-          user = "CN=${cfg.ldap.user},OU=people," + lldap.baseDn;
+          user = "CN=${cfg.ldap.username},OU=people," + lldap.baseDn;
         };
 
         refresh_interval = "1m";

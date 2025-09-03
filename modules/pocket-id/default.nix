@@ -79,7 +79,7 @@ in {
           Requires the LLDAP stack to be enabled.
         '';
       };
-      user = lib.mkOption {
+      username = lib.mkOption {
         type = lib.types.str;
         default = config.nps.stacks.lldap.adminUsername;
         defaultText = lib.literalExpression ''config.nps.stacks.lldap.adminUsername'';
@@ -155,7 +155,7 @@ in {
             LDAP_ENABLED = true;
             LDAP_URL = lldap.address;
             LDAP_BASE = lldap.baseDn;
-            LDAP_BIND_DN = "CN=${cfg.ldap.user},OU=people," + lldap.baseDn;
+            LDAP_BIND_DN = "CN=${cfg.ldap.username},OU=people," + lldap.baseDn;
             LDAP_ATTRIBUTE_USER_UNIQUE_IDENTIFIER = "uuid";
             LDAP_ATTRIBUTE_USER_USERNAME = "uid";
             LDAP_ATTRIBUTE_USER_EMAIL = "mail";

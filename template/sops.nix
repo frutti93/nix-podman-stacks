@@ -23,7 +23,6 @@
       "authelia/encryption_key"
       "authelia/oidc_hmac_secret"
       "authelia/oidc_rsa_pk"
-      "crowdsec/traefik_bouncer_key"
       "immich/authelia_client_secret"
       "immich/db_password"
       "lldap/key_seed"
@@ -35,6 +34,7 @@
       "paperless/authelia_client_secret"
       "paperless/db_password"
       "traefik/cf_api_token"
+      "traefik/crowdsec_bouncer_key"
     ] (s: {});
   };
 }

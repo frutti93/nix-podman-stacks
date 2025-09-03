@@ -80,10 +80,10 @@ in {
         description = ''
           Type of the database to use.
           Can be set to "sqlite" or "postgres".
-          If set to "postgres", the `postgresPasswordFile` option must be set.
+          If set to "postgres", the `passwordFile` option must be set.
         '';
       };
-      postgresUser = lib.mkOption {
+      username = lib.mkOption {
         type = lib.types.str;
         default = "vikunja";
         description = ''
@@ -91,7 +91,7 @@ in {
           Only used if db.type is set to "postgres".
         '';
       };
-      postgresPasswordFile = lib.mkOption {
+      passwordFile = lib.mkOption {
         type = lib.types.path;
         description = ''
           The file containing the PostgreSQL password for the database.
@@ -168,8 +168,8 @@ in {
           }
           // lib.optionalAttrs (cfg.db.type == "postgres") {
             VIKUNJA_DATABASE_HOST = dbName;
-            VIKUNJA_DATABASE_USER = cfg.db.postgresUser;
-            VIKUNJA_DATABASE_PASSWORD.fromFile = cfg.db.postgresPasswordFile;
+            VIKUNJA_DATABASE_USER = cfg.db.username;
+            VIKUNJA_DATABASE_PASSWORD.fromFile = cfg.db.passwordFile;
             VIKUNJA_DATABASE_TYPE = "postgres";
             VIKUNJA_DATABASE_DATABASE = "vikunja";
           };
@@ -194,8 +194,8 @@ in {
         volumes = ["${storage}/postgres:/var/lib/postgresql/data"];
         extraEnv = {
           POSTGRES_DB = "vikunja";
-          POSTGRES_USER = cfg.db.postgresUser;
-          POSTGRES_PASSWORD.fromFile = cfg.db.postgresPasswordFile;
+          POSTGRES_USER = cfg.db.username;
+          POSTGRES_PASSWORD.fromFile = cfg.db.passwordFile;
         };
 
         stack = name;

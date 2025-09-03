@@ -249,7 +249,7 @@ in {
         {
           search = {
             provider = "google";
-            focus = true;
+            focus = false;
             target = "_blank";
           };
         }

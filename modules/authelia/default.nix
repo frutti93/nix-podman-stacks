@@ -152,6 +152,17 @@ in {
         See <https://www.authelia.com/integration/proxies/traefik/#implementation>
       '';
     };
+    crowdsec = {
+      enableLogCollection = lib.mkOption {
+        type = lib.types.bool;
+        default = config.nps.stacks.crowdsec.enable;
+        defaultText = lib.literalExpression ''config.nps.stacks.crowdsec.enable'';
+        description = ''
+          Whether the container logs should be collected by CrowdSec.
+          Enabling this will configure the acquis settings for CrowdSec.
+        '';
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -161,6 +172,17 @@ in {
         message = "Authelia requires the `lldap` stack to be enabled";
       }
     ];
+
+    nps.stacks.crowdsec = lib.mkIf cfg.crowdsec.enableLogCollection {
+      collections = "LePresidente/authelia";
+      acquisSettings.authelia = {
+        source = "docker";
+        container_name = [name];
+        labels = {
+          type = "authelia";
+        };
+      };
+    };
 
     nps.stacks.${name}.settings = {
       identity_providers = lib.mkIf oidcEnabled {

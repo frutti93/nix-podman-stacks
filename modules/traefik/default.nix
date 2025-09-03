@@ -175,7 +175,7 @@ in {
       collections = lib.mkIf cfg.crowdsec.enableLogCollection "crowdsecurity/traefik";
       acquisSettings.traefik = lib.mkIf cfg.crowdsec.enableLogCollection {
         source = "docker";
-        container_name = ["traefik"];
+        container_name = [name];
         labels = {
           type = "traefik";
         };

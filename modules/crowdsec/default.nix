@@ -187,7 +187,7 @@ in {
         ]
         ++ (lib.mapAttrsToList (name: file: "${file}:/etc/crowdsec/acquis.d/${name}.yaml") cfg.acquisSettings);
       environment = {
-        COLLECTIONS = cfg.collections;
+        COLLECTIONS = ''\"${cfg.collections}\"'';
         UID = config.nps.defaultUid;
         GID = config.nps.defaultGid;
       };

@@ -271,7 +271,7 @@ in {
               honor_timestamps = true;
               metrics_path = "/metrics";
               scheme = "http";
-              static_configs = [{targets = ["${podmanExporterName}:9882"];}];
+              static_configs = [{targets = [(podmanExporterName + ":9882")];}];
             }
           ];
         })

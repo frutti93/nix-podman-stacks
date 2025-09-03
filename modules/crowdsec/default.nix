@@ -49,6 +49,18 @@ in {
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
+    settings = lib.mkOption {
+      type = yaml.type;
+      default = {};
+      description = ''
+        Configuration settings for Crowdsec.
+        Will be provided as the `config.yaml.local` file.
+
+        See <https://docs.crowdsec.net/docs/configuration/crowdsec_configuration/>
+
+      '';
+      apply = yaml.generate "config.yaml.local";
+    };
     acquisSettings = lib.mkOption {
       type = yaml.type;
       default = {};
@@ -74,6 +86,8 @@ in {
         FOO = "bar";
       };
     };
+    enableGrafanaDashboard = lib.mkEnableOption "Grafana Dashboard";
+    enablePrometheusExport = lib.mkEnableOption "Prometheus Export";
     traefikIntegration = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -108,13 +122,41 @@ in {
       }
     ];
 
-    nps.stacks.${name}.acquisSettings = lib.mkIf cfg.traefikIntegration.enable {
-      source = "docker";
-      container_name = ["traefik"];
-      labels = {
-        type = "traefik";
+    nps.stacks.monitoring.prometheus.config = lib.mkIf cfg.enablePrometheusExport {
+      scrape_configs = [
+        {
+          job_name = "crowdsec";
+          honor_timestamps = true;
+          metrics_path = "/metrics";
+          scheme = "http";
+          static_configs = [
+            {
+              targets = [(name + ":6060")];
+              labels = {machine = "lapi";};
+            }
+          ];
+        }
+      ];
+    };
+    nps.stacks.monitoring.grafana.dashboards = lib.optional cfg.enableGrafanaDashboard ./grafana_dashboard.json;
+
+    nps.stacks.${name} = {
+      settings = {
+        prometheus = {
+          enabled = cfg.enablePrometheusExport;
+          level = "full";
+          listen_addr = "0.0.0.0";
+          listen_port = 6060;
+        };
       };
-      docker_host = lib.mkIf cfg.traefikIntegration.useSocketProxy config.nps.stacks.docker-socket-proxy.address;
+      acquisSettings = lib.mkIf cfg.traefikIntegration.enable {
+        source = "docker";
+        container_name = ["traefik"];
+        labels = {
+          type = "traefik";
+        };
+        docker_host = lib.mkIf cfg.traefikIntegration.useSocketProxy config.nps.stacks.docker-socket-proxy.address;
+      };
     };
 
     nps.stacks.traefik =
@@ -168,6 +210,7 @@ in {
       volumes = [
         "${storage}/db:/var/lib/crowdsec/data"
         "${storage}/config:/etc/crowdsec"
+        "${cfg.settings}:/etc/crowdsec/config.yaml.local"
         "${cfg.acquisSettings}:/etc/crowdsec/acquis.yaml"
       ];
       environment = {

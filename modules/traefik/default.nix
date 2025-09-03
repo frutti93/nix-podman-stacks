@@ -127,12 +127,66 @@ in {
         '';
       };
     };
+    crowdsec = {
+      enableLogCollection = lib.mkOption {
+        type = lib.types.bool;
+        default = config.nps.stacks.crowdsec.enable;
+        defaultText = lib.literalExpression ''config.nps.stacks.crowdsec.enable'';
+        description = ''
+          Whether logs from Traefik should be collected by CrowdSec.
+          Enabling this will configure the acquis settings for CrowdSec.
+        '';
+      };
+      middleware = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = config.nps.stacks.crowdsec.enable;
+          defaultText = lib.literalExpression ''config.nps.stacks.crowdsec.enable'';
+          description = ''
+            Whether to setup a Traefik middleware.
+            Make sure to also configure the `bouncerKeyFile` option.
+          '';
+        };
+        bouncerKeyFile = lib.mkOption {
+          type = lib.types.nullOr lib.types.path;
+          default = null;
+          description = ''
+            Path to the file containing the key for the Traefik bouncer.
+            If this is set, a Bouncer will be setup in CrowdSec. Also a new `crowdsec` middleware will be registered in Traefik and added to the `public` chain.
+            This will block requests to exposed services that are detected as malicious by Crowdsec.
+          '';
+        };
+      };
+    };
     enablePrometheusExport = lib.mkEnableOption "Prometheus Export";
     enableGrafanaMetricsDashboard = lib.mkEnableOption "Grafana Metrics Dashboard";
     enableGrafanaAccessLogDashboard = lib.mkEnableOption "Grafana Access Log Dashboard";
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = !cfg.crowdsec.middleware.enable || config.nps.stacks.crowdsec.enable;
+        message = "The option 'nps.stacks.${name}.crowdsec.middleware.enable' is set to true, but the 'crowdsec' stack is not enabled.";
+      }
+    ];
+
+    nps.stacks.crowdsec = {
+      collections = lib.mkIf cfg.crowdsec.enableLogCollection "crowdsecurity/traefik";
+      acquisSettings.traefik = lib.mkIf cfg.crowdsec.enableLogCollection {
+        source = "docker";
+        container_name = ["traefik"];
+        labels = {
+          type = "traefik";
+        };
+      };
+      containers.crowdsec = lib.mkIf cfg.crowdsec.middleware.enable {
+        network = [cfg.network.name];
+        extraEnv = {
+          BOUNCER_KEY_TRAEFIK.fromFile = cfg.crowdsec.middleware.bouncerKeyFile;
+        };
+      };
+    };
     nps.stacks.${name} = {
       staticConfig = lib.mkMerge [
         (import ./config/traefik.nix lib cfg.domain cfg.network.name)
@@ -144,6 +198,12 @@ in {
         (lib.mkIf cfg.enablePrometheusExport {
           entryPoints.metrics.address = ":9100";
           metrics.prometheus.entryPoint = "metrics";
+        })
+        (lib.mkIf cfg.crowdsec.middleware.enable {
+          experimental.plugins.bouncer = {
+            moduleName = "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin";
+            version = "v1.4.5";
+          };
         })
       ];
       dynamicConfig = lib.mkMerge [
@@ -162,6 +222,37 @@ in {
             };
           };
         })
+
+        (lib.mkIf cfg.crowdsec.middleware.enable {
+          http.middlewares = {
+            public.chain.middlewares = lib.mkAfter ["crowdsec"];
+
+            crowdsec.plugin.bouncer = {
+              enabled = true;
+              logLevel = "INFO";
+              updateIntervalSeconds = 60;
+              updateMaxFailure = 0;
+              defaultDecisionSeconds = 60;
+              httpTimeoutSeconds = 10;
+              crowdsecMode = "live";
+              crowdsecAppsecEnabled = false;
+              crowdsecAppsecHost = "crowdsec:7422";
+              crowdsecAppsecPath = "/";
+              crowdsecAppsecFailureBlock = true;
+              crowdsecAppsecUnreachableBlock = true;
+              crowdsecAppsecBodyLimit = 10485760;
+              crowdsecLapiKey = "{{ env \"BOUNCER_KEY_TRAEFIK\" }}";
+              crowdsecLapiScheme = "http";
+              crowdsecLapiHost = "crowdsec:8080";
+              crowdsecLapiPath = "/";
+              clientTrustedIPs = [
+                "10.0.0.0/8"
+                "172.16.0.0/12"
+                "192.168.0.0/16"
+              ];
+            };
+          };
+        })
       ];
     };
     nps.stacks.monitoring = {
@@ -173,7 +264,7 @@ in {
         honor_timestamps = true;
         metrics_path = "/metrics";
         scheme = "http";
-        static_configs = [{targets = ["${name}:9100"];}];
+        static_configs = [{targets = [(name + ":9100")];}];
       };
     };
 
@@ -200,7 +291,13 @@ in {
         }
       ];
 
-      extraEnv = cfg.extraEnv;
+      extraEnv =
+        {
+          BOUNCER_KEY_TRAEFIK = lib.mkIf cfg.crowdsec.middleware.enable {
+            fromFile = cfg.crowdsec.middleware.bouncerKeyFile;
+          };
+        }
+        // cfg.extraEnv;
 
       volumes = [
         "${storage}/letsencrypt:/letsencrypt"
@@ -212,6 +309,8 @@ in {
       labels = {
         "traefik.http.routers.${traefik.name}.service" = "api@internal";
       };
+
+      wantsContainer = lib.optional cfg.crowdsec.middleware.enable "crowdsec";
 
       # Traefik should only be in a single network and not be added to others by integations (e.g. socket-proxy)
       # Otherwise we lose the ability to assign static ip (only works with single bridge network)

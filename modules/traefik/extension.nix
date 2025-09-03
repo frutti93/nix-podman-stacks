@@ -32,6 +32,19 @@ in {
             If Traefik is disabled, it will instead be added to the "ports" section
           '';
         };
+        expose = lib.mkOption {
+          type = lib.types.bool;
+          default = false;
+          description = ''
+            Whether the service should be exposed (e.g. reachable from external IP addresses).
+            When set to `false`, the `private` middleware will be applied by Traefik. The private middleware will only allow requests from
+            private CIDR ranges.
+
+            When set to `true`, the `public` middleware will be applied.  The public middleware will allow access from the internet. It will be configured
+            with a rate limit, security headers and a geoblock plugin (if enabled). If enabled, Crowdsec will also
+            be added to the `public` middleware chain.
+          '';
+        };
         traefik = with lib; {
           name = mkOption {
             type = types.nullOr types.str;
@@ -151,7 +164,8 @@ in {
           |> map (m: m.name);
       in {
         # By default, don't expose any service (private middleware), unless public middleware was enabled
-        traefik.middleware.private.enable = !(config.traefik.middleware.public.enable or false);
+        traefik.middleware.private.enable = !config.expose;
+        traefik.middleware.public.enable = config.expose;
 
         labels = lib.optionalAttrs enableTraefik ({
             "traefik.enable" = "true";

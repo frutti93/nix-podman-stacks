@@ -9,7 +9,7 @@
   forwardAuthCfg = lib.mapAttrs (name: c: c.forwardAuth) forwardAuthContainers |> lib.attrValues;
 in {
   config = lib.mkIf (forwardAuthContainers != {}) {
-    nps.stacks.authelia.settings.access_control.rules = lib.mkMerge (forwardAuthCfg |> map (e: lib.mkOrder e.order e.rules));
+    nps.stacks.authelia.settings.access_control.rules = lib.mkMerge (forwardAuthCfg |> map (e: lib.mkOrder e.rulesOrder e.rules));
   };
 
   options.services.podman.containers = lib.mkOption {
@@ -18,7 +18,10 @@ in {
       config,
       ...
     }: {
-      config.traefik.middleware.authelia.enable = config.forwardAuth.enable;
+      config.traefik.middleware.authelia = {
+        enable = config.forwardAuth.enable;
+        order = config.forwardAuth.middlewareOrder;
+      };
       options.forwardAuth = with lib; {
         enable = mkOption {
           type = types.bool;
@@ -33,7 +36,15 @@ in {
             See <https://www.authelia.com/configuration/security/access-control/>
           '';
         };
-        order = lib.mkOption {
+        middlewareOrder = lib.mkOption {
+          type = lib.types.int;
+          default = 1000;
+          description = ''
+            Order of the `authelia` middleware. Multiple middlewares will be called in order by Traefik, with lower orders
+            being called first.
+          '';
+        };
+        rulesOrder = lib.mkOption {
           type = lib.types.int;
           default = 1000;
           description = ''

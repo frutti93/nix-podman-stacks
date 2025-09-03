@@ -62,13 +62,45 @@ in {
       apply = yaml.generate "config.yaml.local";
     };
     acquisSettings = lib.mkOption {
-      type = yaml.type;
+      type = lib.types.attrsOf (lib.types.submodule {
+        freeformType = yaml.type;
+        options = {
+          source = lib.mkOption {
+            type = lib.types.str;
+            description = "Which type of datasource to use.";
+            example = "docker";
+          };
+          log_level = lib.mkOption {
+            type = lib.types.str;
+            default = "info";
+            description = "Log level to use in the datasource";
+          };
+          labels = lib.mkOption {
+            type = lib.types.submodule {
+              freeformType = yaml.type;
+              options = {
+                type = lib.mkOption {
+                  type = lib.types.str;
+                };
+              };
+            };
+            default = {};
+            description = ''
+              A map of labels to add to the event. The type label is mandatory, and used by the Security Engine to choose which parser to use.
+
+              See <https://docs.crowdsec.net/docs/next/log_processor/data_sources/intro#labels>
+            '';
+          };
+        };
+      });
       default = {};
       description = ''
         Acquisitions settings for Crowdsec.
-        If Traefik is enabled, the module will automatically setup acquisition for Traefik.
+        Each attribute set value will be mapped to an acquis configuration and mounted into the `/etc/crowdsec/acquis.d` directory.
+
+        See <https://docs.crowdsec.net/docs/next/log_processor/data_sources/intro> for all available options.
       '';
-      apply = yaml.generate "acquis.yaml";
+      apply = lib.mapAttrs (name: settings: yaml.generate "${name}-acquis.yaml" settings);
     };
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
@@ -149,7 +181,7 @@ in {
           listen_port = 6060;
         };
       };
-      acquisSettings = lib.mkIf cfg.traefikIntegration.enable {
+      acquisSettings.traefik = lib.mkIf cfg.traefikIntegration.enable {
         source = "docker";
         container_name = ["traefik"];
         labels = {
@@ -207,12 +239,13 @@ in {
 
     services.podman.containers.${name} = {
       image = "docker.io/crowdsecurity/crowdsec:v1.6.11";
-      volumes = [
-        "${storage}/db:/var/lib/crowdsec/data"
-        "${storage}/config:/etc/crowdsec"
-        "${cfg.settings}:/etc/crowdsec/config.yaml.local"
-        "${cfg.acquisSettings}:/etc/crowdsec/acquis.yaml"
-      ];
+      volumes =
+        [
+          "${storage}/db:/var/lib/crowdsec/data"
+          "${storage}/config:/etc/crowdsec"
+          "${cfg.settings}:/etc/crowdsec/config.yaml.local"
+        ]
+        ++ (lib.mapAttrsToList (name: file: "${file}:/etc/crowdsec/acquis.d/${name}.yaml") cfg.acquisSettings);
       environment = {
         COLLECTIONS = "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors";
         UID = config.nps.defaultUid;

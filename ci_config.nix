@@ -58,6 +58,8 @@ in {
         ];
       };
 
+      baikal.enable = true;
+
       beszel = {
         enable = true;
         ed25519PrivateKeyFile = dummySecretFile;
@@ -107,6 +109,16 @@ in {
         };
         traefikIntegration = {
           bouncerKeyFile = dummySecretFile;
+        };
+      };
+
+      davis = {
+        adminPasswordFile = dummySecret;
+        enableLdapAuth = true;
+        db = {
+          type = "mysql";
+          userPasswordFile = dummySecret;
+          rootPasswordFile = dummySecret;
         };
       };
 

@@ -113,7 +113,7 @@ in {
           })
           // lib.optionalAttrs (cfg.db.type == "mysql") {
             DATABASE_DRIVER = "mysql";
-            DATABASE_URL.fromTemplate = "mysql://${cfg.db.username}:{{ file.Read `${cfg.db.userPasswordFile}` }}@${dbName}/davis?charset=utf8mb4";
+            DATABASE_URL.fromTemplate = "mysql://${cfg.db.username}:{{ file.Read `${cfg.db.userPasswordFile}` }}@${dbName}/davis?serverVersion=mariadb-12.0.2&charset=utf8mb4";
           };
 
         extraConfig.Service.ExecStartPost = [
@@ -139,7 +139,7 @@ in {
       };
 
       ${dbName} = lib.mkIf (cfg.db.type == "mysql") {
-        image = "docker.io/mysql:9";
+        image = "docker.io/mariadb:12.0.2";
         volumes = ["${storage}/db:/var/lib/mysql"];
         extraEnv = {
           MYSQL_DATABASE = "davis";
@@ -150,7 +150,7 @@ in {
 
         extraConfig.Container = {
           Notify = "healthy";
-          HealthCmd = "mysqladmin -p\\$MYSQL_ROOT_PASSWORD ping -h localhost";
+          HealthCmd = "healthcheck.sh --connect --innodb_initialized";
           HealthInterval = "10s";
           HealthTimeout = "10s";
           HealthRetries = 5;

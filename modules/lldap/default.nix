@@ -337,6 +337,7 @@ in {
 
       environment = {
         LLDAP_KEY_FILE = "";
+        FORCE_LDAP_USER_PASS_RESET = lib.mkDefault "always";
       };
       fileEnvMount = {
         LLDAP_JWT_SECRET_FILE = cfg.jwtSecretFile;

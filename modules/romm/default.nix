@@ -141,9 +141,31 @@ in {
         description = "Path to the file containing the password for the MariaDB root user";
       };
     };
+    igir = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Whether to install a helper program `igir-romm-cleanup` that can organize your ROM collection.
+          Will setup defaults for dat, input & output dirs based on the configured library location.
+
+          Also adds parameters to copy remaining (undetected) ROMs as well as grouping multi-disk games.
+
+          See
+          - <https://docs.romm.app/4.0.0/Tools/Igir-Collection-Manager/>
+          - <https://igir.io/>
+        '';
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
+    home.packages = lib.optional (cfg.igir.enable) (pkgs.callPackage ./igir_romm_cleanup.nix {
+      datDir = "${cfg.romLibraryPath}/dats";
+      inputDir = "${cfg.romLibraryPath}/roms-unverified";
+      outputDir = "${cfg.romLibraryPath}/roms";
+    });
+
     nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.oidc.enable {
       ${cfg.oidc.userGroup} = {};
     };

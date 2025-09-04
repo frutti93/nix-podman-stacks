@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  options,
   pkgs,
   ...
 }: let
@@ -156,11 +155,13 @@ in {
           - <https://igir.io/>
         '';
       };
+      package = lib.mkPackageOption pkgs "igir" {};
     };
   };
 
   config = lib.mkIf cfg.enable {
     home.packages = lib.optional (cfg.igir.enable) (pkgs.callPackage ./igir_romm_cleanup.nix {
+      igirPackage = cfg.igir.package;
       datDir = "${cfg.romLibraryPath}/dats";
       inputDir = "${cfg.romLibraryPath}/roms-unverified";
       outputDir = "${cfg.romLibraryPath}/roms";
@@ -223,6 +224,7 @@ in {
         in
           {
             ROMM_AUTH_SECRET_KEY.fromFile = cfg.authSecretKeyFile;
+            HASHEOUS_API_ENABLED = true;
             DB_HOST = dbName;
             DB_NAME = db.MARIADB_DATABASE;
             DB_USER = db.MARIADB_USER;

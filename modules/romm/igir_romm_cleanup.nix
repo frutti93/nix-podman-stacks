@@ -4,12 +4,13 @@
   datDir,
   inputDir,
   outputDir,
+  igirPackage,
 }:
 pkgs.writeShellApplication {
   name = "igir-romm-cleanup";
   runtimeInputs = [
     pkgs.coreutils
-    pkgs.nodejs
+    igirPackage
   ];
   text = ''
     datDirDefault=${lib.escapeShellArg (toString datDir)}
@@ -64,9 +65,7 @@ pkgs.writeShellApplication {
 
     # Base Igir run (skip if requested)
     if [[ "$skipCleanup" == false ]]; then
-      XDG_CACHE_HOME="$(mktemp -d)" \
-      npm_config_yes=true \
-      npx --silent -y igir@latest \
+      igir \
         move \
         extract \
         test \
@@ -84,9 +83,7 @@ pkgs.writeShellApplication {
     # Copy remaining items if requested
     if [[ "$copyRemaining" == true ]]; then
       echo "Mirroring remaining files into output while preserving structure…"
-      XDG_CACHE_HOME="$(mktemp -d)" \
-      npm_config_yes=true \
-      npx --silent -y igir@latest \
+      igir \
         move \
         -i "$inputDir/" \
         -o "$outputDir/" \

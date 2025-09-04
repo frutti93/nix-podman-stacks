@@ -45,26 +45,6 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    # Fix for https://github.com/FreshRSS/FreshRSS/issues/7300
-    # Override entrypoint so that secrets passed as env variables get interpolated
-    nps.stacks.${name}.containers.${name} = let
-      patchedEntryPoint = pkgs.writeTextFile {
-        name = "entrypoint.sh";
-        executable = true;
-        text = ''
-          #!/bin/sh
-          export FRESHRSS_USER="$(eval echo "$FRESHRSS_USER")"
-          export FRESHRSS_INSTALL="$(eval echo "$FRESHRSS_INSTALL")"
-          exec ./Docker/entrypoint.sh "$@"
-        '';
-      };
-    in
-      lib.mkIf (cfg.adminProvisioning.enable) {
-        entrypoint = "./Docker/patchedEntrypoint.sh";
-        exec = "bash -c '([ -z \"\\$\\$CRON_MIN\" ] || cron) && . /etc/apache2/envvars && exec apache2 -D FOREGROUND'";
-        volumes = ["${patchedEntryPoint}:/var/www/FreshRSS/Docker/patchedEntrypoint.sh"];
-      };
-
     services.podman.containers.${name} = {
       image = "docker.io/freshrss/freshrss:1.27.0";
       volumes = [

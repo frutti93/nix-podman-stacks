@@ -214,9 +214,9 @@ in {
 
         refresh_interval = "1m";
 
-        # Disable password reset/change if the lldap users are bootstrapped and cleanup is enabled (they will reset on each apply)
-        password_reset.disable = config.nps.stacks.lldap.bootstrap.cleanUp;
-        password_change.disable = config.nps.stacks.lldap.bootstrap.cleanUp;
+        # Disable by default as it can be done through LLDAP
+        password_reset.disable = lib.mkDefault true;
+        password_change.disable = lib.mkDefault true;
       };
       access_control.default_policy = config.nps.stacks.${name}.defaultAllowPolicy;
       notifier.filesystem.filename = "/notifier/notification.txt";

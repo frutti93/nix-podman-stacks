@@ -47,7 +47,7 @@ in {
       network = lib.optional cfg.useSocketProxy "docker-socket-proxy";
 
       # Socket Proxy option is set, add systemd dependency to socket-proxy service
-      dependsOnContainer = lib.mkIf cfg.useSocketProxy ["docker-socket-proxy"];
+      wantsContainer = lib.mkIf cfg.useSocketProxy ["docker-socket-proxy"];
       dependsOn = lib.mkIf (!cfg.useSocketProxy) ["podman.socket"];
     };
   };

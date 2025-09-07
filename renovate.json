@@ -29,7 +29,7 @@
     {
       "description": "Multi-Container Projects",
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["/immich-app/", "/beszel/"],
+      "matchPackageNames": ["/immich-app/", "/beszel/", "/guacamole/"],
       "groupName": "{{parentDir}}",
       "automerge": false
     },

@@ -225,6 +225,26 @@ in {
         };
       };
 
+      guacamole = {
+        enable = true;
+        userMappingXml = pkgs.writeText "user-mapping.xml" ''
+          <user-mapping>
+            <authorize username="${dummyUser}" password="${dummySecret}">
+                <connection name="SSH">
+                    <protocol>ssh</protocol>
+                    <param name="hostname">host.containers.internal</param>
+                    <param name="port">22</param>
+                </connection>
+                <connection name="RDP">
+                  <protocol>rdp</protocol>
+                  <param name="hostname">103.5.133.3</param>
+                  <param name="port">22</param>
+                </connection>
+            </authorize>
+          </user-mapping>
+        '';
+      };
+
       healthchecks = {
         enable = true;
         secretKeyFile = dummySecretFile;

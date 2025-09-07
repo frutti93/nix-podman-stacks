@@ -22,6 +22,7 @@ let
     forgejo = ./forgejo;
     freshrss = ./freshrss;
     gatus = ./gatus;
+    guacamole = ./guacamole;
     healthchecks = ./healthchecks;
     homeassistant = ./homeassistant;
     homepage = ./homepage;

@@ -121,29 +121,25 @@ in {
 
         See <https://gethomepage.dev/configs/services/>.
       '';
-      example = [
+      example =
         {
-          "My First Group" = [
-            {
-              "My First Service" = {
-                href = "http://localhost/";
-                description = "Homepage is awesome";
-              };
-            }
-          ];
+          "My First Group" = {
+            "My First Service" = {
+              href = "http://localhost/";
+              description = "Homepage is awesome";
+            };
+          };
         }
         {
-          "My Second Group" = [
-            {
-              "My Second Service" = {
-                href = "http://localhost/";
-                description = "Homepage is the best";
-              };
-            }
-          ];
-        }
-      ];
-      default = [];
+          "My Second Group" = {
+            "My Second Service" = {
+              href = "http://localhost/";
+              description = "Homepage is the best";
+            };
+          };
+        };
+
+      default = {};
     };
     widgets = lib.mkOption {
       inherit (yaml) type;

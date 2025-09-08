@@ -97,6 +97,7 @@ in {
     services.podman.containers = {
       ${name} = {
         image = "docker.io/guacamole/guacamole:1.6.0";
+        user = "${toString config.nps.defaultUid}:${toString config.nps.defaultGid}";
         environment = {
           GUACD_HOSTNAME = guacdName;
           WEBAPP_CONTEXT = "ROOT";

@@ -18,9 +18,12 @@ in {
       config,
       ...
     }: {
-      config.traefik.middleware.authelia = {
-        enable = config.forwardAuth.enable;
-        order = config.forwardAuth.middlewareOrder;
+      config = lib.mkIf config.forwardAuth.enable {
+        traefik.middleware.authelia = {
+          enable = true;
+          order = config.forwardAuth.middlewareOrder;
+        };
+        wantsContainer = ["authelia"];
       };
       options.forwardAuth = with lib; {
         enable = mkOption {

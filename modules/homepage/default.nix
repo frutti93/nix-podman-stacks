@@ -121,23 +121,20 @@ in {
 
         See <https://gethomepage.dev/configs/services/>.
       '';
-      example =
-        {
-          "My First Group" = {
-            "My First Service" = {
-              href = "http://localhost/";
-              description = "Homepage is awesome";
-            };
-          };
-        }
-        {
-          "My Second Group" = {
-            "My Second Service" = {
-              href = "http://localhost/";
-              description = "Homepage is the best";
-            };
+      example = {
+        "My First Group" = {
+          "My First Service" = {
+            href = "http://localhost/";
+            description = "Some Service";
           };
         };
+        "My Second Group" = {
+          "My Second Service" = {
+            href = "http://localhost/";
+            description = "Some other Service";
+          };
+        };
+      };
 
       default = {};
     };

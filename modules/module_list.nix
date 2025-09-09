@@ -40,6 +40,7 @@ let
     paperless = ./paperless;
     pocketid = ./pocket-id;
     romm = ./romm;
+    sshwifty = ./sshwifty;
     stirling-pdf = ./stirling-pdf;
     streaming = ./streaming;
     traefik = ./traefik;

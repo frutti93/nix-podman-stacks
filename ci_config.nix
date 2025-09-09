@@ -413,6 +413,26 @@ in {
         };
       };
 
+      sshwifty = {
+        enable = true;
+        settings = {
+          SharedKey = dummySecret;
+          Presets = [
+            {
+              Title = "Host SSH";
+              Type = "SSH";
+              Host = "host.containers.internal:22";
+              Meta = {
+                User = dummyId;
+                Encoding = "utf-8";
+                "Private Key" = "file://${dummySecretFile}";
+                Authentication = "Private Key";
+              };
+            }
+          ];
+        };
+      };
+
       stirling-pdf.enable = true;
 
       streaming =

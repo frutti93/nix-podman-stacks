@@ -235,6 +235,10 @@ in {
           }
           // cfg.extraEnv;
 
+        addCapabilities = [
+          "NET_RAW"
+        ];
+
         dependsOnContainer = lib.optional (cfg.db.type == "postgres") dbName;
         stack = name;
         port = 8080;

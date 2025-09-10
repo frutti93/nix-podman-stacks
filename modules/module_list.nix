@@ -37,6 +37,7 @@ let
     n8n = ./n8n;
     ntfy = ./ntfy;
     omnitools = ./omnitools;
+    outline = ./outline;
     paperless = ./paperless;
     pocketid = ./pocket-id;
     romm = ./romm;

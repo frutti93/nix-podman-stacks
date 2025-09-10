@@ -352,6 +352,18 @@ in {
 
       omnitools.enable = true;
 
+      outline = {
+        enable = true;
+        secretKeyFile = dummySecretFile;
+        utilsSecretFile = dummySecretFile;
+        db.passwordFile = dummySecretFile;
+        oidc = {
+          enable = true;
+          clientSecretFile = dummySecretFile;
+          clientSecretHash = dummyHash;
+        };
+      };
+
       paperless = {
         enable = true;
         adminProvisioning = {

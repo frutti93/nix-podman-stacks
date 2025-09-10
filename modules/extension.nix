@@ -306,7 +306,7 @@ in {
                     Wants = config.wants ++ config.wantsContainer;
                     After = lib.flatten [config.dependsOn config.dependsOnContainer config.wants config.wantsContainer];
 
-                    StartLimitIntervalSec = lib.mkDefault "60";
+                    StartLimitIntervalSec = lib.mkDefault "120";
                     StartLimitBurst = lib.mkDefault 5;
                   };
                   Service = {

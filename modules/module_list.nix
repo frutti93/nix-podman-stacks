@@ -43,6 +43,7 @@ let
     romm = ./romm;
     sshwifty = ./sshwifty;
     stirling-pdf = ./stirling-pdf;
+    storyteller = ./storyteller;
     streaming = ./streaming;
     traefik = ./traefik;
     uptime-kuma = ./uptime-kuma;

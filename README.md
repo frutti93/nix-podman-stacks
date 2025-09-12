@@ -105,6 +105,7 @@ Most stacks will rely or use a few centrally defined variables. These include:
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/romm.svg" style="width:1em;height:1em;" /> [RomM](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/romm/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sshwifty.svg" style="width:1em;height:1em;" /> [Sshwifty](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/sshwifty/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/stirling-pdf.svg" style="width:1em;height:1em;" /> [Stirling-PDF](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/stirling-pdf/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/webp/storyteller.webp" style="width:1em;height:1em;" /> [Storyteller](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/storyteller/default.nix)
 - <span style="width:1em;height:1em;">📺</span> [Streaming](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/streaming/default.nix)
   - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/bazarr.svg" style="width:1em;height:1em;" /> Bazarr
   - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/flaresolverr.svg" style="width:1em;height:1em;" /> Flaresolverr
@@ -155,6 +156,7 @@ The template includes an example configuration of the following setup:
 - CrowdSec including a Traefik middleware setup
 - Blocky as DNS proxy
 - Monitoring stack with Alloy, Loki, Grafana & Prometheus. Comes with Grafana dashboards for Traefik & Blocky
+- All services are added to the Homepage dashboard
 - Podman Socket Access through a read-only proxy
 - Secrets are provisioned by sops-nix
 

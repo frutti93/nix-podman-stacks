@@ -447,6 +447,15 @@ in {
 
       stirling-pdf.enable = true;
 
+      storyteller = {
+        enable = true;
+        secretKeyFile = dummySecretFile;
+        oidc = {
+          registerClient = true;
+          clientSecretHash = dummyHash;
+        };
+      };
+
       streaming =
         {
           enable = true;

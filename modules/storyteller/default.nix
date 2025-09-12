@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   name = "storyteller";
@@ -20,17 +21,21 @@ in {
       '';
     };
     oidc = {
-      registerClient = lib.mkOption {
+      enable = lib.mkOption {
         type = lib.types.bool;
         default = false;
         description = ''
-          Whether to register a OIDC client in Authelia.
-          If enabled you need to provide a hashed secret in the `client_secret` option.
-
-          To complete the OIDC setup, you will have to enable it in the Web UI.
+          Whether to enable OIDC login with Authelia. This will register an OIDC client in Authelia
+          and insert the necessary configuration records into the database.
 
           For details, see:
           - <https://storyteller-platform.gitlab.io/storyteller/docs/administering#oauthoidc-configuration>
+        '';
+      };
+      clientSecretFile = lib.mkOption {
+        type = lib.types.str;
+        description = ''
+          The file containing the client secret for the OIDC client that will be registered in Authelia.
         '';
       };
       clientSecretHash = lib.mkOption {
@@ -53,10 +58,10 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.oidc.registerClient {
+    nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.oidc.enable {
       ${cfg.oidc.userGroup} = {};
     };
-    nps.stacks.authelia = lib.mkIf cfg.oidc.registerClient {
+    nps.stacks.authelia = lib.mkIf cfg.oidc.enable {
       oidc.clients.${name} = {
         client_name = "Storyteller";
         client_secret = cfg.oidc.clientSecretHash;
@@ -85,9 +90,32 @@ in {
       image = "registry.gitlab.com/storyteller-platform/storyteller:web-v2.2.2";
       volumes = ["${storage}:/data"];
 
-      environment.AUTH_URL = lib.mkIf cfg.oidc.registerClient "${cfg.containers.${name}.traefik.serviceUrl}/api/v2/auth";
+      environment.AUTH_URL = lib.mkIf cfg.oidc.enable "${cfg.containers.${name}.traefik.serviceUrl}/api/v2/auth";
 
       fileEnvMount.STORYTELLER_SECRET_KEY_FILE = cfg.secretKeyFile;
+      extraConfig.Service.ExecStartPost = lib.optional cfg.oidc.enable (
+        lib.getExe (
+          pkgs.writeShellApplication {
+            name = "storyteller-oidc-init";
+            runtimeInputs = with pkgs; [coreutils sqlite libossp_uuid];
+            text = ''
+              UUID=$(uuid)
+              sqlite3 ${storage}/storyteller.db <<SQL
+              INSERT INTO settings (uuid, name, value)
+              VALUES (
+                  COALESCE(
+                      (SELECT uuid FROM settings WHERE name = 'authProviders'),
+                      '$UUID'
+                  ),
+                  'authProviders',
+                  '[{"kind":"custom","name":"Authelia","issuer":"${config.nps.containers.authelia.traefik.serviceUrl}","clientId":"storyteller","clientSecret":"$(< ${cfg.oidc.clientSecretFile})","type":"oidc"}]'
+              )
+              ON CONFLICT(uuid) DO UPDATE SET value = excluded.value;
+              SQL
+            '';
+          }
+        )
+      );
 
       extraConfig.Container = {
         Notify = "healthy";

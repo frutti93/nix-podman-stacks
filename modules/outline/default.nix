@@ -10,7 +10,7 @@
   cfg = config.nps.stacks.${name};
   storage = "${config.nps.storageBaseDir}/${name}";
 in {
-  imports = import ../mkAliases.nix config lib name [name];
+  imports = import ../mkAliases.nix config lib name [name dbName];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;

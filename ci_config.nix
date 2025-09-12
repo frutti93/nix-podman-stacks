@@ -317,6 +317,8 @@ in {
         };
       };
 
+      mazanoke.enable = true;
+
       mealie = {
         enable = true;
         oidc = {

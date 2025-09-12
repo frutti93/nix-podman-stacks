@@ -31,6 +31,7 @@ let
     karakeep = ./karakeep;
     kimai = ./kimai;
     lldap = ./lldap;
+    mazanoke = ./mazanoke;
     mealie = ./mealie;
     microbin = ./microbin;
     monitoring = ./monitoring;

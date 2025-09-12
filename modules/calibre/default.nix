@@ -60,7 +60,7 @@ in {
       stack = name;
       traefik.name = "calibre-downloader";
       homepage = {
-        category = "General";
+        category = "Media & Downloads";
         name = "Calibre Web Book Downloader";
         settings = {
           description = "Book Downloader for Calibre Web";

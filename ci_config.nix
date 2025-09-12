@@ -451,7 +451,8 @@ in {
         enable = true;
         secretKeyFile = dummySecretFile;
         oidc = {
-          registerClient = true;
+          enable = true;
+          clientSecretFile = dummySecretFile;
           clientSecretHash = dummyHash;
         };
       };

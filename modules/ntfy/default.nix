@@ -80,10 +80,8 @@ in {
         NTFY_BASE_URL = cfg.containers.${name}.traefik.serviceUrl;
         NTFY_CACHE_FILE = "/var/lib/ntfy/cache.db";
         NTFY_AUTH_FILE = "/var/lib/ntfy/auth.db";
-        NTFY_AUTH_DEFAULT_ACCESS = "deny-all";
         NTFY_BEHIND_PROXY = true;
         NTFY_ATTACHMENT_CACHE_DIR = "/var/lib/ntfy/attachments";
-        NTFY_ENABLE_LOGIN = true;
         NTFY_UPSTREAM_BASE_URL = "https://ntfy.sh";
         NTFY_WEB_PUSH_FILE = "/var/lib/ntfy/webpush.db";
         NTFY_ENABLE_METRICS = cfg.enablePrometheusExport;

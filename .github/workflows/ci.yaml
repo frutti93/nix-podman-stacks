@@ -10,6 +10,166 @@ on:
       - "**.md"
 
 jobs:
+  detect-changed-images:
+    name: Detect Changed Container Images
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request'
+    outputs:
+      images: ${{ steps.diff-images.outputs.images }}
+      has_changes: ${{ steps.diff-images.outputs.has_changes }}
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Extract and compare images
+        id: diff-images
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Function to extract images from a specific commit
+          extract_images() {
+            local ref=$1
+            git show "$ref" --name-only --format="" | grep '\.nix$' | while read -r file; do
+              git show "$ref:$file" 2>/dev/null | grep -oP 'image\s*=\s*"\K[^"]+(?=")' 2>/dev/null || true
+            done | sort -u
+          }
+
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          echo "Comparing images between $BASE_SHA and $HEAD_SHA"
+
+          # Extract images from base and head
+          BASE_IMAGES=$(extract_images "$BASE_SHA" || true)
+          HEAD_IMAGES=$(extract_images "$HEAD_SHA" || true)
+
+          CHANGED_IMAGES=$(comm -13 <(echo "$BASE_IMAGES") <(echo "$HEAD_IMAGES") | grep -v '^$' || true)
+
+          while IFS= read -r base_img; do
+            base_repo="${base_img%:*}"
+            base_tag="${base_img##*:}"
+            
+            while IFS= read -r head_img; do
+              head_repo="${head_img%:*}"
+              head_tag="${head_img##*:}"
+              
+              if [[ "$base_repo" == "$head_repo" ]] && [[ "$base_tag" != "$head_tag" ]]; then
+                # Same repository, different tag - this is an update
+                CHANGED_IMAGES=$(echo -e "$CHANGED_IMAGES\n$head_img")
+              fi
+            done <<< "$HEAD_IMAGES"
+          done <<< "$BASE_IMAGES"
+
+          CHANGED_IMAGES=$(echo "$CHANGED_IMAGES" | grep -v '^$' | sort -u || true)
+          images_json="[]"
+          has_changes="false"
+
+          if [ -n "$CHANGED_IMAGES" ]; then
+            has_changes="true"
+            while IFS= read -r image; do
+              images_json=$(echo "$images_json" | jq -c --arg img "$image" '. + [$img]')
+            done <<< "$CHANGED_IMAGES"
+          fi
+
+          echo "Changed images found:"
+          echo "$CHANGED_IMAGES"
+          echo ""
+          echo "JSON output: $images_json"
+
+          echo "images=$images_json" >> $GITHUB_OUTPUT
+          echo "has_changes=$has_changes" >> $GITHUB_OUTPUT
+
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-24.04
+    needs: detect-changed-images
+    if: needs.detect-changed-images.outputs.has_changes == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJson(needs.detect-changed-images.outputs.images) }}
+    steps:
+      - name: Extract image details
+        id: image-details
+        shell: bash
+        run: |
+          IMAGE="${{ matrix.image }}"
+          # Extract repository and tag for better reporting
+          REPO="${IMAGE%:*}"
+          TAG="${IMAGE##*:}"
+          # Create a safe filename for artifacts
+          SAFE_NAME=$(echo "$IMAGE" | tr '/:' '_' | tr -d '.')
+
+          echo "repo=$REPO" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "safe_name=$SAFE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ matrix.image }}
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH,MEDIUM"
+          exit-code: "0" # Don't fail the build, just report
+          cache-dir: .trivy-cache
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
+          category: "trivy-${{ steps.image-details.outputs.safe_name }}"
+
+  trivy-pr-comment:
+    name: Update PR Comment
+    runs-on: ubuntu-24.04
+    needs: [detect-changed-images, trivy-scan]
+    if: always() && github.event_name == 'pull_request' && needs.detect-changed-images.outputs.has_changes == 'true'
+    permissions:
+      pull-requests: write
+      security-events: read
+    steps:
+      - name: Find existing comment
+        uses: peter-evans/find-comment@v3
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "## 🔒 Container Image Security Scan"
+
+      - name: Build comment body
+        id: comment
+        shell: bash
+        run: |
+          IMAGES='${{ needs.detect-changed-images.outputs.images }}'
+          COUNT=$(echo "$IMAGES" | jq '. | length')
+
+          BODY="## 🔒 Container Image Security Scan"
+          BODY="$BODY\n\n**Renovate updated $COUNT container image(s) in this PR:**\n"
+
+          echo "$IMAGES" | jq -r '.[]' | while read -r img; do
+            BODY="$BODY\n- \`$img\`"
+          done
+
+          BODY="$BODY\n\n✅ All images have been scanned for vulnerabilities."
+          BODY="$BODY\n\n📊 **Results:** Check the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning) or workflow summary for details."
+          BODY="$BODY\n\n_💡 Only images that changed in this PR were scanned._"
+
+          # Save to file to preserve newlines
+          echo -e "$BODY" > comment.md
+
+      - name: Create or update comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-file: comment.md
+          edit-mode: replace
+
   build-config:
     name: Build
     runs-on: ubuntu-24.04
@@ -22,14 +182,11 @@ jobs:
           remove-dotnet: true
           remove-android: true
           remove-haskell: true
-
       - uses: actions/checkout@v5
-
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: "experimental-features = nix-command flakes pipe-operators"
-
       - name: Restore and cache Nix store
         uses: nix-community/cache-nix-action@v6
         with:
@@ -37,10 +194,8 @@ jobs:
           restore-prefixes-first-match: nix-${{ runner.os }}-
           gc-max-store-size-linux: 1073741824
           purge: false
-
       - name: Build Template Config
         run: nix build ./template#homeConfigurations.myhost.activationPackage
-
       - name: Build Full Config
         run: nix build .#homeConfigurations.ci.activationPackage
 
@@ -49,12 +204,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: "experimental-features = nix-command flakes pipe-operators"
-
       - name: Check Flake
         run: nix flake check --keep-going
 
@@ -63,20 +216,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: "experimental-features = nix-command flakes pipe-operators"
-
       - name: Build docs
         run: |
           nix build .#book -o result/book
-
       - name: Build search
         run: |
           nix build .#search -o result/search
-
       - name: Upload docs
         uses: actions/upload-pages-artifact@v4
         with:

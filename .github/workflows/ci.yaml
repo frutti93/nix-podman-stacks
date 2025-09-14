@@ -89,42 +89,42 @@ jobs:
     runs-on: ubuntu-24.04
     needs: detect-changed-images
     if: needs.detect-changed-images.outputs.has_changes == 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        image: ${{ fromJson(needs.detect-changed-images.outputs.images) }}
+    permissions:
+      security-events: write
+      pull-requests: write
     steps:
-      - name: Extract image details
-        id: image-details
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.3
+
+      - name: Scan changed images
         run: |
-          IMAGE="${{ matrix.image }}"
-          SAFE_NAME=$(echo "$IMAGE" | tr '/:' '_' | tr -d '.')
-          echo "image=$IMAGE" >> $GITHUB_OUTPUT
-          echo "safe_name=$SAFE_NAME" >> $GITHUB_OUTPUT
+          IMAGES='${{ needs.detect-changed-images.outputs.images }}'
+          mkdir -p trivy-results
+          FAIL=0
 
-      - name: Run Trivy vulnerability scanner
-        id: trivy
-        uses: aquasecurity/trivy-action@0.33.1
-        continue-on-error: true
-        with:
-          image-ref: ${{ matrix.image }}
-          format: "table"
-          severity: "CRITICAL,HIGH"
-          output: "trivy-result-${{ steps.image-details.outputs.safe_name }}.txt"
+          for IMG in $(echo "$IMAGES" | jq -r '.[]'); do
+            SAFE_NAME=$(echo "$IMG" | tr '/:' '_' | tr -d '.')
+            OUTPUT="trivy-results/trivy-$SAFE_NAME.txt"
+            echo "🔍 Scanning $IMG"
+            trivy image --exit-code 1 --severity CRITICAL,HIGH --format table "$IMG" | tee "$OUTPUT"
+            if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+              FAIL=1
+            fi
+          done
 
-      - name: Upload scan results as artifact
+          echo "Trivy scan completed"
+          exit $FAIL
+
+      - name: Upload scan results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: trivy-results
-          path: trivy-result-*.txt
+          path: trivy-results
           retention-days: 1
-
-      - name: Check Trivy Scan Result
-        if: steps.trivy.outcome == 'failure'
-        run: |
-          echo "❌ Trivy found CRITICAL/HIGH vulnerabilities"
-          exit 1
 
   trivy-pr-comment:
     name: Update PR comment
@@ -146,7 +146,7 @@ jobs:
           BODY="$BODY\n\nScanned the following updated images:\n"
 
           for f in results/*.txt; do
-            IMG=$(basename "$f" | sed 's/^trivy-result-//; s/\.txt//; s/_/:/g')
+            IMG=$(basename "$f" | sed 's/^trivy-//; s/\.txt//; s/_/:/g')
             if [ -s "$f" ]; then
               BODY="$BODY\n\n### \`$IMG\`\n<details><summary>Details</summary>\n\n\`\`\`\n$(cat "$f")\n\`\`\`\n</details>"
             else

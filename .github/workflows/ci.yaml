@@ -94,6 +94,9 @@ jobs:
     runs-on: ubuntu-24.04
     needs: detect-changed-images
     if: needs.detect-changed-images.outputs.has_changes == 'true'
+    permissions:
+      contents: read
+      security-events: write
     strategy:
       fail-fast: false
       matrix:
@@ -130,9 +133,6 @@ jobs:
         with:
           sarif_file: "trivy-results.sarif"
           category: "trivy-${{ steps.image-details.outputs.safe_name }}"
-        permissions:
-          contents: read
-          security-events: write
 
   trivy-pr-comment:
     name: Update PR Comment

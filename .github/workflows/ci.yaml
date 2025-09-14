@@ -106,10 +106,11 @@ jobs:
           FAIL=0
 
           for IMG in $(echo "$IMAGES" | jq -r '.[]'); do
-            SAFE_NAME=$(echo "$IMG" | tr '/:' '_' | tr -d '.')
+            SAFE_NAME=$(echo "$IMG" | sed 's|[:/\.]|_|g')
             OUTPUT="trivy-results/trivy-$SAFE_NAME.txt"
+            echo "IMAGE=$IMG" > "$OUTPUT"
             echo "🔍 Scanning $IMG"
-            trivy image --exit-code 1 --severity CRITICAL,HIGH --format table "$IMG" | tee "$OUTPUT"
+            trivy image --exit-code 1 --severity CRITICAL,HIGH --format table "$IMG" >> "$OUTPUT"
             if [ "${PIPESTATUS[0]}" -ne 0 ]; then
               FAIL=1
             fi
@@ -146,9 +147,9 @@ jobs:
           BODY="$BODY\n\nScanned the following updated images:\n"
 
           for f in results/*.txt; do
-            IMG=$(basename "$f" | sed 's/^trivy-//; s/\.txt//; s/_/:/g')
+            IMG=$(head -n 1 "$f" | sed 's/^IMAGE=//')
             if [ -s "$f" ]; then
-              BODY="$BODY\n\n### \`$IMG\`\n<details><summary>Details</summary>\n\n\`\`\`\n$(cat "$f")\n\`\`\`\n</details>"
+              BODY="$BODY\n\n### \`$IMG\`\n<details><summary>Details</summary>\n\n\`\`\`\n$(tail -n +2 "$f")\n\`\`\`\n</details>"
             else
               BODY="$BODY\n\n### \`$IMG\`\n✅ No vulnerabilities were detected."
             fi

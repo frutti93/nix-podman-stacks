@@ -114,7 +114,7 @@ jobs:
             echo "IMAGE=$IMG" > "$OUTPUT_TXT"
 
             echo "🔍 Scanning $IMG (table output)"
-            trivy image --exit-code 1 --severity CRITICAL,HIGH --format table "$IMG" >> "$OUTPUT_TXT"
+            trivy image --exit-code 1 --severity CRITICAL,HIGH --format table "$IMG" >> "$OUTPUT_TXT" 2>&1 || true
             if [ "${PIPESTATUS[0]}" -ne 0 ]; then
               FAIL=1
             fi

@@ -94,9 +94,6 @@ jobs:
     runs-on: ubuntu-24.04
     needs: detect-changed-images
     if: needs.detect-changed-images.outputs.has_changes == 'true'
-    permissions:
-      contents: read
-      security-events: write
     strategy:
       fail-fast: false
       matrix:
@@ -107,10 +104,8 @@ jobs:
         shell: bash
         run: |
           IMAGE="${{ matrix.image }}"
-          # Extract repository and tag for better reporting
           REPO="${IMAGE%:*}"
           TAG="${IMAGE##*:}"
-          # Create a safe filename for artifacts
           SAFE_NAME=$(echo "$IMAGE" | tr '/:' '_' | tr -d '.')
 
           echo "repo=$REPO" >> $GITHUB_OUTPUT
@@ -118,21 +113,31 @@ jobs:
           echo "safe_name=$SAFE_NAME" >> $GITHUB_OUTPUT
 
       - name: Run Trivy vulnerability scanner
+        id: trivy
         uses: aquasecurity/trivy-action@0.28.0
+        continue-on-error: true
         with:
           image-ref: ${{ matrix.image }}
           format: "sarif"
           output: "trivy-results.sarif"
-          severity: "CRITICAL,HIGH,MEDIUM"
-          exit-code: "0" # Don't fail the build, just report
+          severity: "CRITICAL,HIGH"
+          exit-code: "1"
           cache-dir: .trivy-cache
 
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
         if: always()
+        permissions:
+          security-events: write
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: "trivy-results.sarif"
           category: "trivy-${{ steps.image-details.outputs.safe_name }}"
+
+      - name: Fail if Trivy found issues
+        if: steps.trivy.outcome == 'failure'
+        run: |
+          echo "❌ Trivy found CRITICAL/HIGH vulnerabilities"
+          exit 1
 
   trivy-pr-comment:
     name: Update PR Comment

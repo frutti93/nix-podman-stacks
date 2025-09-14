@@ -66,6 +66,7 @@ in {
           description = ''
             Settings for the Homepage service.
             This can include icon, href, description, widget configuration, etc.
+
             See <https://gethomepage.dev/configs/services/#services/>
           '';
         };

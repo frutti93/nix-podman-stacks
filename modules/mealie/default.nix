@@ -48,7 +48,7 @@ in {
       };
       userGroup = lib.mkOption {
         type = lib.types.str;
-        default = "mealie_user";
+        default = "${name}_user";
         description = "Users must be a part of this group to be able to log in.";
       };
     };

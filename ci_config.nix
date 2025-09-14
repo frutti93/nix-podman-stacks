@@ -300,6 +300,15 @@ in {
         };
       };
 
+      komga = {
+        enable = true;
+        oidc = {
+          enable = true;
+          clientSecretFile = dummySecretFile;
+          clientSecretHash = dummyHash;
+        };
+      };
+
       lldap = {
         enable = true;
         baseDn = "DC=example,DC=com";

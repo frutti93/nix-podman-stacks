@@ -30,6 +30,7 @@ let
     ittools = ./it-tools;
     karakeep = ./karakeep;
     kimai = ./kimai;
+    komga = ./komga;
     lldap = ./lldap;
     mazanoke = ./mazanoke;
     mealie = ./mealie;

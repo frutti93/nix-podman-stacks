@@ -35,7 +35,6 @@ jobs:
             done | sort -u
           }
 
-          # Select base/head SHAs depending on event type
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             BASE_SHA="${{ github.event.pull_request.base.sha }}"
             HEAD_SHA="${{ github.event.pull_request.head.sha }}"
@@ -43,7 +42,6 @@ jobs:
             BASE_SHA="${{ github.event.before }}"
             HEAD_SHA="${{ github.sha }}"
           else
-            # fallback for workflow_dispatch etc.
             BASE_SHA="$(git rev-parse HEAD^)"
             HEAD_SHA="$(git rev-parse HEAD)"
           fi
@@ -58,11 +56,9 @@ jobs:
           while IFS= read -r base_img; do
             base_repo="${base_img%:*}"
             base_tag="${base_img##*:}"
-            
             while IFS= read -r head_img; do
               head_repo="${head_img%:*}"
               head_tag="${head_img##*:}"
-              
               if [[ "$base_repo" == "$head_repo" ]] && [[ "$base_tag" != "$head_tag" ]]; then
                 CHANGED_IMAGES=$(echo -e "$CHANGED_IMAGES\n$head_img")
               fi
@@ -94,8 +90,6 @@ jobs:
     runs-on: ubuntu-24.04
     needs: detect-changed-images
     if: needs.detect-changed-images.outputs.has_changes == 'true'
-    permissions:
-      security-events: write
     strategy:
       fail-fast: false
       matrix:
@@ -106,12 +100,8 @@ jobs:
         shell: bash
         run: |
           IMAGE="${{ matrix.image }}"
-          REPO="${IMAGE%:*}"
-          TAG="${IMAGE##*:}"
           SAFE_NAME=$(echo "$IMAGE" | tr '/:' '_' | tr -d '.')
-
-          echo "repo=$REPO" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
           echo "safe_name=$SAFE_NAME" >> $GITHUB_OUTPUT
 
       - name: Run Trivy vulnerability scanner
@@ -120,18 +110,17 @@ jobs:
         continue-on-error: true
         with:
           image-ref: ${{ matrix.image }}
-          format: "sarif"
-          output: "trivy-results.sarif"
+          format: "table"
           severity: "CRITICAL,HIGH"
-          exit-code: "1"
-          cache-dir: .trivy-cache
+          output: "trivy-result-${{ steps.image-details.outputs.safe_name }}.txt"
 
-      - name: Upload Trivy results to GitHub Security
+      - name: Upload scan results as artifact
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: "trivy-results.sarif"
-          category: "trivy-${{ steps.image-details.outputs.safe_name }}"
+          name: trivy-results
+          path: trivy-result-*.txt
+          retention-days: 1
 
       - name: Fail if Trivy found issues
         if: steps.trivy.outcome == 'failure'
@@ -146,44 +135,34 @@ jobs:
     if: always() && github.event_name == 'pull_request' && needs.detect-changed-images.outputs.has_changes == 'true'
     permissions:
       pull-requests: write
-      security-events: read
     steps:
-      - name: Find existing comment
-        uses: peter-evans/find-comment@v3
-        id: fc
+      - name: Download scan results
+        uses: actions/download-artifact@v4
         with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: "github-actions[bot]"
-          body-includes: "## 🔒 Container Image Security Scan"
+          name: trivy-results
+          path: results
 
-      - name: Build comment body
-        id: comment
+      - name: Build PR comment
         shell: bash
         run: |
-          IMAGES='${{ needs.detect-changed-images.outputs.images }}'
-          COUNT=$(echo "$IMAGES" | jq '. | length')
-
           BODY="## 🔒 Container Image Security Scan"
-          BODY="$BODY\n\n**Renovate updated $COUNT container image(s) in this PR:**\n"
+          BODY="$BODY\n\nScanned the following updated images:\n"
 
-          echo "$IMAGES" | jq -r '.[]' | while read -r img; do
-            BODY="$BODY\n- \`$img\`"
+          for f in results/*.txt; do
+            IMG=$(basename "$f" | sed 's/^trivy-result-//; s/\.txt//; s/_/:/g')
+            if [ -s "$f" ]; then
+              BODY="$BODY\n\n### \`$IMG\`\n<details><summary>Details</summary>\n\n\`\`\`\n$(cat "$f")\n\`\`\`\n</details>"
+            else
+              BODY="$BODY\n\n### \`$IMG\`\n✅ No vulnerabilities were detected."
+            fi
           done
 
-          BODY="$BODY\n\n✅ All images have been scanned for vulnerabilities."
-          BODY="$BODY\n\n📊 **Results:** Check the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning) or workflow summary for details."
-          BODY="$BODY\n\n_💡 Only images that changed in this PR were scanned._"
-
-          # Save to file to preserve newlines
           echo -e "$BODY" > comment.md
 
-      - name: Create or update comment
-        uses: peter-evans/create-or-update-comment@v4
+      - name: Comment PR with Trivy results
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body-file: comment.md
-          edit-mode: replace
+          path: comment.md
 
   build-config:
     name: Build
@@ -236,11 +215,9 @@ jobs:
         with:
           extra_nix_config: "experimental-features = nix-command flakes pipe-operators"
       - name: Build docs
-        run: |
-          nix build .#book -o result/book
+        run: nix build .#book -o result/book
       - name: Build search
-        run: |
-          nix build .#search -o result/search
+        run: nix build .#search -o result/search
       - name: Upload docs
         uses: actions/upload-pages-artifact@v4
         with:

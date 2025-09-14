@@ -13,7 +13,6 @@ jobs:
   detect-changed-images:
     name: Detect Changed Container Images
     runs-on: ubuntu-24.04
-    if: github.event_name == 'pull_request'
     outputs:
       images: ${{ steps.diff-images.outputs.images }}
       has_changes: ${{ steps.diff-images.outputs.has_changes }}

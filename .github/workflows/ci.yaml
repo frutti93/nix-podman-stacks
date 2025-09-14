@@ -28,7 +28,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Function to extract images from a specific commit
           extract_images() {
             local ref=$1
             git show "$ref" --name-only --format="" | grep '\.nix$' | while read -r file; do
@@ -36,12 +35,21 @@ jobs:
             done | sort -u
           }
 
-          BASE_SHA="${{ github.event.pull_request.base.sha }}"
-          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          # Select base/head SHAs depending on event type
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            BASE_SHA="${{ github.event.before }}"
+            HEAD_SHA="${{ github.sha }}"
+          else
+            # fallback for workflow_dispatch etc.
+            BASE_SHA="$(git rev-parse HEAD^)"
+            HEAD_SHA="$(git rev-parse HEAD)"
+          fi
 
           echo "Comparing images between $BASE_SHA and $HEAD_SHA"
 
-          # Extract images from base and head
           BASE_IMAGES=$(extract_images "$BASE_SHA" || true)
           HEAD_IMAGES=$(extract_images "$HEAD_SHA" || true)
 
@@ -56,13 +64,13 @@ jobs:
               head_tag="${head_img##*:}"
               
               if [[ "$base_repo" == "$head_repo" ]] && [[ "$base_tag" != "$head_tag" ]]; then
-                # Same repository, different tag - this is an update
                 CHANGED_IMAGES=$(echo -e "$CHANGED_IMAGES\n$head_img")
               fi
             done <<< "$HEAD_IMAGES"
           done <<< "$BASE_IMAGES"
 
           CHANGED_IMAGES=$(echo "$CHANGED_IMAGES" | grep -v '^$' | sort -u || true)
+
           images_json="[]"
           has_changes="false"
 

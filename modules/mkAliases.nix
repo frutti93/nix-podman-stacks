@@ -18,7 +18,7 @@ lib.flatten containers
     use = x: x;
     warn = false;
     visible = true;
-    condition = config.nps.stacks.${stackName}.enable;
+    condition = config.nps.stacks.${stackName}.enable && (config.nps.stacks.${stackName}.${c}.enable or true);
   })
   (lib.doRename {
     from = [
@@ -35,7 +35,7 @@ lib.flatten containers
     use = x: x;
     warn = false;
     visible = true;
-    condition = config.nps.stacks.${stackName}.enable;
+    condition = config.nps.stacks.${stackName}.enable && (config.nps.stacks.${stackName}.${c}.enable or true);
   })
 ]))
 |> lib.flatten

@@ -192,11 +192,11 @@ in {
     );
 
   config = lib.mkIf cfg.enable {
-    nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.jellyfin.oidc.enable {
+    nps.stacks.lldap.bootstrap.groups = lib.mkIf (cfg.jellyfin.enable && cfg.jellyfin.oidc.enable) {
       ${cfg.jellyfin.oidc.adminGroup} = {};
       ${cfg.jellyfin.oidc.userGroup} = {};
     };
-    nps.stacks.authelia = lib.mkIf cfg.jellyfin.oidc.enable {
+    nps.stacks.authelia = lib.mkIf (cfg.jellyfin.enable && cfg.jellyfin.oidc.enable) {
       oidc.clients.${jellyfinName} = {
         client_name = "Jellyfin";
         client_secret = cfg.jellyfin.oidc.clientSecretHash;
@@ -294,7 +294,7 @@ in {
         brandingXml = pkgs.writeText "branding.xml" ''
           <?xml version="1.0" encoding="utf-8"?>
           <BrandingOptions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-            <LoginDisclaimer>&lt;form action="${config.nps.containers.jellyfin.traefik.serviceUrl}/sso/OID/start/authelia"&gt;
+            <LoginDisclaimer>&lt;form action="/sso/OID/start/authelia"&gt;
             &lt;button class="raised block emby-button button-submit"&gt;
               Sign in with Authelia
             &lt;/button&gt;

@@ -132,6 +132,13 @@ jobs:
             trivy image --format sarif --output "$OUTPUT_SARIF" "$IMG"
           done
 
+          # Create status file
+          if [ $FAIL -eq 0 ]; then
+            echo "success" > trivy-results/status.txt
+          else
+            echo "fail" > trivy-results/status.txt
+          fi
+
           echo "Trivy scan completed"
           exit $FAIL
 

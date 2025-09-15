@@ -9,6 +9,8 @@ on:
       - "images/**"
       - "**.md"
   push:
+    branches:
+      - main
     paths:
       - "**.nix"
       - "flake.lock"

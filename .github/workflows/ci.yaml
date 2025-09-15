@@ -182,7 +182,7 @@ jobs:
 
           BODY="$HEADER\n\nScanned the following updated images:\n"
 
-          for f in results/*.txt; do
+          for f in results/trivy-*.txt; do
             IMG=$(head -n 1 "$f" | sed 's/^IMAGE=//')
             if [ -s "$f" ]; then
               BODY="$BODY\n\n### \`$IMG\`\n<details><summary>Details</summary>\n\n\`\`\`\n$(tail -n +2 "$f")\n\`\`\`\n</details>"

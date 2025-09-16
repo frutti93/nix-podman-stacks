@@ -70,9 +70,7 @@ jobs:
           CHANGED_IMAGES=""
           for file in $CHANGED_FILES; do
             echo "Processing $file"
-            # Look at added lines only
             ADDED_LINES=$(git diff "$BASE_SHA" "$HEAD_SHA" -- "$file" | grep '^+' | grep -v '^+++' || true)
-
             while IFS= read -r line; do
               if [ -n "$line" ]; then
                 CLEAN_LINE=${line#+}
@@ -102,15 +100,12 @@ jobs:
           echo "Final changed images:"
           echo "$CHANGED_IMAGES"
 
-          # Convert to JSON array
           images_json=$(printf '%s\n' "$CHANGED_IMAGES" | jq -R . | jq -s .)
-
           {
             echo "images<<EOF"
             echo "$images_json"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
-
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
 
   trivy-scan:
@@ -187,7 +182,6 @@ jobs:
           else
             echo "One or more Trivy scans failed!"
             echo "TRIVY_STATUS=failure" >> $GITHUB_ENV
-          fi
 
       - name: Download all scan results
         if: github.event_name == 'pull_request'
@@ -199,7 +193,7 @@ jobs:
 
       - name: Build PR comment
         run: |
-          STATUS=$(cat results/status.txt 2>/dev/null || echo "fail")
+          STATUS=$(cat all-results/trivy-results/status.txt 2>/dev/null || echo "fail")
           if [[ "$STATUS" == "success" ]]; then
             HEADER="## ✅ Container Image Security Scan Passed"
           else
@@ -208,7 +202,7 @@ jobs:
 
           BODY="$HEADER\n\nScanned the following updated images:\n"
 
-          for f in results/trivy-*.txt; do
+          for f in all-results/trivy-results/trivy-*.txt; do
             IMG=$(head -n 1 "$f" | sed 's/^IMAGE=//')
             if [ -s "$f" ]; then
               BODY="$BODY\n\n### \`$IMG\`\n<details><summary>Details</summary>\n\n\`\`\`\n$(tail -n +2 "$f")\n\`\`\`\n</details>"
@@ -219,7 +213,6 @@ jobs:
 
           BODY="$BODY\n\n📊 Check the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }}) for full SARIF reports."
 
-          # enforce GitHub's 65536 character limit
           MAX=65536
           WARNING="\n\nOutput was cropped due to size limits."
           RESERVE=${#WARNING}
@@ -239,7 +232,6 @@ jobs:
           if [[ "$TRIVY_STATUS" == "failure" ]]; then
             echo "One or more Trivy scans failed!"
             exit 1
-          fi
 
   build-config:
     name: Build

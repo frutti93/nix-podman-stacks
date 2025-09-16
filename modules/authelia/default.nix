@@ -317,6 +317,7 @@ in {
       ${redisName} = lib.mkIf (cfg.sessionProvider == "redis") {
         image = "docker.io/redis:8.2.1";
         stack = name;
+        volumes = ["${storage}/redis:/data"];
 
         extraConfig.Container = {
           Notify = "healthy";

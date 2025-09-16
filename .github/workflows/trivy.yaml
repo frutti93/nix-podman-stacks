@@ -175,7 +175,7 @@ jobs:
             HEADER="## ❌ Container Image Security Scan Failed"
           fi
 
-          BODY="$HEADER\n\nScanned the following updated images:\n"
+          BODY="$HEADER\n\n📊 Check the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }}) for full SARIF reports.\n\nScanned the following updated images:\n"
 
           for f in all-results/trivy-*.txt; do
             IMG=$(head -n 1 "$f" | sed 's/^IMAGE=//')
@@ -185,8 +185,6 @@ jobs:
               BODY="$BODY\n\n### \`$IMG\`\n✅ No vulnerabilities were detected."
             fi
           done
-
-          BODY="📊 Check the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }}) for full SARIF reports.\n\n$BODY"
 
           MAX=65536
           WARNING="\n\nOutput was cropped due to size limits."

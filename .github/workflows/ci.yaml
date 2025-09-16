@@ -51,7 +51,7 @@ jobs:
           echo "Comparing images between $BASE_SHA and $HEAD_SHA"
 
           # Get list of changed .nix files only
-          CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep '\.nix
+          CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep '\.nix'
 
   trivy-scan:
     name: Trivy Security Scan

@@ -150,18 +150,18 @@ jobs:
 
           echo "IMAGE=$IMG" > "$OUTPUT_TXT"
 
-          echo "🔍 Scanning $IMG (table output)"
-          trivy image --exit-code 1 --severity CRITICAL,HIGH --format table "$IMG" | tee -a "$OUTPUT_TXT"
-
           echo "🔒 Generating SARIF for $IMG"
           trivy image --format sarif --output "$OUTPUT_SARIF" "$IMG"
+
+          echo "🔍 Scanning $IMG (table output)"
+          trivy image --exit-code 1 --severity CRITICAL,HIGH --format table "$IMG" | tee -a "$OUTPUT_TXT"
 
       - name: Upload scan results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: trivy-results-${{ steps.safe-name.outputs.safe_name }}
-          path: trivy-results
+          path: trivy-results/
           retention-days: 1
 
       - name: Upload SARIF results to GitHub Security

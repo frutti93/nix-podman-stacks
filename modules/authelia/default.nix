@@ -5,6 +5,7 @@
   ...
 }: let
   name = "authelia";
+  redisName = "${name}-redis";
   cfg = config.nps.stacks.${name};
 
   storage = "${config.nps.storageBaseDir}/${name}";
@@ -24,7 +25,7 @@
   container = cfg.containers.${name};
   lldap = config.nps.stacks.lldap;
 in {
-  imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name];
+  imports = [./extension.nix] ++ import ../mkAliases.nix config lib name [name redisName];
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
@@ -113,6 +114,15 @@ in {
           - <https://www.authelia.com/configuration/identity-providers/openid-connect/clients/#pre_configured_consent_duration>
         '';
       };
+    };
+    sessionProvider = lib.mkOption {
+      type = lib.types.enum ["memory" "redis"];
+      default = "memory";
+      description = "''
+        Session provider to use.
+
+        See <https://www.authelia.com/configuration/session/introduction/>
+      ''";
     };
     settings = lib.mkOption {
       type = yaml.type;
@@ -220,20 +230,24 @@ in {
       };
       access_control.default_policy = config.nps.stacks.${name}.defaultAllowPolicy;
       notifier.filesystem.filename = "/notifier/notification.txt";
-      session = {
-        name = "authelia_session";
-        same_site = "lax";
-        inactivity = "5m";
-        expiration = "1h";
-        remember_me = "1M";
-        cookies = [
-          {
-            domain = config.nps.stacks.traefik.domain;
-            authelia_url = container.traefik.serviceUrl;
-            name = "authelia_session";
-          }
-        ];
-      };
+      session =
+        {
+          name = "authelia_session";
+          same_site = "lax";
+          inactivity = "5m";
+          expiration = "1h";
+          remember_me = "1M";
+          cookies = [
+            {
+              domain = config.nps.stacks.traefik.domain;
+              authelia_url = container.traefik.serviceUrl;
+              name = "authelia_session";
+            }
+          ];
+        }
+        // lib.optionalAttrs (cfg.sessionProvider == "redis") {
+          redis.host = redisName;
+        };
 
       server = lib.mkIf cfg.enableTraefikMiddleware {
         endpoints.authz.forward-auth.implementation = "ForwardAuth";
@@ -252,47 +266,65 @@ in {
       };
     };
 
-    services.podman.containers.${name} = {
-      image = "ghcr.io/authelia/authelia:4.39.10";
-      environment =
-        {
-          AUTHELIA_STORAGE_LOCAL_PATH = "/data/db.sqlite3";
-        }
-        // lib.optionalAttrs oidcEnabled {
-          X_AUTHELIA_CONFIG_FILTERS = "template";
-          X_AUTHELIA_CONFIG = "/config/configuration.yml,/config/jwks_key_config.yml";
+    services.podman.containers = {
+      ${name} = {
+        image = "ghcr.io/authelia/authelia:4.39.10";
+        environment =
+          {
+            AUTHELIA_STORAGE_LOCAL_PATH = "/data/db.sqlite3";
+          }
+          // lib.optionalAttrs oidcEnabled {
+            X_AUTHELIA_CONFIG_FILTERS = "template";
+            X_AUTHELIA_CONFIG = "/config/configuration.yml,/config/jwks_key_config.yml";
+          };
+
+        fileEnvMount =
+          {
+            AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE = cfg.jwtSecretFile;
+            AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE = cfg.storageEncryptionKeyFile;
+            AUTHELIA_SESSION_SECRET_FILE = cfg.sessionSecretFile;
+            AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = cfg.ldap.passwordFile;
+          }
+          // lib.optionalAttrs oidcEnabled {
+            IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE = cfg.oidc.hmacSecretFile;
+          };
+
+        volumes =
+          [
+            "${storage}/db:/data"
+            "${storage}/notifier:/notifier"
+            "${cfg.settings}:/config/configuration.yml"
+          ]
+          ++ lib.optionals oidcEnabled [
+            "${cfg.oidc.jwksRsaKeyFile}:/secrets/oidc/jwks/rsa.key"
+            "${writeOidcJwksConfigFile "/secrets/oidc/jwks/rsa.key"}:/config/jwks_key_config.yml"
+          ];
+
+        wantsContainer = lib.optional (cfg.sessionProvider == "redis") redisName;
+        stack = name;
+        port = 9091;
+        traefik.name = name;
+        homepage = {
+          category = "Network & Administration";
+          name = "Authelia";
+          settings = {
+            description = "Authentication & Authorization Server";
+            icon = "authelia";
+          };
         };
+      };
 
-      fileEnvMount =
-        {
-          AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE = cfg.jwtSecretFile;
-          AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE = cfg.storageEncryptionKeyFile;
-          AUTHELIA_SESSION_SECRET_FILE = cfg.sessionSecretFile;
-          AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = cfg.ldap.passwordFile;
-        }
-        // lib.optionalAttrs oidcEnabled {
-          IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE = cfg.oidc.hmacSecretFile;
-        };
+      ${redisName} = lib.mkIf (cfg.sessionProvider == "redis") {
+        image = "docker.io/redis:8.2.1";
+        stack = name;
 
-      volumes =
-        [
-          "${storage}/db:/data"
-          "${storage}/notifier:/notifier"
-          "${cfg.settings}:/config/configuration.yml"
-        ]
-        ++ lib.optionals oidcEnabled [
-          "${cfg.oidc.jwksRsaKeyFile}:/secrets/oidc/jwks/rsa.key"
-          "${writeOidcJwksConfigFile "/secrets/oidc/jwks/rsa.key"}:/config/jwks_key_config.yml"
-        ];
-
-      port = 9091;
-      traefik.name = name;
-      homepage = {
-        category = "Network & Administration";
-        name = "Authelia";
-        settings = {
-          description = "Authentication & Authorization Server";
-          icon = "authelia";
+        extraConfig.Container = {
+          Notify = "healthy";
+          HealthCmd = "redis-cli ping";
+          HealthInterval = "10s";
+          HealthTimeout = "10s";
+          HealthRetries = 5;
+          HealthStartPeriod = "10s";
         };
       };
     };

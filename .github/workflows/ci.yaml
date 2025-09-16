@@ -168,7 +168,7 @@ jobs:
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: trivy-results/trivy-${{ steps.safe-name.outputs.safe_name }}.sarif
+          sarif_file: trivy-results/
           category: trivy-${{ matrix.image }}
 
   trivy-aggregate:

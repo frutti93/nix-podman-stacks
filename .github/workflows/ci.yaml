@@ -182,6 +182,7 @@ jobs:
           else
             echo "One or more Trivy scans failed!"
             echo "TRIVY_STATUS=failure" >> $GITHUB_ENV
+          fi
 
       - name: Download all scan results
         if: github.event_name == 'pull_request'

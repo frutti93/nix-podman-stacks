@@ -1,0 +1,210 @@
+name: "Trivy"
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "**.nix"
+
+jobs:
+  detect-changed-images:
+    name: Detect changed container images
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request'
+    outputs:
+      images: ${{ steps.diff-images.outputs.images }}
+      has_changes: ${{ steps.diff-images.outputs.has_changes }}
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Extract and compare images
+        id: diff-images
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            BASE_SHA="${{ github.event.before }}"
+            HEAD_SHA="${{ github.sha }}"
+          else
+            BASE_SHA="$(git rev-parse HEAD^)"
+            HEAD_SHA="$(git rev-parse HEAD)"
+          fi
+
+          echo "Comparing images between $BASE_SHA and $HEAD_SHA"
+
+          # Get list of changed .nix files only
+          CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep '\.nix$' || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No .nix files changed"
+            {
+              echo "images<<EOF"
+              echo "[]"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          CHANGED_IMAGES=""
+          for file in $CHANGED_FILES; do
+            echo "Processing $file"
+            ADDED_LINES=$(git diff "$BASE_SHA" "$HEAD_SHA" -- "$file" | grep '^+' | grep -v '^+++' || true)
+            while IFS= read -r line; do
+              if [ -n "$line" ]; then
+                CLEAN_LINE=${line#+}
+                IMAGE=$(echo "$CLEAN_LINE" | grep -oP 'image\s*=\s*"\K[^"]+' || true)
+                if [ -n "$IMAGE" ]; then
+                  echo "  Found image: $IMAGE"
+                  CHANGED_IMAGES=$(printf "%s\n%s" "$CHANGED_IMAGES" "$IMAGE")
+                fi
+              fi
+            done <<< "$ADDED_LINES"
+          done
+
+          # Deduplicate
+          CHANGED_IMAGES=$(echo "$CHANGED_IMAGES" | sort -u | grep -v '^$' || true)
+
+          if [ -z "$CHANGED_IMAGES" ]; then
+            echo "No images found in changes"
+            {
+              echo "images<<EOF"
+              echo "[]"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Final changed images:"
+          echo "$CHANGED_IMAGES"
+
+          images_json=$(printf '%s\n' "$CHANGED_IMAGES" | jq -R . | jq -s .)
+          {
+            echo "images<<EOF"
+            echo "$images_json"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-24.04
+    needs: detect-changed-images
+    if: needs.detect-changed-images.outputs.has_changes == 'true'
+    permissions:
+      security-events: write
+      pull-requests: write
+    strategy:
+      matrix:
+        image: ${{ fromJSON(needs.detect-changed-images.outputs.images) }}
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.4
+
+      - name: Generate safe name for artifacts
+        id: safe-name
+        run: |
+          SAFE_NAME=$(echo "${{ matrix.image }}" | sed 's|[:/\.]|_|g')
+          echo "safe_name=$SAFE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Scan image
+        run: |
+          set -euo pipefail
+          IMG="${{ matrix.image }}"
+          SAFE_NAME="${{ steps.safe-name.outputs.safe_name }}"
+          mkdir -p trivy-results
+
+          OUTPUT_TXT="trivy-results/trivy-$SAFE_NAME.txt"
+          OUTPUT_SARIF="trivy-results/trivy-$SAFE_NAME.sarif"
+
+          echo "IMAGE=$IMG" > "$OUTPUT_TXT"
+
+          echo "🔒 Generating SARIF for $IMG"
+          trivy image --format sarif --output "$OUTPUT_SARIF" "$IMG"
+
+          echo "🔍 Scanning $IMG (table output)"
+          trivy image --exit-code 1 --severity CRITICAL,HIGH --format table "$IMG" | tee -a "$OUTPUT_TXT"
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-${{ steps.safe-name.outputs.safe_name }}
+          path: trivy-results
+          retention-days: 1
+
+      - name: Upload SARIF results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results/
+          category: trivy-${{ matrix.image }}
+
+  trivy-aggregate:
+    name: Trivy Aggregate Results
+    runs-on: ubuntu-24.04
+    needs: [detect-changed-images, trivy-scan]
+    if: always() && needs.detect-changed-images.outputs.has_changes == 'true'
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Download all scan results
+        uses: actions/download-artifact@v5
+        with:
+          path: all-results
+          merge-multiple: true
+
+      - name: Build PR comment
+        run: |
+          if [[ "${{ needs.trivy-scan.result }}" == "success" ]]; then
+            HEADER="## ✅ Container Image Security Scan Passed"
+          else
+            HEADER="## ❌ Container Image Security Scan Failed"
+          fi
+
+          BODY="$HEADER\n\nScanned the following updated images:\n"
+
+          for f in all-results/trivy-*.txt; do
+            IMG=$(head -n 1 "$f" | sed 's/^IMAGE=//')
+            if [ -s "$f" ]; then
+              BODY="$BODY\n\n### \`$IMG\`\n<details><summary>Details</summary>\n\n\`\`\`\n$(tail -n +2 "$f")\n\`\`\`\n</details>"
+            else
+              BODY="$BODY\n\n### \`$IMG\`\n✅ No vulnerabilities were detected."
+            fi
+          done
+
+          BODY="📊 Check the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }}) for full SARIF reports.\n\n$BODY"
+
+          MAX=65536
+          WARNING="\n\nOutput was cropped due to size limits."
+          RESERVE=${#WARNING}
+          if [ ${#BODY} -gt $((MAX - RESERVE)) ]; then
+            echo "PR comment too long, cropping to $MAX characters (with warning reserved)"
+            BODY="${BODY:0:$((MAX - RESERVE))}$WARNING"
+          fi
+          echo -e "$BODY" > comment.md
+
+      - name: Comment PR with Trivy results
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: comment.md
+
+      - name: Fail job if scans failed
+        run: |
+          if [[ "${{ needs.trivy-scan.result }}" == "failure" ]]; then
+            echo "One or more Trivy scans failed!"
+            exit 1
+          fi

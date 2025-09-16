@@ -139,7 +139,8 @@ jobs:
 
       - name: Build PR comment
         run: |
-          if [[ "$TRIVY_STATUS" == "success" ]]; then
+          STATUS=$(cat results/status.txt 2>/dev/null || echo "fail")
+          if [[ "$STATUS" == "success" ]]; then
             HEADER="## ✅ Container Image Security Scan Passed"
           else
             HEADER="## ❌ Container Image Security Scan Failed"
@@ -147,19 +148,25 @@ jobs:
 
           BODY="$HEADER\n\nScanned the following updated images:\n"
 
-          for f in all-results/trivy-*.txt; do
-            if [ -f "$f" ]; then
-              IMG=$(head -n 1 "$f" | sed 's/^IMAGE=//')
-              CONTENT=$(tail -n +2 "$f")
-              if [ -n "$CONTENT" ] && [ "$CONTENT" != "" ]; then
-                BODY="$BODY\n\n### \`$IMG\`\n<details><summary>Vulnerabilities Found</summary>\n\n\`\`\`\n$CONTENT\n\`\`\`\n</details>"
-              else
-                BODY="$BODY\n\n### \`$IMG\`\n✅ No vulnerabilities were detected."
-              fi
+          for f in results/trivy-*.txt; do
+            IMG=$(head -n 1 "$f" | sed 's/^IMAGE=//')
+            if [ -s "$f" ]; then
+              BODY="$BODY\n\n### \`$IMG\`\n<details><summary>Details</summary>\n\n\`\`\`\n$(tail -n +2 "$f")\n\`\`\`\n</details>"
+            else
+              BODY="$BODY\n\n### \`$IMG\`\n✅ No vulnerabilities were detected."
             fi
           done
 
           BODY="$BODY\n\n📊 Check the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning?query=pr%3A${{ github.event.pull_request.number }}) for full SARIF reports."
+
+          # enforce GitHub's 65536 character limit
+          MAX=65536
+          WARNING="\n\nOutput was cropped due to size limits."
+          RESERVE=${#WARNING}
+          if [ ${#BODY} -gt $((MAX - RESERVE)) ]; then
+            echo "PR comment too long, cropping to $MAX characters (with warning reserved)"
+            BODY="${BODY:0:$((MAX - RESERVE))}$WARNING"
+          fi
           echo -e "$BODY" > comment.md
 
       - name: Comment PR with Trivy results

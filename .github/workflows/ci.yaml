@@ -155,8 +155,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: trivy-results-${{ steps.safe-name.outputs.safe_name }}
-          path: trivy-results/
+          name: trivy-${{ steps.safe-name.outputs.safe_name }}
+          path: trivy-results
           retention-days: 1
 
       - name: Upload SARIF results to GitHub Security
@@ -185,10 +185,8 @@ jobs:
           fi
 
       - name: Download all scan results
-        if: github.event_name == 'pull_request'
         uses: actions/download-artifact@v5
         with:
-          pattern: trivy-results-*
           path: all-results
           merge-multiple: true
 

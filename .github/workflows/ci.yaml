@@ -174,16 +174,6 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - name: Set scan status
-        run: |
-          if [[ "${{ needs.trivy-scan.result }}" == "success" ]]; then
-            echo "All Trivy scans passed!"
-            echo "TRIVY_STATUS=success" >> $GITHUB_ENV
-          else
-            echo "One or more Trivy scans failed!"
-            echo "TRIVY_STATUS=failure" >> $GITHUB_ENV
-          fi
-
       - name: Download all scan results
         uses: actions/download-artifact@v5
         with:
@@ -192,8 +182,7 @@ jobs:
 
       - name: Build PR comment
         run: |
-          STATUS=$(cat all-results/trivy-results/status.txt 2>/dev/null || echo "fail")
-          if [[ "$STATUS" == "success" ]]; then
+          if [[ "${{ needs.trivy-scan.result }}" == "success" ]]; then
             HEADER="## ✅ Container Image Security Scan Passed"
           else
             HEADER="## ❌ Container Image Security Scan Failed"
@@ -201,7 +190,7 @@ jobs:
 
           BODY="$HEADER\n\nScanned the following updated images:\n"
 
-          for f in all-results/trivy-results/trivy-*.txt; do
+          for f in all-results/trivy-*.txt; do
             IMG=$(head -n 1 "$f" | sed 's/^IMAGE=//')
             if [ -s "$f" ]; then
               BODY="$BODY\n\n### \`$IMG\`\n<details><summary>Details</summary>\n\n\`\`\`\n$(tail -n +2 "$f")\n\`\`\`\n</details>"
@@ -228,7 +217,7 @@ jobs:
 
       - name: Fail job if scans failed
         run: |
-          if [[ "$TRIVY_STATUS" == "failure" ]]; then
+          if [[ "${{ needs.trivy-scan.result }}" == "failure" ]]; then
             echo "One or more Trivy scans failed!"
             exit 1
           fi

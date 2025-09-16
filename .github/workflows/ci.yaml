@@ -231,6 +231,7 @@ jobs:
           if [[ "$TRIVY_STATUS" == "failure" ]]; then
             echo "One or more Trivy scans failed!"
             exit 1
+          fi
 
   build-config:
     name: Build

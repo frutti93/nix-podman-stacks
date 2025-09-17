@@ -253,6 +253,7 @@ in {
         endpoints.authz.forward-auth.implementation = "ForwardAuth";
       };
       webauthn.enable_passkey_login = true;
+      theme = "auto";
     };
 
     nps.stacks.traefik = lib.mkIf cfg.enableTraefikMiddleware {

@@ -77,7 +77,7 @@ Most stacks will rely or use a few centrally defined variables. These include:
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/forgejo.svg" style="width:1em;height:1em;" /> [Forgejo](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/forgejo/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/freshrss.svg" style="width:1em;height:1em;" /> [FreshRSS](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/freshrss/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gatus.svg" style="width:1em;height:1em;" /> [Gatus](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/gatus/default.nix)
-- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/guacamole.svg" style="width:1em;height:1em;" /> [Guaamole](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/guacamole/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/guacamole.svg" style="width:1em;height:1em;" /> [Guacamole](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/guacamole/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/healthchecks.svg" style="width:1em;height:1em;" /> [Healthchecks](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/healchecks/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/home-assistant.svg" style="width:1em;height:1em;" /> [Home Assistant](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/homeassistant/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/homepage.png" style="width:1em;height:1em;" /> [Homepage](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/homepage/default.nix)
@@ -89,6 +89,7 @@ Most stacks will rely or use a few centrally defined variables. These include:
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/svg/lldap.svg" style="width:1em;height:1em;" /> [LLDAP](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/lldap/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/mazanoke.webp" style="width:1em;height:1em;" /> [Mazanoke](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/mazanoke/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/mealie.svg" style="width:1em;height:1em;" /> [Mealie](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/mealie/default.nix)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/memos.webp" style="width:1em;height:1em;" /> [Memos](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/memos/default.nix)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/microbin.png" style="width:1em;height:1em;" /> [MicroBin](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/microbin/default.nix)
 - 🔍 [Monitoring](https://github.com/Tarow/nix-podman-stacks/tree/main/modules/monitoring/default.nix)
   - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/alloy.svg" style="width:1em;height:1em;" /> Alloy

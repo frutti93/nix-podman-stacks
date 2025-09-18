@@ -337,6 +337,18 @@ in {
         };
       };
 
+      memos = {
+        enable = true;
+        oidc = {
+          registerClient = true;
+          clientSecretHash = dummyHash;
+        };
+        db = {
+          type = "postgres";
+          passwordFile = dummySecretFile;
+        };
+      };
+
       microbin = {
         enable = true;
         extraEnv = {

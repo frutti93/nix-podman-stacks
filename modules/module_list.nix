@@ -34,6 +34,7 @@ let
     lldap = ./lldap;
     mazanoke = ./mazanoke;
     mealie = ./mealie;
+    memos = ./memos;
     microbin = ./microbin;
     monitoring = ./monitoring;
     n8n = ./n8n;

@@ -22,7 +22,6 @@ in {
         PUID = config.nps.defaultUid;
         PGID = config.nps.defaultGid;
       };
-      labels = {"traefik.http.routers.${name}.entrypoints" = "websecure,websecure-internal";};
 
       port = 3001;
       traefik = {

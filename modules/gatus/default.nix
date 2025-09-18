@@ -226,7 +226,7 @@ in {
           GATUS_CONFIG_PATH = configDir;
         };
         extraEnv =
-          {
+          lib.optionalAttrs cfg.oidc.enable {
             AUTHELIA_CLIENT_SECRET.fromFile = cfg.oidc.clientSecretFile;
           }
           // lib.optionalAttrs (cfg.db.type == "postgres") {

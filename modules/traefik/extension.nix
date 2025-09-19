@@ -206,7 +206,7 @@ in {
       |> lib.attrValues
       |> lib.filter (c: c.traefik.name != null && c.traefik.middleware != {});
   in
-    lib.mkIf (stackCfg.enable && config.nps.traefik.enable) {
+    lib.mkIf (stackCfg.enable && config.nps.stacks.traefik.enable) {
       assertions = [
         {
           message = "A Traefik middleware was referenced that is not registered";

@@ -54,6 +54,7 @@ in {
         description = "Path to a file containing the admin user password";
       };
     };
+
     extraEnv = lib.mkOption {
       type = (import ../types.nix lib).extraEnv;
       default = {};

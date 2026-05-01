@@ -137,7 +137,7 @@ in {
           name = displayName;
           settings = {
             inherit description;
-            icon = "sh-booklore";
+            icon = "sh-grimmory";
             widget.type = "booklore";
           };
         };
@@ -145,7 +145,7 @@ in {
           inherit category description;
           name = displayName;
           id = name;
-          icon = "sh:booklore";
+          icon = "sh:grimmory";
         };
       };
       ${dbName} = {

@@ -5,7 +5,7 @@ All-in-one solution for WireGuard
 
 > [!NOTE]
 > On modern hosts wg-easy hooks might fail because the container uses iptables-legacy while the host uses nftables.
-> To configure wg-easy to work with nftables, refer to the [documentation](https://wg-easy.github.io/wg-easy/v15.3/examples/tutorials/podman-nft/) to update your `PostUp` & `PostDown` hooks.
+> To configure wg-easy to work with nftables, refer to the [documentation](https://wg-easy.github.io/wg-easy/latest/examples/tutorials/podman-nft/) to update your `PostUp` & `PostDown` hooks.
 
 ## Example
 

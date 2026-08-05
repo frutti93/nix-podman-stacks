@@ -182,6 +182,16 @@ in {
         // {
           default = true;
         };
+      collectByDefault = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Whether to collect logs from all containers by default.
+          If set to `false`, only containers that explicitly set the `alloy.enable=true` option will be collected.
+
+          If set to `true`, you can opt out for individual containers by setting `alloy.enable=false` in the container's configuration.
+        '';
+      };
       port = lib.mkOption {
         type = lib.types.port;
         default = 12345;

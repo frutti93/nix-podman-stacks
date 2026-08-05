@@ -184,12 +184,14 @@ in {
         };
       collectByDefault = lib.mkOption {
         type = lib.types.bool;
-        default = true;
+        default = false;
         description = ''
-          Whether to collect logs from all containers by default.
+          Whether to collect logs from a containers by default.
           If set to `false`, only containers that explicitly set the `alloy.enable=true` option will be collected.
 
           If set to `true`, you can opt out for individual containers by setting `alloy.enable=false` in the container's configuration.
+
+          See <https://tarow.github.io/nix-podman-stacks/docs/container-options.html#services.podman.containers.%3Cname%3E.alloy.enable>
         '';
       };
       port = lib.mkOption {

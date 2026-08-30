@@ -70,14 +70,6 @@ in {
       ${name} = {
         image = "docker.io/johannesjo/super-productivity:v18.21.1";
 
-        extraConfig.Container = {
-          HealthCmd = "wget --spider --quiet http://localhost:80";
-          HealthInterval = "30s";
-          HealthTimeout = "5s";
-          HealthRetries = 3;
-          HealthStartPeriod = "10s";
-        };
-
         stack = name;
         port = 80;
         traefik.name = name;

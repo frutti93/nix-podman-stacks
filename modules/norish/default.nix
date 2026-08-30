@@ -103,7 +103,7 @@ in {
 
     services.podman.containers = {
       ${name} = {
-        image = "docker.io/norishapp/norish:v0.20.0-beta";
+        image = "docker.io/norishapp/norish:v0.21.0-beta";
         user = "${toString config.nps.defaultUid}:${toString config.nps.defaultGid}";
         volumeMap.data = "${storage}/data:/app/uploads";
 
@@ -113,7 +113,7 @@ in {
             DATABASE_URL.fromTemplate = "postgres://${cfg.db.username}:{{ file.Read `${cfg.db.passwordFile}` }}@${dbName}/norish?sslmode=disable";
             MASTER_KEY.fromFile = cfg.masterKeyFile;
             REDIS_URL = "redis://${redisName}:6379";
-            CHROME_WS_ENDPOINT = "ws://${browserName}:3000";
+            OBSCURA_ENDPOINT = "ws://${browserName}:9222";
           }
           // lib.optionalAttrs cfg.oidc.enable {
             OIDC_NAME = "Authelia";
@@ -179,16 +179,7 @@ in {
       };
 
       ${browserName} = {
-        image = "docker.io/zenika/alpine-chrome:124";
-        addCapabilities = ["SYS_ADMIN"];
-        exec = lib.concatStringsSep " " [
-          "--no-sandbox"
-          "--disable-gpu"
-          "--disable-dev-shm-usage"
-          "--remote-debugging-address=0.0.0.0"
-          "--remote-debugging-port=3000"
-          "--headless"
-        ];
+        image = "docker.io/norishapp/obscura:0.2.0-norish.1";
 
         stack = name;
         glance = {

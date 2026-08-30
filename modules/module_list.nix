@@ -74,6 +74,7 @@ let
     stirling-pdf = ./stirling-pdf;
     storyteller = ./storyteller;
     streaming = ./streaming;
+    super-productivity = ./super-productivity;
     tandoor = ./tandoor;
     timetracker = ./timetracker;
     traefik = ./traefik;

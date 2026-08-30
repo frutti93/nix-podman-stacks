@@ -38,7 +38,9 @@
         "/profilarr/",
         "/sparkyfitness/",
         "/homelable/",
-        "/scanopy/"
+        "/scanopy/",
+        "/super-productivity/",
+        "/super-sync-server/"
       ],
       "groupName": "{{parentDir}}"
     },

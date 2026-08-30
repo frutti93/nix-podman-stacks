@@ -825,6 +825,19 @@ in {
           extraEnv."${lib.toUpper name}__AUTH__APIKEY".fromFile = dummySecretFile;
         });
 
+      super-productivity = {
+        enable = true;
+        enableSync = true;
+        jwtSecretFile = dummySecretFile;
+        db.passwordFile = dummySecretFile;
+        smtp = {
+          host = "localhost";
+          user = "test";
+          passwordFile = dummySecretFile;
+          from = "test@localhost";
+        };
+      };
+
       tandoor = {
         enable = true;
         secretKeyFile = dummySecretFile;

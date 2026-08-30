@@ -4,7 +4,7 @@ export default {
     const optionsJSON = process.env.NPS_OPTIONS_JSON;
     if (optionsJSON === undefined) {
       console.log("NPS_OPTIONS_JSON is undefined");
-      exit(1);
+      process.exit(1);
     }
     return await loadOptions(optionsJSON, {
       include: [/^(?!.*_module)/],

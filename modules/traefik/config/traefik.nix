@@ -2,6 +2,7 @@ lib: domain: network: let
   mkRedirect = to: {
     address = ":80";
     http = {
+      aliasHeadersStrategy = "delete";
       redirections = {
         entryPoint = {
           to = to;
@@ -21,6 +22,7 @@ in {
       asDefault = true;
       address = ":443";
       http = {
+        aliasHeadersStrategy = "delete";
         tls = {
           certResolver = "letsencrypt";
           domains = [

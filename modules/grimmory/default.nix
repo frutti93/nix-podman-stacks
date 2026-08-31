@@ -119,13 +119,18 @@ in {
 
         extraEnv = let
           db = cfg.containers.${dbName}.extraEnv;
-        in {
-          USER_ID = config.nps.defaultUid;
-          GROUP_ID = config.nps.defaultGid;
-          DATABASE_URL.fromTemplate = "jdbc:mariadb://${dbName}:3306/${db.MARIADB_DATABASE}";
-          DATABASE_USERNAME = db.MARIADB_USER;
-          DATABASE_PASSWORD = db.MARIADB_PASSWORD;
-        };
+        in
+          {
+            USER_ID = config.nps.defaultUid;
+            GROUP_ID = config.nps.defaultGid;
+            DATABASE_URL.fromTemplate = "jdbc:mariadb://${dbName}:3306/${db.MARIADB_DATABASE}";
+            DATABASE_USERNAME = db.MARIADB_USER;
+            DATABASE_PASSWORD = db.MARIADB_PASSWORD;
+          }
+          // lib.optionalAttrs cfg.oidc.registerClient {
+            # Because Authelia is resolved to private IP
+            OIDC_ALLOW_UNSAFE_HOSTS = true;
+          };
 
         dependsOnContainer = [dbName];
         stack = name;

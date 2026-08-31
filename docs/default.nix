@@ -23,6 +23,9 @@
 
   stackNames = lib.attrNames eval.options.nps.stacks;
 
+  # matches --base` in docs/book/package.json
+  baseUrl = "/nix-podman-stacks/docs";
+
   mkStackOptionsFile = stack: ''
     echo "# ${stack}" > ./stacks/${stack}.md
 
@@ -51,6 +54,17 @@
     title = "Nix Podman Stacks";
 
     description = "";
+
+    head = [
+      [
+        "link"
+        {
+          rel = "icon";
+          type = "image/svg+xml";
+          href = "${baseUrl}/favicon.svg";
+        }
+      ]
+    ];
 
     themeConfig = {
       sidebar = [
@@ -154,7 +168,7 @@ in {
 
         cp -r ${self}/images .
 
-        mkdir .vitepress
+        mkdir -p .vitepress
         cp ${mkVitepressConfig} .vitepress/config.mts
 
         mkdir -p ./stacks

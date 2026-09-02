@@ -14,7 +14,7 @@ The projects also contains integrations with Traefik, Homepage, Grafana and more
 - Similariy, Grafana dashboards for Traefik, Blocky & others can be automatically added
 - and more ...
 
-While most stacks can be activated by setting a single flag, some stacks require setting mandatory values, especially for secrets.
+While most stacks are activated with a simple toggle, some require additional configuration - especially for secrets.
 For managing secrets, projects such as [sops-nix](https://github.com/Mic92/sops-nix) or [agenix](https://github.com/ryantm/agenix) can be used, which allow you to store your secrets along with the configuration inside a single Git repository.
 
 ## Example

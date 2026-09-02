@@ -50,20 +50,31 @@
     })
     stackNames;
 
+  siteUrl = "https://tarow.github.io/nix-podman-stacks/docs";
+
+  siteDescription = "Deploy self-hosted services with Nix, Home Manager, and Podman Quadlets. Pre-configured integrations with Traefik, Homepage, Grafana, Authelia, and more - so everything works together out of the box.";
+
   vitepressConfig = builtins.toJSON {
     title = "Nix Podman Stacks";
 
-    description = "";
+    description = siteDescription;
+
+    sitemap = {
+      hostname = "${siteUrl}/";
+    };
 
     head = [
-      [
-        "link"
-        {
-          rel = "icon";
-          type = "image/svg+xml";
-          href = "${baseUrl}/favicon.svg";
-        }
-      ]
+      ["meta" { name = "description"; content = siteDescription; }]
+      ["meta" { property = "og:type"; content = "website"; }]
+      ["meta" { property = "og:title"; content = "Nix Podman Stacks"; }]
+      ["meta" { property = "og:description"; content = siteDescription; }]
+      ["meta" { property = "og:url"; content = siteUrl; }]
+      ["meta" { property = "og:site_name"; content = "Nix Podman Stacks"; }]
+      ["meta" { name = "twitter:card"; content = "summary"; }]
+      ["meta" { name = "twitter:title"; content = "Nix Podman Stacks"; }]
+      ["meta" { name = "twitter:description"; content = siteDescription; }]
+      ["link" { rel = "canonical"; href = siteUrl; }]
+      ["link" { rel = "icon"; type = "image/svg+xml"; href = "${baseUrl}/favicon.svg"; }]
     ];
 
     themeConfig = {

@@ -16,10 +16,14 @@ function onClick({ target: el }) {
   heading?.focus({ preventScroll: true });
 }
 
-// Drop the stack prefix (e.g. `nps.stacks.streaming.`) from option names so
-// the outline stays readable, without altering the page headings.
+// Drop the option path prefixes (e.g. `nps.stacks.streaming.` or
+// `services.podman.containers.<name>.`) from the outline text so the sidebar
+// stays readable, without altering the page headings.
+const PREFIX_RE =
+  /^(?:nps\.stacks\.[^.]+\.|services\.podman\.containers\.[^.]+\.)/;
+
 function stripPrefix(title) {
-  return title.replace(/^nps\.stacks\.[^.]+\./, "");
+  return String(title).replace(PREFIX_RE, "");
 }
 </script>
 

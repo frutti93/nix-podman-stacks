@@ -38,7 +38,7 @@ let
     homepage = ./homepage;
     hortusfox = ./hortusfox;
     immich = ./immich;
-    ittools = ./it-tools;
+    it-tools = ./it-tools;
     jotty = ./jotty;
     kaneo = ./kaneo;
     karakeep = ./karakeep;
@@ -65,6 +65,7 @@ let
     pinepods = ./pinepods;
     reactive-resume = ./reactive-resume;
     romm = ./romm;
+    sablier = ./sablier;
     scanopy = ./scanopy;
     searxng = ./searxng;
     shelfmark = ./shelfmark;

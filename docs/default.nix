@@ -64,20 +64,134 @@
     };
 
     head = [
-      ["meta" { name = "description"; content = siteDescription; }]
-      ["meta" { property = "og:type"; content = "website"; }]
-      ["meta" { property = "og:title"; content = "Nix Podman Stacks"; }]
-      ["meta" { property = "og:description"; content = siteDescription; }]
-      ["meta" { property = "og:url"; content = siteUrl; }]
-      ["meta" { property = "og:site_name"; content = "Nix Podman Stacks"; }]
-      ["meta" { name = "twitter:card"; content = "summary"; }]
-      ["meta" { name = "twitter:title"; content = "Nix Podman Stacks"; }]
-      ["meta" { name = "twitter:description"; content = siteDescription; }]
-      ["link" { rel = "canonical"; href = siteUrl; }]
-      ["link" { rel = "icon"; type = "image/svg+xml"; href = "${baseUrl}/favicon.svg"; }]
+      [
+        "meta"
+        {
+          name = "description";
+          content = siteDescription;
+        }
+      ]
+      [
+        "meta"
+        {
+          property = "og:type";
+          content = "website";
+        }
+      ]
+      [
+        "meta"
+        {
+          property = "og:title";
+          content = "Nix Podman Stacks";
+        }
+      ]
+      [
+        "meta"
+        {
+          property = "og:description";
+          content = siteDescription;
+        }
+      ]
+      [
+        "meta"
+        {
+          property = "og:url";
+          content = siteUrl;
+        }
+      ]
+      [
+        "meta"
+        {
+          property = "og:site_name";
+          content = "Nix Podman Stacks";
+        }
+      ]
+      [
+        "meta"
+        {
+          name = "twitter:card";
+          content = "summary";
+        }
+      ]
+      [
+        "meta"
+        {
+          name = "twitter:title";
+          content = "Nix Podman Stacks";
+        }
+      ]
+      [
+        "meta"
+        {
+          name = "twitter:description";
+          content = siteDescription;
+        }
+      ]
+      [
+        "link"
+        {
+          rel = "canonical";
+          href = siteUrl;
+        }
+      ]
+      [
+        "link"
+        {
+          rel = "icon";
+          type = "image/svg+xml";
+          href = "${baseUrl}/favicon.svg";
+        }
+      ]
     ];
 
     themeConfig = {
+      logo = "images/nix-podman-logo.png";
+
+      nav = [
+        {
+          text = "Home";
+          link = "/index";
+        }
+        {
+          text = "Getting Started";
+          link = "/getting-started";
+        }
+        {
+          text = "Options";
+          items = [
+            {
+              text = "Settings";
+              link = "/settings-options";
+            }
+            {
+              text = "Container Options";
+              link = "/container-options";
+            }
+            {
+              text = "Stacks";
+              link = "/stacks/";
+            }
+          ];
+        }
+        {
+          text = "Guides";
+          items = [
+            {
+              text = "Backups";
+              link = "/backups";
+            }
+            {
+              text = "Secrets & Templating";
+              link = "/secrets-templating";
+            }
+            {
+              text = "Examples";
+              link = "/examples";
+            }
+          ];
+        }
+      ];
+
       sidebar = [
         {
           items = [
@@ -201,6 +315,13 @@ in {
       runHook preInstall
 
       mv .vitepress/dist $out
+
+      # Serve the theme-config images (hero image, navbar logo) referenced via
+      # relative paths. These are theme data values (not markdown/vue assets),
+      # so VitePress does not bundle them - copy the source images alongside the
+      # output so the relative URLs resolve, while keeping the public directory
+      # for robots.txt and favicon only.
+      cp -r ./images $out/images
 
       runHook postInstall
     '';

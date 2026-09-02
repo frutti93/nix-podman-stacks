@@ -145,7 +145,7 @@
     ];
 
     themeConfig = {
-      logo = "images/nix-podman-logo.png";
+      logo = "/images/nix-podman-logo.png";
 
       nav = [
         {
@@ -298,6 +298,13 @@ in {
 
         mkdir -p ./stacks
         ${lib.concatMapStrings mkStackOptionsFile stackNames}
+
+        # The built-in VPDocAsideOutline imports VPDocOutlineItem via a direct
+        # ES import, so theme-level app.component overrides are silently
+        # ignored. Overwrite the shipped component with our version that strips
+        # the NixOS option path prefixes from the outline text.
+        cp .vitepress/theme/VPDocOutlineItem.vue \
+          node_modules/vitepress/dist/client/theme-default/components/VPDocOutlineItem.vue
 
         # VitePress hangs if you don't pipe the output into a file
         local exit_status=0

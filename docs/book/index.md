@@ -8,7 +8,7 @@ hero:
   text: "Declarative Self-Hosting with Nix & Podman"
   tagline: "Deploy and manage self-hosted services using Home Manager, Podman Quadlets, and NixOS modules. Pre-configured integrations with Traefik, Homepage, Authelia, and dozens more."
   image:
-    src: images/nix-podman-logo.png
+    src: /images/nix-podman-logo.png
     alt: Nix Podman Stacks dashboard preview
   actions:
     - theme: brand

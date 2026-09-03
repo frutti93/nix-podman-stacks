@@ -232,7 +232,7 @@ in {
           };
         };
 
-        wantsOnContainer = [dbName];
+        wantsContainer = [dbName];
         stack = name;
 
         port = 8080;

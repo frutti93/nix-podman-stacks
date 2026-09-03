@@ -685,12 +685,6 @@ in {
 
       romm = {
         enable = true;
-        adminProvisioning = {
-          enable = true;
-          username = dummyUser;
-          passwordFile = dummySecretFile;
-          email = dummyEmail;
-        };
         authSecretKeyFile = dummySecretFile;
         romLibraryPath = "${config.nps.externalStorageBaseDir}/romm/library";
         extraEnv = {

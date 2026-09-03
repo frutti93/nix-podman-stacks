@@ -282,10 +282,8 @@ The options are not available on stack level, so we can refer to the container o
     adguard.containers.adguard.homepage = {
       name = lib.mkForce "New Name";
       category = lib.mkForce "New Category";
-      settings = {
-        description = lib.mkForce "New Description";
-        icon = lib.mkForce "si-adblock";
-      };
+      description = lib.mkForce "New Description";
+      icon = lib.mkForce "si:adblock";
     };
   };
 }

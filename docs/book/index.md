@@ -43,17 +43,6 @@ features:
   - icon: 🛡️
     title: Auth & Access Control
     details: Out of the box OIDC support for many applications and easy forward auth configuration options.
-
-head:
-  - - meta
-    - property: og:title
-      content: "Nix Podman Stacks - Declarative Self-Hosting with Nix & Podman"
-  - - meta
-    - property: og:description
-      content: "Deploy self-hosted services with Nix, Home Manager, and Podman Quadlets. Pre-configured integrations with Traefik, Homepage, Grafana, Authelia, and more - so everything works together out of the box."
-  - - meta
-    - name: description
-      content: "Deploy self-hosted services with Nix, Home Manager, and Podman Quadlets. Pre-configured integrations with Traefik, Homepage, Grafana, Authelia, and more - so everything works together out of the box."
 ---
 
 <!--@include: ./intro.md-->

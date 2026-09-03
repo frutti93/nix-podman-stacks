@@ -555,7 +555,7 @@ When changing a service from public to private, the DNS entry can be automatical
 }
 ```
 
-### Start Containers after Sops Secret Provisioning
+## Start Containers after Sops Secret Provisioning
 
 If you use use [sops-nix](https://github.com/Mic92/sops-nix) to provide secrets for your services, you want to make sure the container starts after sops has provisioned the secrets to avoid a race condition.
 

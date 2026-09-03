@@ -24,29 +24,6 @@ in {
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
-    adminProvisioning = {
-      enable = lib.mkOption {
-        type = lib.types.bool;
-        default = !cfg.oidc.enable;
-        description = ''
-          Whether to automatically create an admin user on the first run.
-          If set to false, you will be prompted to create an admin user when visiting the web ui.
-        '';
-      };
-      username = lib.mkOption {
-        type = lib.types.str;
-        default = "admin";
-        description = "Username for the admin user";
-      };
-      email = lib.mkOption {
-        type = lib.types.str;
-        description = "Email address for the admin user";
-      };
-      passwordFile = lib.mkOption {
-        type = lib.types.path;
-        description = "Path to a file containing the admin user password";
-      };
-    };
     authSecretKeyFile = lib.mkOption {
       type = lib.types.path;
       description = ''
@@ -222,18 +199,13 @@ in {
             DB_USER = db.MARIADB_USER;
             DB_PASSWD.fromFile = cfg.db.userPasswordFile;
           }
-          // lib.optionalAttrs cfg.adminProvisioning.enable {
-            ADMIN_USERNAME = cfg.adminProvisioning.username;
-            ADMIN_PASSWORD.fromFile = cfg.adminProvisioning.passwordFile;
-            ADMIN_EMAIL = cfg.adminProvisioning.email;
-          }
           // lib.optionalAttrs (cfg.oidc.enable) (
             let
               authelia = config.nps.stacks.authelia;
               oidcClient = authelia.oidc.clients.${name};
             in {
               OIDC_ENABLED = true;
-              OIDC_PROVIDER = "authelia";
+              OIDC_PROVIDER = "Authelia";
               OIDC_CLIENT_ID = oidcClient.client_id;
               OIDC_REDIRECT_URI = lib.elemAt oidcClient.redirect_uris 0;
               OIDC_SERVER_APPLICATION_URL = authelia.containers.authelia.traefik.serviceUrl;
@@ -242,6 +214,7 @@ in {
               OIDC_ROLE_EDITOR = cfg.oidc.editorGroup;
               OIDC_ROLE_VIEWER = cfg.oidc.viewerGroup;
               DISABLE_SETUP_WIZARD = true;
+              DISABLE_USERPASS_LOGIN = lib.mkDefault true;
             }
           )
           // cfg.extraEnv;
@@ -257,18 +230,9 @@ in {
             HealthStartPeriod = "5s";
             HealthOnFailure = "kill";
           };
-          Service = {
-            ExecStartPost = lib.optional cfg.adminProvisioning.enable (
-              lib.getExe (
-                pkgs.writeShellScriptBin "user_provision" ''
-                  ${lib.getExe pkgs.podman} exec ${name} bash -c "$(${pkgs.coreutils}/bin/cat ${./create_admin_user.sh})"
-                ''
-              )
-            );
-          };
         };
 
-        dependsOnContainer = [dbName];
+        wantsOnContainer = [dbName];
         stack = name;
 
         port = 8080;

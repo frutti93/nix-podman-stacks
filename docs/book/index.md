@@ -27,7 +27,7 @@ hero:
 features:
   - icon: ⚙️
     title: Simple Toggle
-    details: Enable entire stacks with a single boolean flag. Sensible defaults work out of the box.
+    details: Enable entire stacks with a single flag. Sensible defaults work out of the box.
   - icon: 🔗
     title: Pre-configured Integrations
     details: Traefik, Homepage, Grafana, Authelia and more are wired together automatically.

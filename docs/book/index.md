@@ -1,6 +1,6 @@
 ---
 layout: home
-title: "Nix Podman Stacks - Declarative Self-Hosting with Nix & Podman"
+title: "Declarative Self-Hosting with Nix & Podman"
 description: "Deploy self-hosted services with Nix, Home Manager, and Podman Quadlets. Pre-configured integrations with Traefik, Homepage, Grafana, Authelia, and more - so everything works together out of the box."
 
 hero:

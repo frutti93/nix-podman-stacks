@@ -34,6 +34,7 @@
     fi
 
     cat >> ./stacks/${stack}.md <<'EOF'
+
     <script setup>
       import { data } from "../nps.data.ts";
       import { RenderDocs } from "easy-nix-documentation";

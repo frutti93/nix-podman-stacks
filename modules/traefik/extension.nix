@@ -80,8 +80,16 @@ in {
                 type = lib.types.str;
                 default = let
                   p = getPort port 1;
+                  containerNetwork =
+                    config.network
+                    |> lib.toList
+                    |> lib.findFirst (lib.hasPrefix "container:") null;
+                  hostname =
+                    if containerNetwork == null
+                    then name
+                    else lib.removePrefix "container:" containerNetwork;
                 in
-                  "${name}"
+                  "${hostname}"
                   + (
                     if (p != null)
                     then ":${p}"
@@ -91,6 +99,9 @@ in {
                 description = ''
                   The internal main address of the service. Can be used for internal communication
                   without going through Traefik, when inside the same Podman network.
+
+                  If the container shares another container's network namespace (e.g. via `network = ["container:gluetun"]`),
+                  the address of that container is used instead
                 '';
                 readOnly = true;
               };

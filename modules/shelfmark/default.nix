@@ -70,19 +70,56 @@ in {
         description = "Users must be a part of this group to be able to log in.";
       };
     };
-    flaresolverr.enable =
-      lib.mkEnableOption "Flaresolverr"
-      // {
-        default = true;
-      };
+    useFlaresolverr = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Whether to enable the Flaresolverr stack and connect it to the Shelfmark network.
+        Shelfmark uses Flaresolverr to bypass Cloudflare protection.
+      '';
+    };
+    useProwlarr = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Whether to enable the Prowlarr stack and connect it to the Shelfmark network.
+        Sets `PROWLARR_ENABLED` and `PROWLARR_URL`.
+        You will likely also need to set `PROWLARR_API_KEY` via `extraEnv`
+        (Settings > General > API Key).
+      '';
+    };
+    useQbittorrent = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Whether to enable the qBittorrent stack and connect it to the Shelfmark network.
+        Sets `PROWLARR_TORRENT_CLIENT`, `QBITTORRENT_URL`, `QBITTORRENT_CATEGORY` and `QBITTORRENT_CATEGORY_AUDIOBOOK`.
+        If authentication isn't bypassed in qBittorrent, you may need to set credentials via `extraEnv` (`QBITTORRENT_USERNAME`/`QBITTORRENT_PASSWORD` or `QBITTORRENT_API_KEY`).
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    # If Flaresolverr is enabled, enable it & connect it to the shelfmark network
-    nps.stacks.flaresolverr.enable = lib.mkIf cfg.flaresolverr.enable true;
-    nps.containers.flaresolverr = lib.mkIf cfg.flaresolverr.enable {
-      network = [name];
-    };
+    nps.stacks.flaresolverr.enable = lib.mkIf cfg.useFlaresolverr true;
+    nps.stacks.prowlarr.enable = lib.mkIf cfg.useProwlarr true;
+    nps.stacks.qbittorrent.enable = lib.mkIf cfg.useQbittorrent true;
+    # Attach the external stacks' containers to the shelfmark network.
+    # For qBittorrent, attach Gluetun when the VPN is enabled, otherwise qBittorrent directly
+    nps.containers = lib.mkMerge [
+      (lib.mkIf cfg.useFlaresolverr {
+        flaresolverr.network = [name];
+      })
+      (lib.mkIf cfg.useProwlarr {
+        prowlarr.network = [name];
+      })
+      (lib.mkIf cfg.useQbittorrent {
+        ${
+          if config.nps.stacks.qbittorrent.gluetun.enable
+          then "gluetun"
+          else "qbittorrent"
+        }.network = [name];
+      })
+    ];
 
     nps.stacks.lldap.bootstrap.groups = lib.mkIf cfg.oidc.enable {
       ${cfg.oidc.adminGroup} = {};
@@ -150,10 +187,20 @@ in {
           OIDC_AUTO_PROVISION = true;
           HIDE_LOCAL_AUTH = lib.mkDefault true;
         }
-        // lib.optionalAttrs cfg.flaresolverr.enable {
+        // lib.optionalAttrs cfg.useFlaresolverr {
           USE_CF_BYPASS = true;
           USING_EXTERNAL_BYPASSER = true;
           EXT_BYPASSER_URL = "http://flaresolverr:8191";
+        }
+        // lib.optionalAttrs cfg.useProwlarr {
+          PROWLARR_ENABLED = lib.mkDefault true;
+          PROWLARR_URL = lib.mkDefault "http://${config.nps.containers.prowlarr.traefik.serviceAddressInternal}";
+        }
+        // lib.optionalAttrs cfg.useQbittorrent {
+          PROWLARR_TORRENT_CLIENT = lib.mkDefault "qbittorrent";
+          QBITTORRENT_URL = lib.mkDefault "http://${config.nps.containers.qbittorrent.traefik.serviceAddressInternal}";
+          QBITTORRENT_CATEGORY = lib.mkDefault "ebooks";
+          QBITTORRENT_CATEGORY_AUDIOBOOK = lib.mkDefault "audiobooks";
         }
         // cfg.extraEnv;
 

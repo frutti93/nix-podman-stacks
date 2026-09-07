@@ -140,9 +140,15 @@ There is also an [Option Search](https://tarow.github.io/nix-podman-stacks/searc
   - 📂 FTP Server
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/papra.svg" style="width:1em;" /> [Papra](https://tarow.github.io/nix-podman-stacks/docs/stacks/papra.html)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/pinepods.webp" style="width:1em;" /> [Pinepods](https://tarow.github.io/nix-podman-stacks/docs/stacks/pinepods.html)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prowlarr.svg" style="width:1em;height:1em;" /> [Prowlarr](https://tarow.github.io/nix-podman-stacks/docs/stacks/prowlarr.html)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg" style="width:1em;height:1em;" /> [qbittorrent](https://tarow.github.io/nix-podman-stacks/docs/stacks/qbittorrent.html)
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gluetun.svg" style="width:1em;height:1em;" /> Gluetun
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg" style="width:1em;height:1em;" /> qBittorrent
+  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qui.svg" style="width:1em;height:1em;" /> qui
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/reactive-resume.svg" style="width:1em;height:1em;" /> [Reactive Resume](https://tarow.github.io/nix-podman-stacks/docs/stacks/reactive_resume.html)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/romm.svg" style="width:1em;height:1em;" /> [RomM](https://tarow.github.io/nix-podman-stacks/docs/stacks/romm.html)
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/webp/sablier.webp" style="width:1em;height:1em;" /> [Sablier](https://tarow.github.io/nix-podman-stacks/docs/stacks/sablier.html)
+- <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sabnzbd.svg" style="width:1em;height:1em;" /> [SABnzbd](https://tarow.github.io/nix-podman-stacks/docs/stacks/sabnzbd.html)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/scanopy.svg" style="width:1em;height:1em;" /> [Scanopy](https://tarow.github.io/nix-podman-stacks/docs/stacks/scanopy.html)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/searxng.svg" style="width:1em;height:1em;" /> [SearXNG](https://tarow.github.io/nix-podman-stacks/docs/stacks/searxng.html)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/shelfmark.webp" style="width:1em;height:1em;" /> [Shelfmark](https://tarow.github.io/nix-podman-stacks/docs/stacks/shelfmark.html)
@@ -153,14 +159,9 @@ There is also an [Option Search](https://tarow.github.io/nix-podman-stacks/searc
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons/webp/storyteller.webp" style="width:1em;height:1em;" /> [Storyteller](https://tarow.github.io/nix-podman-stacks/docs/stacks/storyteller.html)
 - <span style="width:1em;height:1em;">📺</span> [Streaming](https://tarow.github.io/nix-podman-stacks/docs/stacks/streaming.html)
   - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/bazarr.svg" style="width:1em;height:1em;" /> Bazarr
-  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gluetun.svg" style="width:1em;height:1em;" /> Gluetun
   - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jellyfin.svg" style="width:1em;height:1em;" /> Jellyfin
   - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/maintainerr.svg" style="width:1em;height:1em;" /> Maintainerr
   - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/profilarr.svg" style="width:1em;height:1em;" /> Profilarr
-  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/prowlarr.svg" style="width:1em;height:1em;" /> Prowlarr
-  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qbittorrent.svg" style="width:1em;height:1em;" /> qBittorrent
-  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qui.svg" style="width:1em;height:1em;" /> qui
-  - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sabnzbd.svg" style="width:1em;height:1em;" /> SABnzbd
   - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/overseerr.svg" style="width:1em;height:1em;" /> Seerr
   - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/radarr.svg" style="width:1em;height:1em;" /> Radarr
   - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sonarr.svg" style="width:1em;height:1em;" /> Sonarr

@@ -683,6 +683,36 @@ in {
         };
       };
 
+      prowlarr = {
+        enable = true;
+        extraEnv."PROWLARR__AUTH__APIKEY".fromFile = dummySecretFile;
+      };
+
+      qbittorrent = {
+        enable = true;
+        gluetun = {
+          vpnProvider = "airvpn";
+          wireguardPrivateKeyFile = dummySecretFile;
+          wireguardPresharedKeyFile = dummySecretFile;
+          wireguardAddressesFile = dummySecretFile;
+
+          extraEnv = {
+            FIREWALL_VPN_INPUT_PORTS.fromFile = dummySecretFile;
+            SERVER_NAMES.fromFile = dummySecretFile;
+            HTTP_CONTROL_SERVER_LOG = "off";
+          };
+        };
+        extraEnv.TORRENTING_PORT.fromFile = dummySecretFile;
+        qui = {
+          enable = true;
+          oidc = {
+            enable = true;
+            clientSecretFile = dummySecretFile;
+            clientSecretHash = dummyHash;
+          };
+        };
+      };
+
       romm = {
         enable = true;
         authSecretKeyFile = dummySecretFile;
@@ -700,6 +730,14 @@ in {
           userPasswordFile = dummySecretFile;
           rootPasswordFile = dummySecretFile;
         };
+      };
+
+      sabnzbd = {
+        enable = true;
+        configIni = ''
+          [misc]
+          host_whitelist_entry = sabnzbd.example.com
+        '';
       };
 
       sablier = {
@@ -732,6 +770,12 @@ in {
       shelfmark = {
         enable = true;
         downloadDirectory = "${config.nps.storageBaseDir}/grimmory/bookdrop";
+        useProwlarr = true;
+        useQbittorrent = true;
+        extraEnv = {
+          PROWLARR_API_KEY.fromFile = dummySecretFile;
+          QBITTORRENT_PASSWORD.fromFile = dummySecretFile;
+        };
       };
 
       sparky-fitness = {
@@ -787,30 +831,7 @@ in {
       streaming =
         {
           enable = true;
-          gluetun = {
-            vpnProvider = "airvpn";
-            wireguardPrivateKeyFile = dummySecretFile;
-            wireguardPresharedKeyFile = dummySecretFile;
-            wireguardAddressesFile = dummySecretFile;
-
-            extraEnv = {
-              FIREWALL_VPN_INPUT_PORTS.fromFile = dummySecretFile;
-              SERVER_NAMES.fromFile = dummySecretFile;
-              HTTP_CONTROL_SERVER_LOG = "off";
-            };
-          };
-          qbittorrent.extraEnv = {
-            TORRENTING_PORT.fromFile = dummySecretFile;
-          };
           jellyfin = {
-            oidc = {
-              enable = true;
-              clientSecretFile = dummySecretFile;
-              clientSecretHash = dummyHash;
-            };
-          };
-          qui = {
-            enable = true;
             oidc = {
               enable = true;
               clientSecretFile = dummySecretFile;
@@ -819,10 +840,10 @@ in {
           };
           seerr.enable = true;
           profilarr.enable = true;
-          sabnzbd.enable = true;
+          useSabnzbd = true;
           maintainerr.enable = true;
         }
-        // lib.genAttrs ["sonarr" "radarr" "bazarr" "prowlarr"] (name: {
+        // lib.genAttrs ["sonarr" "radarr" "bazarr"] (name: {
           extraEnv."${lib.toUpper name}__AUTH__APIKEY".fromFile = dummySecretFile;
         });
 

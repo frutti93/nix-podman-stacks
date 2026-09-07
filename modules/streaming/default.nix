@@ -6,27 +6,16 @@
 }: let
   stackName = "streaming";
 
-  toml = pkgs.formats.toml {};
-
-  gluetunName = "gluetun";
-  qbittorrentName = "qbittorrent";
-  sabnzbdName = "sabnzbd";
   jellyfinName = "jellyfin";
   sonarrName = "sonarr";
   radarrName = "radarr";
   bazarrName = "bazarr";
-  prowlarrName = "prowlarr";
-  quiName = "qui";
   seerrName = "seerr";
   profilarrName = "profilarr";
   profilarrParserName = "${profilarrName}-parser";
   maintainerrName = "maintainerr";
 
   category = "Media & Downloads";
-  qbittorrentDescription = "BitTorrent Client";
-  qbittorrentDisplayName = "qBittorrent";
-  sabnzbdDescription = "Usenet Client";
-  sabnzbdDisplayName = "SABnzbd";
   jellyfinDescription = "Media Server";
   jellyfinDisplayName = "Jellyfin";
   sonarrDescription = "Series Management";
@@ -35,10 +24,6 @@
   radarrDisplayName = "Radarr";
   bazarrDescription = "Subtitle Management";
   bazarrDisplayName = "Bazarr";
-  prolarrDescription = "Indexer Management";
-  prowlarrDisplayName = "Prowlarr";
-  quiDisplayName = "qui";
-  quiDescription = "qBittorrent UI";
   seerrDescription = "Media Requests";
   seerrDisplayName = "Seerr";
   profilarrDisplayName = "Profilarr";
@@ -47,150 +32,27 @@
   maintainerrDisplayName = "Maintainerr";
   maintainerrDescription = "Library Maintenance";
 
-  gluetunCategory = "Network & Administration";
-  gluetunDescription = "VPN client";
-  gluetunDisplayName = "Gluetun";
-
   cfg = config.nps.stacks.${stackName};
   storage = "${config.nps.storageBaseDir}/${stackName}";
   mediaStorage = "${config.nps.mediaStorageBaseDir}";
 
-  mkArrOptions = name: {
-    enable =
-      lib.mkEnableOption name
-      // {
-        default = true;
-      };
-    extraEnv = lib.mkOption {
-      type = (import ../types.nix lib).extraEnv;
-      default = {};
-      description = ''
-        Extra environment variables to set for the container.
-        Variables can be either set directly or sourced from a file (e.g. for secrets).
-      '';
-    };
-    db = {
-      type = lib.mkOption {
-        type = lib.types.enum [
-          "sqlite"
-          "postgres"
-        ];
-        default = "sqlite";
-        description = ''
-          Type of the database to use.
-          Can be set to "sqlite" or "postgres".
-          If set to "postgres", the `passwordFile` option must be set.
-        '';
-      };
-      username = lib.mkOption {
-        type = lib.types.str;
-        default = name;
-        description = ''
-          The PostgreSQL user to use for the database.
-          Only used if db.type is set to "postgres".
-        '';
-      };
-      passwordFile = lib.mkOption {
-        type = lib.types.path;
-        description = ''
-          The file containing the PostgreSQL password for the database.
-          Only used if db.type is set to "postgres".
-        '';
-      };
-    };
+  arrlib = import ../arrlib.nix {
+    inherit
+      config
+      lib
+      pkgs
+      stackName
+      storage
+      mediaStorage
+      category
+      ;
   };
-
-  mkArrBase = name: let
-    arrCfg = cfg.${name};
-    upperName = lib.toUpper name;
-  in {
-    volumeMap = {
-      config = "${storage}/${name}:/config";
-      media = "${mediaStorage}:/media";
-    };
-
-    extraEnv =
-      {
-        PUID = config.nps.defaultUid;
-        PGID = config.nps.defaultGid;
-        "${upperName}__AUTH__METHOD" = "Forms";
-        "${upperName}__AUTH__REQUIRED" = "DisabledForLocalAddresses";
-      }
-      // lib.optionalAttrs (arrCfg.db.type == "postgres") {
-        "${upperName}__POSTGRES__HOST" = "${name}-db";
-        "${upperName}__POSTGRES__USER" = arrCfg.db.username;
-        "${upperName}__POSTGRES__PASSWORD".fromFile = arrCfg.db.passwordFile;
-        "${upperName}__POSTGRES__MAINDB" = name;
-        "${upperName}__POSTGRES__LOGDB" = "${name}_log";
-      }
-      // arrCfg.extraEnv;
-
-    wantsContainer = lib.optional (arrCfg.db.type == "postgres") "${name}-db";
-
-    stack = stackName;
-    traefik.name = name;
-  };
-
-  mkArrPostgres = name: let
-    arrCfg = cfg.${name};
-  in
-    lib.mkIf (arrCfg.db.type == "postgres") {
-      image = "docker.io/postgres:18";
-      volumeMap = let
-        init = pkgs.writeText "init.sql" ''
-          CREATE DATABASE ${name}_log;
-        '';
-      in {
-        # Needs extra folder, otherwise its mounted into *arr, which will chown all folders -> db fails to start
-        data = "${storage}/${name}_postgres:/var/lib/postgresql";
-        initSql = "${init}:/docker-entrypoint-initdb.d/init.sql";
-      };
-
-      extraEnv = {
-        POSTGRES_USER = arrCfg.db.username;
-        POSTGRES_DB = name;
-        POSTGRES_PASSWORD.fromFile = arrCfg.db.passwordFile;
-      };
-
-      extraConfig.Container = {
-        Notify = "healthy";
-        HealthCmd = "pg_isready -h 127.0.0.1 -d ${name}_log -U ${arrCfg.db.username}";
-        HealthInterval = "10s";
-        HealthTimeout = "10s";
-        HealthRetries = 5;
-        HealthStartPeriod = "10s";
-        HealthOnFailure = "kill";
-      };
-
-      stack = stackName;
-      glance = {
-        inherit category;
-        name = "Postgres";
-        parent = name;
-        icon = "di:postgres";
-      };
-    };
-
-  arrDbs =
-    lib.genAttrs'
-    [
-      sonarrName
-      radarrName
-      bazarrName
-      prowlarrName
-    ]
-    (name: lib.nameValuePair "${name}-db" (mkArrPostgres name));
 in {
   imports = import ../mkAliases.nix config lib stackName [
-    gluetunName
-    qbittorrentName
-    sabnzbdName
     jellyfinName
     sonarrName
     radarrName
     bazarrName
-    prowlarrName
-    quiName
     seerrName
     profilarrName
     profilarrParserName
@@ -200,90 +62,29 @@ in {
   options.nps.stacks.${stackName} =
     {
       enable = lib.mkEnableOption stackName;
-      gluetun = {
-        enable =
-          lib.mkEnableOption "Gluetun"
-          // {
-            default = true;
-          };
-        vpnProvider = lib.mkOption {
-          type = lib.types.str;
-          description = "The VPN provider to use with Gluetun.";
-        };
-        wireguardPrivateKeyFile = lib.mkOption {
-          type = lib.types.path;
-          description = "Path to the file containing the Wireguard private key. Will be used to set the `WIREGUARD_PRIVATE_KEY` environment variable.";
-        };
-        wireguardPresharedKeyFile = lib.mkOption {
-          type = lib.types.nullOr lib.types.path;
-          default = null;
-          description = "Path to the file containing the Wireguard pre-shared key. Will be used to set the `WIREGUARD_PRESHARED_KEY` environment variable.";
-        };
-        wireguardAddressesFile = lib.mkOption {
-          type = lib.types.nullOr lib.types.path;
-          default = null;
-          description = "Path to the file containing the Wireguard addresses. Will be used to set the `WIREGUARD_ADDRESSES` environment variable.";
-        };
-        extraEnv = lib.mkOption {
-          type = (import ../types.nix lib).extraEnv;
-          default = {};
-          description = ''
-            Extra environment variables to set for the container.
-            Variables can be either set directly or sourced from a file (e.g. for secrets).
-
-            See <https://github.com/qdm12/gluetun-wiki/tree/main/setup/options>
-          '';
-          example = {
-            SERVER_NAMES = "Alderamin,Alderamin";
-            HTTP_CONTROL_SERVER_LOG = "off";
-            HTTPPROXY_PASSWORD = {
-              fromFile = "/run/secrets/http_proxy_password";
-            };
-          };
-        };
-        settings = lib.mkOption {
-          type = toml.type;
-          apply = toml.generate "config.toml";
-          description = ''
-            Additional Gluetun configuration settings
-
-            See <https://github.com/qdm12/gluetun-wiki/blob/main/setup/advanced/control-server.md#configuration>
-          '';
-        };
+      useQbittorrent = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Whether to enable the qBittorrent stack and connect it to the streaming network.
+          The qBittorrent stack (Gluetun, qBittorrent and qui) runs standalone and is attached to the streaming network and Traefik.
+        '';
       };
-      qbittorrent = {
-        enable =
-          lib.mkEnableOption "qBittorrent"
-          // {
-            default = true;
-          };
-        extraEnv = lib.mkOption {
-          type = (import ../types.nix lib).extraEnv;
-          default = {};
-          description = ''
-            Extra environment variables to set for the container.
-            Variables can be either set directly or sourced from a file (e.g. for secrets).
-
-            See <https://docs.linuxserver.io/images/docker-qbittorrent/#environment-variables-e>
-          '';
-          example = {
-            TORRENTING_PORT = "6881";
-          };
-        };
+      useProwlarr = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Whether to enable the Prowlarr stack and connect it to the streaming network.
+          The Prowlarr stack runs standalone and is attached to the streaming network and Traefik.
+        '';
       };
-      sabnzbd = {
-        enable = lib.mkEnableOption "SABnzbd";
-        configIni = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          description = ''
-            SABnzbd configuration mounted as `/config/sabnzbd.ini` in the container.
-            The final configuration file will be templated with `gomplate`, so secrets can be read from files or environment variables.
-
-            See <https://sabnzbd.org/wiki/configuration/5.0/configure>
-
-            If left `null`, the configuration will be generated by SABnzbd on first start and can be configured via the web interface.
-          '';
-        };
+      useSabnzbd = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Whether to enable the SABnzbd stack and connect it to the streaming network.
+          The SABnzbd stack runs standalone and is attached to the streaming network and Traefik.
+        '';
       };
       jellyfin = {
         enable =
@@ -348,50 +149,6 @@ in {
         };
       };
       seerr.enable = lib.mkEnableOption "Seerr";
-      qui = {
-        enable = lib.mkEnableOption "qui";
-        adminUsername = lib.mkOption {
-          type = lib.types.str;
-          default = "admin";
-          description = ''
-            Admin username to access the dashboard.
-          '';
-        };
-        adminPasswordFile = lib.mkOption {
-          type = lib.types.nullOr lib.types.path;
-          default = null;
-          description = ''
-            Path to the file containing the admin password.
-            If set, an admin user will be created automatically.
-          '';
-        };
-        oidc = {
-          enable = lib.mkOption {
-            type = lib.types.bool;
-            default = false;
-            description = ''
-              Whether to enable OIDC login with Authelia. This will register an OIDC client in Authelia
-              and setup the necessary configuration.
-
-              For details, see:
-
-              - <https://getqui.com/docs/configuration/oidc>
-            '';
-          };
-          clientSecretFile = (import ../authelia/options.nix lib).clientSecretFile;
-          clientSecretHash = (import ../authelia/options.nix lib).derivableClientSecretHash cfg.qui.oidc.clientSecretFile;
-          userGroup = lib.mkOption {
-            type = lib.types.str;
-            default = "${quiName}_user";
-            description = "Users of this group will be able to log in";
-          };
-        };
-      };
-      flaresolverr.enable =
-        lib.mkEnableOption "Flaresolverr"
-        // {
-          default = true;
-        };
       maintainerr.enable = lib.mkEnableOption "Maintainerr";
     }
     // (
@@ -400,25 +157,37 @@ in {
         sonarrName
         radarrName
         bazarrName
-        prowlarrName
       ]
-      mkArrOptions
+      arrlib.mkArrOptions
     );
 
   config = lib.mkIf cfg.enable {
-    # If Flaresolverr is enabled, enable it & connect it to the streaming stack network
-    nps.stacks.flaresolverr.enable = lib.mkIf cfg.flaresolverr.enable true;
-    nps.containers.flaresolverr = lib.mkIf cfg.flaresolverr.enable {
-      network = [stackName];
-    };
+    # Enable qBittorrent stack. Attach Gluetun to the streaming network when the VPN is enabled, otherwise qBittorrent directly
+    nps.stacks.qbittorrent.enable = lib.mkIf cfg.useQbittorrent true;
+    # Enable Prowlarr stack & connect it to the streaming stack network
+    nps.stacks.prowlarr.enable = lib.mkIf cfg.useProwlarr true;
+    # Enable SABnzbd stack & connect it to the streaming stack network
+    nps.stacks.sabnzbd.enable = lib.mkIf cfg.useSabnzbd true;
+    nps.containers = lib.mkMerge [
+      (lib.mkIf cfg.useQbittorrent {
+        ${
+          if config.nps.stacks.qbittorrent.gluetun.enable
+          then "gluetun"
+          else "qbittorrent"
+        }.network = [stackName];
+      })
+      (lib.mkIf cfg.useProwlarr {
+        prowlarr.network = [stackName];
+      })
+      (lib.mkIf cfg.useSabnzbd {
+        sabnzbd.network = [stackName];
+      })
+    ];
 
     nps.stacks.lldap.bootstrap.groups = lib.mkMerge [
       (lib.mkIf (cfg.jellyfin.enable && cfg.jellyfin.oidc.enable) {
         ${cfg.jellyfin.oidc.adminGroup} = {};
         ${cfg.jellyfin.oidc.userGroup} = {};
-      })
-      (lib.mkIf (cfg.qui.enable && cfg.qui.oidc.enable) {
-        ${cfg.qui.oidc.userGroup} = {};
       })
       (lib.mkIf (cfg.profilarr.enable && cfg.profilarr.oidc.enable) {
         ${cfg.profilarr.oidc.userGroup} = {};
@@ -437,32 +206,6 @@ in {
           token_endpoint_auth_method = "client_secret_post";
           redirect_uris = [
             "${cfg.containers.${jellyfinName}.traefik.serviceUrl}/sso/OID/redirect/authelia"
-          ];
-        };
-      })
-      (lib.mkIf (cfg.qui.enable && cfg.qui.oidc.enable) {
-        oidc.clients.${quiName} = {
-          client_name = quiDisplayName;
-          client_secret = cfg.qui.oidc.clientSecretHash;
-          public = false;
-          authorization_policy = quiName;
-          require_pkce = false;
-          pkce_challenge_method = "";
-          pre_configured_consent_duration = config.nps.stacks.authelia.oidc.defaultConsentDuration;
-          token_endpoint_auth_method = "client_secret_post";
-          redirect_uris = [
-            "${cfg.containers.${quiName}.traefik.serviceUrl}/api/auth/oidc/callback"
-          ];
-        };
-        # No real RBAC control based on custom claims / groups yet. Restrict user-access on Authelia level
-        # See <https://github.com/autobrr/qui/discussions/1032>
-        settings.identity_providers.oidc.authorization_policies.${quiName} = {
-          default_policy = "deny";
-          rules = [
-            {
-              policy = config.nps.stacks.authelia.defaultAllowPolicy;
-              subject = "group:${cfg.qui.oidc.userGroup}";
-            }
           ];
         };
       })
@@ -493,193 +236,8 @@ in {
       })
     ];
 
-    nps.stacks.streaming.gluetun.settings = import ./gluetun_config.nix;
-
     services.podman.containers =
       {
-        ${gluetunName} = lib.mkIf cfg.gluetun.enable {
-          image = "docker.io/qmcgaw/gluetun:v3.41.3";
-          addCapabilities = ["NET_ADMIN" "NET_RAW"];
-          devices = ["/dev/net/tun:/dev/net/tun"];
-          volumeMap = {
-            data = "${storage}/${gluetunName}:/gluetun";
-            setings = "${cfg.gluetun.settings}:/gluetun/auth/config.toml";
-          };
-          environment = {
-            WIREGUARD_MTU = 1320;
-            HTTP_CONTROL_SERVER_LOG = "off";
-            VPN_SERVICE_PROVIDER = cfg.gluetun.vpnProvider;
-            VPN_TYPE = "wireguard";
-            UPDATER_PERIOD = "12h";
-            HTTPPROXY = "on";
-            HEALTH_VPN_DURATION_INITIAL = "60s";
-          };
-          extraEnv =
-            {
-              WIREGUARD_PRIVATE_KEY.fromFile = cfg.gluetun.wireguardPrivateKeyFile;
-              WIREGUARD_PRESHARED_KEY = lib.mkIf (cfg.gluetun.wireguardPresharedKeyFile != null) {fromFile = cfg.gluetun.wireguardPresharedKeyFile;};
-              WIREGUARD_ADDRESSES = lib.mkIf (cfg.gluetun.wireguardAddressesFile != null) {fromFile = cfg.gluetun.wireguardAddressesFile;};
-            }
-            // cfg.gluetun.extraEnv;
-
-          network = [config.nps.stacks.traefik.network.name];
-
-          stack = stackName;
-          port = 8888;
-          homepage = {
-            category = gluetunCategory;
-            name = gluetunDisplayName;
-            settings = {
-              description = gluetunDescription;
-              icon = "gluetun";
-              widget = {
-                type = "gluetun";
-                url = "http://${gluetunName}:8000";
-              };
-            };
-          };
-          glance = {
-            category = gluetunCategory;
-            description = gluetunDescription;
-            name = gluetunDisplayName;
-            id = gluetunName;
-            icon = "di:gluetun";
-          };
-        };
-
-        ${qbittorrentName} = lib.mkIf cfg.qbittorrent.enable {
-          image = "docker.io/linuxserver/qbittorrent:5.2.3";
-
-          network = lib.mkIf cfg.gluetun.enable (lib.mkForce ["container:${gluetunName}"]);
-          volumeMap = {
-            config = "${storage}/${qbittorrentName}:/config";
-            media = "${mediaStorage}:/media";
-          };
-
-          environment = {
-            PUID = config.nps.defaultUid;
-            PGID = config.nps.defaultGid;
-            UMASK = "022";
-            WEBUI_PORT = 8080;
-          };
-
-          extraEnv = cfg.qbittorrent.extraEnv;
-          dependsOnContainer = lib.mkIf cfg.gluetun.enable [gluetunName];
-
-          stack = stackName;
-          port = 8080;
-          traefik.name = qbittorrentName;
-          homepage = {
-            inherit category;
-            name = qbittorrentDisplayName;
-            settings = {
-              description = qbittorrentDescription;
-              icon = "qbittorrent";
-              widget.type = "qbittorrent";
-            };
-          };
-          glance = {
-            inherit category;
-            description = qbittorrentDescription;
-            name = qbittorrentDisplayName;
-            id = qbittorrentName;
-            icon = "di:qbittorrent";
-          };
-        };
-
-        ${quiName} = lib.mkIf cfg.qui.enable {
-          image = "ghcr.io/autobrr/qui:v1.28.0";
-          volumeMap = {
-            config = "${storage}/${quiName}:/config";
-            media = "${mediaStorage}:/media";
-            adminPassword = lib.mkIf (cfg.qui.adminPasswordFile != null) "${cfg.qui.adminPasswordFile}:/run/secrets/admin_password";
-          };
-
-          extraEnv = lib.optionalAttrs cfg.qui.oidc.enable {
-            QUI__OIDC_ENABLED = true;
-            QUI__OIDC_ISSUER = config.nps.containers.authelia.traefik.serviceUrl;
-            QUI__OIDC_CLIENT_ID = quiName;
-            QUI__OIDC_CLIENT_SECRET.fromFile = cfg.qui.oidc.clientSecretFile;
-            QUI__OIDC_REDIRECT_URL = "${cfg.containers.${quiName}.traefik.serviceUrl}/api/auth/oidc/callback";
-            QUI__OIDC_DISABLE_BUILT_IN_LOGIN = true;
-          };
-
-          extraConfig.Service.ExecStartPost =
-            lib.optional (cfg.qui.adminPasswordFile != null)
-            "${lib.getExe config.nps.package} exec ${quiName} /bin/sh -c 'qui create-user --username ${cfg.qui.adminUsername} < /run/secrets/admin_password'";
-
-          wantsContainer =
-            (lib.optional cfg.qbittorrent.enable qbittorrentName)
-            ++ (lib.optional cfg.qui.oidc.enable "authelia");
-
-          #extraConfig.Container.HealthOnFailure = "kill";
-
-          stack = stackName;
-          port = 7476;
-          traefik.name = quiName;
-          homepage = {
-            inherit category;
-            name = quiDisplayName;
-            settings = {
-              description = quiDescription;
-              icon = "qui";
-            };
-          };
-          glance = {
-            inherit category;
-            description = quiDescription;
-            name = quiDisplayName;
-            id = quiName;
-            icon = "di:qui";
-          };
-        };
-
-        ${sabnzbdName} = lib.mkIf cfg.sabnzbd.enable {
-          image = "lscr.io/linuxserver/sabnzbd:5.1.2";
-
-          volumeMap = {
-            config = "${storage}/${sabnzbdName}:/config";
-            media = "${mediaStorage}:/media";
-          };
-
-          templateMount =
-            lib.optional (cfg.sabnzbd.configIni != null)
-            {
-              templatePath = pkgs.writeText "sabnzbd.ini" ''
-                __version__ = 19
-                __encoding__ = utf-8
-                ${cfg.sabnzbd.configIni}
-              '';
-              destPath = "/config/sabnzbd.ini";
-            };
-
-          environment = {
-            PUID = config.nps.defaultUid;
-            PGID = config.nps.defaultGid;
-            UMASK = "022";
-          };
-
-          stack = stackName;
-          port = 8080;
-          traefik.name = sabnzbdName;
-          homepage = {
-            inherit category;
-            name = sabnzbdDisplayName;
-            settings = {
-              description = sabnzbdDescription;
-              icon = "sabnzbd";
-              widget.type = "sabnzbd";
-            };
-          };
-          glance = {
-            inherit category;
-            description = sabnzbdDescription;
-            name = sabnzbdDisplayName;
-            id = sabnzbdName;
-            icon = "di:sabnzbd";
-          };
-        };
-
         ${jellyfinName} = let
           brandingXml = pkgs.writeText "branding.xml" ''
             <?xml version="1.0" encoding="utf-8"?>
@@ -858,7 +416,7 @@ in {
           };
         };
 
-        ${sonarrName} = lib.mkIf cfg.sonarr.enable (mkArrBase sonarrName
+        ${sonarrName} = lib.mkIf cfg.sonarr.enable (arrlib.mkArrBase sonarrName
           // {
             image = "lscr.io/linuxserver/sonarr:4.0.19";
             port = 8989;
@@ -881,7 +439,7 @@ in {
             };
           });
 
-        ${radarrName} = lib.mkIf cfg.radarr.enable (mkArrBase radarrName
+        ${radarrName} = lib.mkIf cfg.radarr.enable (arrlib.mkArrBase radarrName
           // {
             image = "lscr.io/linuxserver/radarr:6.3.0";
             port = 7878;
@@ -904,7 +462,7 @@ in {
             };
           });
 
-        ${bazarrName} = lib.mkIf cfg.bazarr.enable (mkArrBase bazarrName
+        ${bazarrName} = lib.mkIf cfg.bazarr.enable (arrlib.mkArrBase bazarrName
           // {
             image = "lscr.io/linuxserver/bazarr:1.6.0";
             port = 6767;
@@ -926,30 +484,7 @@ in {
               icon = "di:bazarr";
             };
           });
-
-        ${prowlarrName} = lib.mkIf cfg.prowlarr.enable (mkArrBase prowlarrName
-          // {
-            image = "lscr.io/linuxserver/prowlarr:2.5.2";
-            port = 9696;
-
-            homepage = {
-              inherit category;
-              name = prowlarrDisplayName;
-              settings = {
-                description = prolarrDescription;
-                icon = "prowlarr";
-                widget.type = "prowlarr";
-              };
-            };
-            glance = {
-              inherit category;
-              description = prolarrDescription;
-              name = prowlarrDisplayName;
-              id = prowlarrName;
-              icon = "di:prowlarr";
-            };
-          });
       }
-      // arrDbs;
+      // arrlib.arrDbs [sonarrName radarrName bazarrName];
   };
 }

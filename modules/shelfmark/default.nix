@@ -118,7 +118,6 @@ in {
           then "gluetun"
           else "qbittorrent"
         }.network = [name];
-        volumeMap.media = config.nps.containers.qbittorrent.volumeMap.media; # to access qbit downloads
       })
     ];
 
@@ -163,6 +162,7 @@ in {
       volumeMap = {
         config = "${storage}/config:/config";
         ingest = "${cfg.downloadDirectory}:${ingestDir}";
+        volumeMap.media = lib.mkIf cfg.useQbittorrent config.nps.containers.qbittorrent.volumeMap.media; # to access qbit downloads
       };
 
       extraEnv =

@@ -118,6 +118,7 @@ in {
           then "gluetun"
           else "qbittorrent"
         }.network = [name];
+        volumeMap.media = config.nps.containers.qbittorrent.volumeMap.media; # to access qbit downloads
       })
     ];
 
@@ -193,12 +194,12 @@ in {
           EXT_BYPASSER_URL = "http://flaresolverr:8191";
         }
         // lib.optionalAttrs cfg.useProwlarr {
-          PROWLARR_ENABLED = lib.mkDefault true;
-          PROWLARR_URL = lib.mkDefault "http://${config.nps.containers.prowlarr.traefik.serviceAddressInternal}";
+          PROWLARR_ENABLED = true;
+          PROWLARR_URL = "http://${config.nps.containers.prowlarr.traefik.serviceAddressInternal}";
         }
         // lib.optionalAttrs cfg.useQbittorrent {
-          PROWLARR_TORRENT_CLIENT = lib.mkDefault "qbittorrent";
-          QBITTORRENT_URL = lib.mkDefault "http://${config.nps.containers.qbittorrent.traefik.serviceAddressInternal}";
+          PROWLARR_TORRENT_CLIENT = "qbittorrent";
+          QBITTORRENT_URL = "http://${config.nps.containers.qbittorrent.traefik.serviceAddressInternal}";
           QBITTORRENT_CATEGORY = lib.mkDefault "ebooks";
           QBITTORRENT_CATEGORY_AUDIOBOOK = lib.mkDefault "audiobooks";
         }

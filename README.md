@@ -93,6 +93,7 @@ There is also an [Option Search](https://tarow.github.io/nix-podman-stacks/searc
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/filebrowser-quantum.png" style="width:1em;height:1em;" /> [Filebrowser Quantum](https://tarow.github.io/nix-podman-stacks/docs/stacks/filebrowser-quantum.html)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/flaresolverr.svg" style="width:1em;height:1em;" /> [Flaresolverr](https://tarow.github.io/nix-podman-stacks/docs/stacks/flaresolverr.html)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/forgejo.svg" style="width:1em;height:1em;" /> [Forgejo](https://tarow.github.io/nix-podman-stacks/docs/stacks/forgejo.html)
+- [Fredy](https://tarow.github.io/nix-podman-stacks/docs/stacks/fredy.html)
 - <img src="https://cdn.jsdelivr.net/gh/selfhst/icons@master/webp/free-games-claimer.webp" style="width:1em;height:1em;" /> [Free Games Claimer](https://tarow.github.io/nix-podman-stacks/docs/stacks/free-games-claimer.html)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/freshrss.svg" style="width:1em;height:1em;" /> [FreshRSS](https://tarow.github.io/nix-podman-stacks/docs/stacks/freshrss.html)
 - <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gatus.svg" style="width:1em;height:1em;" /> [Gatus](https://tarow.github.io/nix-podman-stacks/docs/stacks/gatus.html)

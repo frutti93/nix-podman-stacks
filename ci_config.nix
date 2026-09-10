@@ -243,6 +243,9 @@ in {
       };
 
       flaresolverr.enable = true;
+
+      fredy.enable = true;
+
       forgejo = {
         enable = true;
         lfsJwtSecretFile = dummySecretFile;

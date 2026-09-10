@@ -162,7 +162,7 @@ in {
       volumeMap = {
         config = "${storage}/config:/config";
         ingest = "${cfg.downloadDirectory}:${ingestDir}";
-        volumeMap.media = lib.mkIf cfg.useQbittorrent config.nps.containers.qbittorrent.volumeMap.media; # to access qbit downloads
+        media = lib.mkIf cfg.useQbittorrent config.nps.containers.qbittorrent.volumeMap.media; # to access qbit downloads
       };
 
       extraEnv =

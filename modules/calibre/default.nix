@@ -13,7 +13,16 @@
 in {
   imports = import ../mkAliases.nix config lib name [name];
 
-  options.nps.stacks.${name}.enable = lib.mkEnableOption name;
+  options.nps.stacks.${name} = {
+    enable = lib.mkEnableOption name;
+    libraryPath = lib.mkOption {
+      type = lib.types.str;
+      default = "${storage}/library";
+      defaultText = lib.literalExpression ''"''${config.nps.storageBaseDir}/${name}/library"'';
+      description = ''
+        Host directory where the Calibre library is stored.
+    };
+  };
 
   config = lib.mkIf cfg.enable {
     services.podman.containers.${name} = {
@@ -21,7 +30,7 @@ in {
       volumeMap = {
         config = "${storage}/config:/config";
         ingest = "${storage}/ingest:/cwa-book-ingest";
-        library = "${storage}/library:/calibre-library";
+        library = "${cfg.libraryPath}:/calibre-library";
       };
       environment = {
         PUID = config.nps.defaultUid;

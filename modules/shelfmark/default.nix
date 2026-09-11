@@ -25,7 +25,7 @@ in {
         To automatically ingest books in other applications such as CWA or Booklore, set this to the respective app's import directory.
       '';
       example = lib.literalExpression ''
-        "''${config.nps.storageBaseDir}/booklore/bookdrop"
+        "''${config.nps.storageBaseDir}/grimmory/bookdrop"
       '';
     };
     extraEnv = lib.mkOption {

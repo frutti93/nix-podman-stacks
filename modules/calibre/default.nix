@@ -21,6 +21,7 @@ in {
       defaultText = lib.literalExpression ''"''${config.nps.storageBaseDir}/${name}/library"'';
       description = ''
         Host directory where the Calibre library is stored.
+      '';
     };
   };
 

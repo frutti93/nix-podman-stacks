@@ -21,6 +21,14 @@ in {
 
   options.nps.stacks.${name} = {
     enable = lib.mkEnableOption name;
+    libraryPath = lib.mkOption {
+      type = lib.types.str;
+      default = "${storage}/books";
+      defaultText = lib.literalExpression ''"''${config.nps.storageBaseDir}/${name}/books"'';
+      description = ''
+        Host directory where books are stored.
+      '';
+    };
     oidc = {
       registerClient = lib.mkOption {
         type = lib.types.bool;
@@ -113,7 +121,7 @@ in {
         image = "ghcr.io/grimmory-tools/grimmory:v3.3.3";
         volumeMap = {
           data = "${storage}/data:/app/data";
-          books = "${storage}/books:/books";
+          books = "${cfg.libraryPath}:/books";
           bookdrop = "${storage}/bookdrop:/bookdrop";
         };
 

@@ -352,12 +352,12 @@ in {
                     Wants = config.wants ++ config.wantsContainer;
                     After = lib.flatten [config.dependsOn config.dependsOnContainer config.wants config.wantsContainer];
 
-                    StartLimitIntervalSec = lib.mkDefault "120";
+                    StartLimitIntervalSec = lib.mkDefault "300";
                     StartLimitBurst = lib.mkDefault 5;
                   };
                   Service = {
-                    # Try restarting every 5 seconds for a max 5 times
-                    RestartSec = lib.mkDefault "5s";
+                    # Try restarting every 10 seconds for a max 5 times
+                    RestartSec = lib.mkDefault "10s";
                   };
 
                   # Automatically create host directories for volumes if they don't exist

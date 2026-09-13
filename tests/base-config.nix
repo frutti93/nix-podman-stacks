@@ -52,6 +52,8 @@
   };
 
   security.allowUserNamespaces = true;
+  # Preload wireguard so rootless containers (wg-easy, wg-portal) can create `type wireguard` interfaces.
+  boot.kernelModules = ["wireguard"];
   boot.kernel.sysctl = {
     # Allow unprivileged binding of low ports (adguard 53/853, forgejo 22, ftp 21, ...)
     "net.ipv4.ip_unprivileged_port_start" = 0;

@@ -149,15 +149,15 @@ in {
       };
 
       ${chromeName} = {
-        image = "gcr.io/zenika-hub/alpine-chrome:124";
+        image = "ghcr.io/karakeep-app/karakeep-chrome:151.0.7922.47-r1";
         exec = lib.concatStringsSep " " [
-          "--no-sandbox"
           "--disable-gpu"
           "--disable-dev-shm-usage"
-          "--remote-debugging-address=0.0.0.0"
-          "--remote-debugging-port=9222"
           "--hide-scrollbars"
+          "--disable-blink-features=AutomationControlled"
+          "--window-size=1440,900"
         ];
+        extraPodmanArgs = ["--init"];
 
         stack = name;
         glance = {

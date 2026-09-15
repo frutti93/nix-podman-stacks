@@ -16,11 +16,12 @@ function onClick({ target: el }) {
   heading?.focus({ preventScroll: true });
 }
 
-// Drop the option path prefixes (e.g. `nps.stacks.streaming.` or
-// `services.podman.containers.<name>.`) from the outline text so the sidebar
-// stays readable, without altering the page headings.
+// Drop the option path prefixes (e.g. `nps.stacks.streaming.`,
+// `nps.stacks.streaming.containers.` or `services.podman.containers.<name>.`)
+// from the outline text so the sidebar stays readable, without altering the
+// page headings.
 const PREFIX_RE =
-  /^(?:nps\.stacks\.[^.]+\.|services\.podman\.containers\.[^.]+\.)/;
+  /^(?:nps\.stacks\.[^.]+\.(?:containers\.)?|services\.podman\.containers\.[^.]+\.)/;
 
 function stripPrefix(title) {
   return String(title).replace(PREFIX_RE, "");

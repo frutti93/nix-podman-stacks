@@ -26,20 +26,30 @@
   mkStackOptionsFile = stack: ''
     echo "# ${stack}" > ./stacks/${stack}.md
 
-    if [ -d "${self}/modules/${stack}" ]; then
-      cat ${self}/modules/${stack}/*.md >> ./stacks/${stack}.md
-    fi
-
     cat >> ./stacks/${stack}.md <<'EOF'
-
     <script setup>
       import { data } from "../nps.data.ts";
       import { RenderDocs } from "easy-nix-documentation";
     </script>
 
-    ## Stack Options
-    <RenderDocs :options="data" :include="/nps\.stacks\.${stack}\.*/" />
     EOF
+
+    if [ -d "${self}/modules/${stack}" ]; then
+      cat ${self}/modules/${stack}/*.md >> ./stacks/${stack}.md
+    fi
+
+    # Stacks that already document their options themselves (by including a
+    # <RenderDocs> tag in their module markdown) are left untouched.
+    if ! grep -Fq '<RenderDocs' ./stacks/${stack}.md; then
+      cat >> ./stacks/${stack}.md <<'EOF'
+
+    ## Stack Options
+    <RenderDocs :options="data" :include="/nps\.stacks\.${stack}\.(?!containers($|\.)).*/" />
+
+    ## Container Aliases
+    <RenderDocs :options="data" :include="/nps\.stacks\.${stack}\.containers\..*/" />
+    EOF
+    fi
   '';
   stackItems =
     map (stack: {

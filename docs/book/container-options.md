@@ -26,4 +26,4 @@ import { data } from "./nps.data.ts";
 import { RenderDocs } from "easy-nix-documentation";
 </script>
 
-<RenderDocs :options="data" :include="/services\.podman\.containers\.+\.*/" />
+<RenderDocs :options="data" :include="/services\.podman\.containers\..+\..*/" />

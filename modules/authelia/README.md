@@ -30,3 +30,36 @@ SSO and OIDC provider
   };
 }
 ```
+
+## Stack Options
+
+<RenderDocs :options="data" :include="/nps\.stacks\.authelia\.(?!containers($|\.)).*/" />
+
+## Container Extension
+
+Authelia adds several container extension options to the existing `services.podman.containers.<name>` options.
+These allow you to easily configure forward auth - for example for services that don't offer any built-in authentication.
+
+Example:
+
+```nix
+{config, ...}: {
+  nps.stacks.spliit.containers.spliit = {
+    forwardAuth = {
+      enable = true;
+      rules = [
+        {
+          # For a full list of available rule options see <https://www.authelia.com/configuration/security/access-control/>
+          policy = "two_factor";
+        }
+      ];
+    };
+  };
+}
+```
+
+<RenderDocs :options="data" :include="/services\.podman\.containers\..+\.forwardAuth\..*/" />
+
+## Container Aliases
+
+<RenderDocs :options="data" :include="/nps\.stacks\.authelia.containers\..*/" />

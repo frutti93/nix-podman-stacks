@@ -67,3 +67,35 @@ Modern HTTP reverse proxy
   };
 }
 ```
+
+## Stack Options
+
+<RenderDocs :options="data" :include="/nps\.stacks\.traefik\.(?!containers($|\.)).*/" />
+
+## Container Extension
+
+Traefik adds several container options to the existing `services.podman.containers.<name>` options:
+
+- `port`: The main port that Traefik will forward traffic to.
+- `expose`: Whether the service should be publicly reachable. When `false` (default), the `private` middleware is applied, which only allows requests from private CIDR ranges. When `true`, the `public` middleware is applied, which allows access from the internet (with rate limit, security headers and optional geoblock/Crowdsec).
+- `traefik`: Controls how the service is registered in Traefik (`name`, `subDomain`, `middleware`). The service is only registered when `traefik.name` is set.
+
+Example:
+
+```nix
+{config, ...}: {
+  nps.stacks.streaming.containers.jellyfin = {
+    expose = true;
+
+    traefik = {
+      subDomain = "movies";
+    };
+  };
+}
+```
+
+<RenderDocs :options="data" :include="/services\.podman\.containers\..+\.(port|expose|traefik)(\..*)?/" />
+
+## Container Aliases
+
+<RenderDocs :options="data" :include="/nps\.stacks\.traefik\.containers\..*/" />

@@ -99,3 +99,32 @@ Full monitoring and alerting stack containing:
   };
 }
 ```
+
+## Stack Options
+
+<RenderDocs :options="data" :include="/nps\.stacks\.monitoring\.(?!containers($|\.)).*/" />
+
+## Container Extension
+
+The monitoring stack adds the `alloy` container option to the existing `services.podman.containers.<name>` options.
+When enabled for a container, Alloy will scrape the container's logs and ship them to Loki.
+
+By default log collection is disabled unless `nps.stacks.monitoring.alloy.collectByDefault` is set to `true`.
+When collecting by default, individual containers can opt out by setting `alloy.enable = false`.
+
+Example:
+
+```nix
+{
+  nps.stacks.monitoring.enable = true;
+
+  # Collect logs from this container
+  nps.stacks.streaming.containers.jellyfin.alloy.enable = true;
+}
+```
+
+<RenderDocs :options="data" :include="/services\.podman\.containers\..+\.alloy(\..*)?/" />
+
+## Container Aliases
+
+<RenderDocs :options="data" :include="/nps\.stacks\.monitoring\.containers\..*/" />

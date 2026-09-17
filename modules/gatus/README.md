@@ -33,3 +33,45 @@ Health dashboard for containers
   };
 }
 ```
+
+## Stack Options
+
+<RenderDocs :options="data" :include="/nps\.stacks\.gatus\.(?!containers($|\.)).*/" />
+
+## Container Extension
+
+Gatus adds the `gatus` container options to the existing `services.podman.containers.<name>` options.
+Enabling it adds the container's service to the Gatus endpoint configuration, using the URL registered in Traefik and the default endpoint settings (`nps.stacks.gatus.defaultEndpoint`).
+
+Individual settings (e.g. `url` or `conditions`) can be overridden via the `settings` attribute, see <https://github.com/TwiN/gatus?tab=readme-ov-file#endpoints>.
+
+Example:
+
+```nix
+{config, ...}: {
+  nps.stacks.gatus.enable = true;
+
+  nps.stacks.blocky.containers.blocky = {
+    gatus = {
+      enable = true;
+      settings = {
+        url = "host.containers.internal";
+        dns = {
+          query-name = config.nps.stacks.traefik.domain;
+          query-type = "A";
+        };
+        conditions = [
+          "[DNS_RCODE] == NOERROR"
+        ];
+      };
+    };
+  };
+}
+
+```
+
+<RenderDocs :options="data" :include="/services\.podman\.containers\..+\.gatus(\..*)?/" />
+
+## Container Aliases
+
+<RenderDocs :options="data" :include="/nps\.stacks\.gatus\.containers\..*/" />

@@ -177,9 +177,16 @@ in {
       ];
     };
 
+    nps.stacks.${name}.settings = {
+      filesystem.structure = {
+        default = "roms/{platform}/{game}";
+        firmware = "bios/{platform}";
+      };
+    };
+
     services.podman.containers = {
       ${name} = {
-        image = "ghcr.io/rommapp/romm:5.2.0";
+        image = "ghcr.io/rommapp/romm:5.3.0";
         volumeMap = {
           resources = "${storage}/resources:/romm/resources";
           redisData = "${storage}/redis_data:/redis-data";

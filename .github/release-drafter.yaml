@@ -1,0 +1,51 @@
+---
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+change-template: "- $TITLE (#$NUMBER) $AUTHORS"
+change-title-escapes: '\<*_&'
+
+categories:
+  - title: "🚀 Features"
+    semver-increment: "minor"
+    when:
+      conventional:
+        type: "feat"
+  - title: "🐛 Bug Fixes"
+    when:
+      conventional:
+        type: "fix"
+  - title: "🔧 Refactoring"
+    when:
+      conventional:
+        types: ["refactor", "perf"]
+  - title: "📚 Documentation"
+    when:
+      conventional:
+        type: "docs"
+  - title: "⬆️ Dependency Updates"
+    when:
+      conventional:
+        type: "chore"
+        scope: "deps"
+  - type: "version-resolver"
+    semver-increment: "major"
+    when:
+      conventional:
+        breaking: true
+  - title: "🧰 Other Changes"
+
+# Group renovate bumps of the same package into a single changelog entry.
+# Supports renovate title shapes: "update <img> docker tag to <v>",
+# "update <pkg> action to <v>", "update dependency <pkg> to <v>",
+# "update module <pkg> to <v>", and "update <pkg> to <v>".
+group-changes:
+  - pattern: '/^chore\(deps\): update (?:(?:dependency|module) )?(?<group>.+?)(?: docker tag| action)? to (?<to>\S+)$/'
+    title-template: "Update $GROUP to $LAST_TO"
+
+template: >
+  ## What's Changed
+
+  $CHANGES
+
+  **Full Changelog**:
+  https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

@@ -44,7 +44,7 @@ in {
         Extra environment variables to set for the container.
         Variables can be either set directly or sourced from a file (e.g. for secrets).
 
-        See <https://codewithcj.github.io/SparkyFitness/install/environment-variables/#optional-configuration>
+        See <https://codewithcj.github.io/SparkyFitness/install/environment-variables>
       '';
       example = {
         SOME_SECRET = {

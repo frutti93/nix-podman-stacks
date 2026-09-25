@@ -5,24 +5,24 @@ change-template: "- $TITLE ($NUMBERS) $AUTHORS"
 change-title-escapes: '\<*_&'
 
 categories:
-  - title: "🚀 Features"
+  - title: "Features"
     semver-increment: "minor"
     when:
       conventional:
         type: "feat"
-  - title: "🐛 Bug Fixes"
+  - title: "Bug Fixes"
     when:
       conventional:
         type: "fix"
-  - title: "🔧 Refactoring"
+  - title: "Refactoring"
     when:
       conventional:
         types: ["refactor", "perf"]
-  - title: "📚 Documentation"
+  - title: "Documentation"
     when:
       conventional:
         type: "docs"
-  - title: "⬆️ Dependency Updates"
+  - title: "Dependency Updates"
     when:
       conventional:
         type: "chore"
@@ -32,16 +32,24 @@ categories:
     when:
       conventional:
         breaking: true
-  - title: "🧰 Other Changes"
+  - title: "Other Changes"
 
 group-changes:
   - pattern: '/^chore\(deps\): update (?:action |dependency |module )?(?<group>.+?)(?: docker tag)? to (?<to>\S+)$/'
     title-template: "Update $GROUP to $LAST_TO"
 
 replacers:
-  - search: '/- chore\(deps\): update (?:(?:action |dependency |module )?(?:[^\s/]+/)*([^\s/]+))(?: docker tag)? to (\S+) \(/g'
-    replace: "- Update $1 to $2 ("
-  - search: '/- Update (?:[^\s/]+/)+([^\s/]+) to /g'
+  # Grouped entries come from `group-changes` rebuilding the title, which drops
+  # the " docker tag " marker. A registry path is all that is left to go on.
+  - search: '/- Update (?:[^\s/]+\/)+([^\s/]+) to /g'
+    replace: "- Update $1 to "
+  # Ungrouped docker bump: the marker is still there, so the name is a registry
+  # path. Has to run before the catch-all below, which would keep the path.
+  - search: '/- chore\(deps\): update (?:[^\s/]+\/)+([^\s/]+) docker tag to /g'
+    replace: "- Update $1 to "
+  # Everything else: normalise the prefix, keep the name exactly as written.
+  # Has to run last, or it would hand a path to the first replacer to strip.
+  - search: '/- chore\(deps\): update (?:action |dependency |module )?([^\s]+)(?: docker tag)? to /g'
     replace: "- Update $1 to "
 
 template: |

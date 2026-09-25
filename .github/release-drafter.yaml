@@ -1,7 +1,7 @@
 ---
 name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
-change-template: "- $TITLE (#$NUMBER) $AUTHORS"
+change-template: "- $TITLE ($NUMBERS) $AUTHORS"
 change-title-escapes: '\<*_&'
 
 categories:
@@ -35,13 +35,14 @@ categories:
   - title: "🧰 Other Changes"
 
 group-changes:
-  - pattern: '/^chore\(deps\): update (?:(?:dependency|module) )?(?<group>.+?)(?: docker tag| action)? to (?<to>\S+)$/'
-    title-template: "Update $GROUP from $FIRST_FROM to $LAST_TO"
+  - pattern: '/^chore\(deps\): update (?<group>.+?) docker tag to (?<to>\S+)$/'
+    title-template: "Update $GROUP to $LAST_TO"
+  - pattern: '/^chore\(deps\): update (?:action |dependency |module )?(?<group>.+?) to (?<to>\S+)$/'
+    title-template: "Update $GROUP to $LAST_TO"
 
 template: |
   ## What's Changed
 
   $CHANGES
-
 
   **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

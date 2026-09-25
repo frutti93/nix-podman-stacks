@@ -35,10 +35,14 @@ categories:
   - title: "🧰 Other Changes"
 
 group-changes:
-  - pattern: '/^chore\(deps\): update (?<group>.+?) docker tag to (?<to>\S+)$/'
+  - pattern: '/^chore\(deps\): update (?:action |dependency |module )?(?<group>.+?)(?: docker tag)? to (?<to>\S+)$/'
     title-template: "Update $GROUP to $LAST_TO"
-  - pattern: '/^chore\(deps\): update (?:action |dependency |module )?(?<group>.+?) to (?<to>\S+)$/'
-    title-template: "Update $GROUP to $LAST_TO"
+
+replacers:
+  - search: '/- chore\(deps\): update (?:(?:action |dependency |module )?(?:[^\s/]+/)*([^\s/]+))(?: docker tag)? to (\S+) \(/g'
+    replace: "- Update $1 to $2 ("
+  - search: '/- Update (?:[^\s/]+/)+([^\s/]+) to /g'
+    replace: "- Update $1 to "
 
 template: |
   ## What's Changed

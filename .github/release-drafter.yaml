@@ -34,13 +34,9 @@ categories:
         breaking: true
   - title: "🧰 Other Changes"
 
-# Group renovate bumps of the same package into a single changelog entry.
-# Supports renovate title shapes: "update <img> docker tag to <v>",
-# "update <pkg> action to <v>", "update dependency <pkg> to <v>",
-# "update module <pkg> to <v>", and "update <pkg> to <v>".
 group-changes:
   - pattern: '/^chore\(deps\): update (?:(?:dependency|module) )?(?<group>.+?)(?: docker tag| action)? to (?<to>\S+)$/'
-    title-template: "Update $GROUP to $LAST_TO"
+    title-template: "Update $GROUP from $FIRST_FROM to $LAST_TO"
 
 template: |
   ## What's Changed

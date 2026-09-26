@@ -134,19 +134,9 @@ in {
 
         wantsContainer = [dbName] ++ lib.optional cfg.oidc.enable "authelia";
 
-        homepage = {
-          inherit category;
-          name = displayName;
-          settings = {
-            inherit description;
-            icon = "scanopy";
-          };
-        };
-
-        glance = {
+        dashboard = {
           inherit category description;
           name = displayName;
-          id = name;
           icon = "di:scanopy";
         };
       };
@@ -171,11 +161,11 @@ in {
           }
           // cfg.extraEnv;
 
-        glance = {
+        dashboard = {
           inherit category;
-          parent = name;
           name = "Daemon";
           icon = "di:scanopy";
+          parent = name;
         };
       };
 
@@ -189,11 +179,11 @@ in {
           POSTGRES_PASSWORD.fromFile = cfg.db.passwordFile;
         };
 
-        glance = {
+        dashboard = {
           inherit category;
-          parent = name;
           name = "Postgres";
           icon = "di:postgres";
+          parent = name;
         };
       };
     };

@@ -115,18 +115,9 @@ in {
         port = 5173;
         traefik.name = name;
 
-        homepage = {
-          inherit category;
-          name = displayName;
-          settings = {
-            inherit description;
-            icon = "sh-kaneo";
-          };
-        };
-        glance = {
+        dashboard = {
           inherit category description;
           name = displayName;
-          id = webName;
           icon = "sh:kaneo";
         };
       };
@@ -155,11 +146,11 @@ in {
 
         traefik.name = apiName;
 
-        glance = {
+        dashboard = {
           inherit category;
           name = "Backend";
-          parent = name;
           icon = "sh:kaneo";
+          parent = webName;
         };
       };
 
@@ -184,11 +175,11 @@ in {
         };
 
         stack = name;
-        glance = {
+        dashboard = {
           inherit category;
           name = "Postgres";
-          parent = name;
           icon = "di:postgres";
+          parent = webName;
         };
       };
     };

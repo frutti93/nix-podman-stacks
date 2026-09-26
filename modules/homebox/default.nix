@@ -145,18 +145,9 @@ in {
         port = 7745;
         traefik.name = name;
         stack = name;
-        homepage = {
-          inherit category;
-          name = displayName;
-          settings = {
-            inherit description;
-            icon = "homebox";
-          };
-        };
-        glance = {
+        dashboard = {
           inherit category description;
           name = displayName;
-          id = name;
           icon = "di:homebox";
         };
       };
@@ -171,11 +162,11 @@ in {
         };
 
         stack = name;
-        glance = {
+        dashboard = {
           inherit category;
-          parent = name;
           name = "Postgres";
           icon = "di:postgres";
+          parent = name;
         };
       };
     };

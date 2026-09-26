@@ -97,7 +97,6 @@ in {
       port = 8080;
       traefik = {
         name = name;
-        subDomain = lib.mkDefault "";
       };
 
       dashboard = {

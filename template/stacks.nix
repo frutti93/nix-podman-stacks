@@ -22,10 +22,6 @@
         enable = true;
         enableGrafanaDashboard = true;
         enablePrometheusExport = true;
-        containers.blocky = {
-          # Clicking the Blocky icon redirects to the Grafana dashboard
-          dashboard.url = "${config.nps.containers.grafana.traefik.serviceUrl}/d/blocky";
-        };
       };
 
       crowdsec = {

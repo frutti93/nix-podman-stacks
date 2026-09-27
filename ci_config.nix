@@ -6,12 +6,15 @@
   pkgs,
   ...
 }: let
-  dummyId = "dummy";
-  dummySecret = "insecure_secret";
-  dummySecretFile = "${pkgs.writeText "insecure_secret" dummySecret}";
-  dummyHash = "$argon2id$v=19$m=65536,t=3,p=4$8USywQgWNhOf4drzlVTieA$Rm8SlHy+ipThtIa/6nMMir2QkoXESCr4uCB2aAdvlmo";
-  dummyUser = "admin";
-  dummyEmail = "admin@example.com";
+  inherit
+    (import ./tests/dummy-values.nix pkgs)
+    dummyClientSecretHash
+    dummyEmail
+    dummyId
+    dummySecret
+    dummySecretFile
+    dummyUser
+    ;
 in {
   config.nps = rec {
     hostIP4Address = "192.168.178.2";
@@ -34,7 +37,7 @@ in {
         };
         oidc = {
           registerClient = true;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -58,7 +61,7 @@ in {
       audiobookshelf = {
         oidc = {
           registerClient = true;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -105,7 +108,7 @@ in {
         };
         oidc = {
           registerClient = true;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -205,7 +208,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
         settings.is_user_creation_disabled = true;
       };
@@ -248,7 +251,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -266,7 +269,7 @@ in {
         };
         oidc = {
           enable = true;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
           clientSecretFile = dummySecretFile;
         };
         settings.auth.methods.password.enabled = false;
@@ -334,7 +337,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -433,7 +436,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -443,7 +446,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
         db = {
           type = "postgres";
@@ -487,7 +490,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
         db.passwordFile = dummySecretFile;
       };
@@ -499,7 +502,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -508,7 +511,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
         nextauthSecretFile = dummySecretFile;
         meiliMasterKeyFile = dummySecretFile;
@@ -530,7 +533,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -539,7 +542,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -566,7 +569,7 @@ in {
         enable = true;
         oidc = {
           enable = true;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
           clientSecretFile = dummySecretFile;
         };
       };
@@ -575,7 +578,7 @@ in {
         enable = true;
         oidc = {
           registerClient = true;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
         db = {
           type = "postgres";
@@ -638,7 +641,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -663,7 +666,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -691,7 +694,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
         secretKeyFile = dummySecretFile;
         extraEnv = {
@@ -746,7 +749,7 @@ in {
           oidc = {
             enable = true;
             clientSecretFile = dummySecretFile;
-            clientSecretHash = dummyHash;
+            clientSecretHash = dummyClientSecretHash;
           };
         };
       };
@@ -762,7 +765,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
         db = {
           userPasswordFile = dummySecretFile;
@@ -862,7 +865,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -873,7 +876,7 @@ in {
             oidc = {
               enable = true;
               clientSecretFile = dummySecretFile;
-              clientSecretHash = dummyHash;
+              clientSecretHash = dummyClientSecretHash;
             };
           };
           seerr.enable = true;
@@ -905,7 +908,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
         containers.tandoor.extraEnv = {
           # https://docs.tandoor.dev/system/configuration/#default-permissions
@@ -920,7 +923,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
         db.passwordFile = dummySecretFile;
       };
@@ -940,7 +943,7 @@ in {
         enable = true;
         oidc = {
           enable = true;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
           clientSecretFile = dummySecretFile;
         };
       };
@@ -950,7 +953,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -961,7 +964,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 
@@ -973,7 +976,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
         settings = {
           service.enableregistration = false;
@@ -1007,7 +1010,7 @@ in {
         oidc = {
           enable = true;
           clientSecretFile = dummySecretFile;
-          clientSecretHash = dummyHash;
+          clientSecretHash = dummyClientSecretHash;
         };
       };
 

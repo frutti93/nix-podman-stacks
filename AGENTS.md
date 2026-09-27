@@ -42,10 +42,20 @@ nix build .#integrationTests.x86_64-linux.<stack>-integration --no-link --option
 ```
 
 The central test scaffolding lives in `tests/` (`base-config.nix`, `base-home.nix`,
-`vm.nix`, `check.sh`, `driver.py`) and is merged with the per-stack
-`vm-test.nix` home-manager fragment. Skip stacks that cannot run in a plain VM
-(devices, privileged ports, cross-stack coupling) by simply not adding a
-`vm-test.nix`.
+`mk-integration-test.nix`, `check.sh`, `driver.py`, `dummy-values.nix`) and is merged
+with the per-stack `vm-test.nix` home-manager fragment.
+
+The scaffolding is also exported as the `lib` flake output (`lib.mkIntegrationTest`,
+`lib.stackTestModules`) so consumers can test their own configuration. The
+`integrationTests` output is generated with
+`self.lib.mkIntegrationTest`, so repo and consumer tests share one code path. When
+changing anything under `tests/` or `lib/`, update the `integrationTests` call site in
+`flake.nix` and the options table in `docs/book/testing.md` with it. CI builds the stacks
+matching changed files and falls back to `it-tools` when the shared scaffolding changed,
+but it only covers `x86_64-linux`/KVM, so verify locally with:
+`nix build .#integrationTests.x86_64-linux.it-tools-integration --option sandbox false`.
+
+`npsTest.*` options are declared by `tests/base-config.nix`.
 
 ## Module Structure
 
@@ -81,8 +91,12 @@ in {
 When adding a new module, also add a `modules/<name>/vm-test.nix` (a home-manager
 fragment enabling the stack with dummy secrets) so the stack gets a NixOS VM
 integration test. Available dummy secrets are exposed via `_module.args`
-(`dummySecretFile`, `dummyHash`) from `tests/base-home.nix`. See
-`modules/it-tools/vm-test.nix` for a minimal example.
+(`dummySecretFile`, `dummyClientSecretHash`) from `tests/base-home.nix`, which sources them from
+`tests/dummy-values.nix`. See `modules/it-tools/vm-test.nix` for a minimal example.
+
+A memory hungry stack raises `npsTests.memorySize` in its own `vm-test.nix` (e.g. `immich`).
+That option is declared by `tests/base-home.nix` and used by `tests/base-config.nix`, so
+exported stack test modules work standalone.
 
 ## Container Configuration Patterns
 

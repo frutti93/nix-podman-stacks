@@ -1,5 +1,5 @@
 {
-  dummyHash,
+  dummyClientSecretHash,
   dummySecretFile,
   ...
 }: {
@@ -14,7 +14,7 @@
     grafana.oidc = {
       enable = true;
       clientSecretFile = dummySecretFile;
-      clientSecretHash = dummyHash;
+      clientSecretHash = dummyClientSecretHash;
     };
     prometheus.rules.groups = [
       {

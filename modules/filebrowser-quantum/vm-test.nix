@@ -1,7 +1,7 @@
 {
   config,
   lib,
-  dummyHash,
+  dummyClientSecretHash,
   dummySecretFile,
   selfSignedCertDir,
   ...
@@ -19,7 +19,7 @@
     oidc = {
       enable = true;
       clientSecretFile = dummySecretFile;
-      clientSecretHash = dummyHash;
+      clientSecretHash = dummyClientSecretHash;
     };
     settings.auth.methods.password.enabled = false;
   };

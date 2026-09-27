@@ -34,6 +34,14 @@
     lib = nixpkgs.lib;
   in {
     homeModules = import ./modules/module_list.nix;
+    # Public helpers, mainly `lib.mkIntegrationTest`. See docs/book/testing.md.
+    lib = import ./lib {
+      inherit
+        self
+        home-manager
+        lib
+        ;
+    };
     templates.default = {
       description = "Nix Podman Stacks Starter";
       path = ./template;
@@ -75,6 +83,7 @@
     # every `packages.<system>` derivation, which would build all the heavy VM
     # test closures on every check. Use `nix build
     # .#integrationTests.x86_64-linux.<stack>-integration` to run a test.
+    # Built via `self.lib.mkIntegrationTest`, the same entry point consumers use.
     integrationTests = forAllSystems (
       system: let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -86,21 +95,22 @@
           stackNames = builtins.filter (
             name: builtins.pathExists ./modules/${name}/vm-test.nix
           ) (builtins.attrNames (import ./modules/module_list.nix));
-          mkIntegrationTest = stackName:
-            (import ./tests/vm.nix {
-              inherit
-                pkgs
-                home-manager
-                self
-                ;
-            })
-            stackName;
         in
-          lib.listToAttrs (map (name: {
+          (lib.listToAttrs (map (name: {
               name = "${name}-integration";
-              value = mkIntegrationTest name;
+              value = self.lib.mkIntegrationTest {
+                inherit pkgs;
+                name = "${name}-integration";
+                modules = [./modules/${name}/vm-test.nix];
+              };
             })
             stackNames))
+          // {
+            # End-to-end test of the shipped template config, see tests/template.nix.
+            template-integration = import ./tests/template.nix {
+              inherit self pkgs;
+            };
+          })
     );
 
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);

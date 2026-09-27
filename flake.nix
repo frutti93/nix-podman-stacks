@@ -106,9 +106,20 @@
             })
             stackNames))
           // {
-            # End-to-end test of the shipped template config, see tests/template.nix.
-            template-integration = import ./tests/template.nix {
-              inherit self pkgs;
+            # End-to-end test of the shipped template config
+            template-integration = self.lib.mkIntegrationTest {
+              inherit pkgs;
+              name = "template-integration";
+              modules = [
+                sops-nix.homeManagerModules.sops
+                ./template/sops.nix
+                ./template/stacks.nix
+                # Traefik would otherwise try to issue a real Let's Encrypt certificate.
+                self.lib.stackTestModules.traefik
+              ];
+              memorySize = 4096;
+              diskSize = 20480;
+              waitTimeout = 1800;
             };
           })
     );
